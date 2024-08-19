@@ -1,0 +1,12 @@
+{
+    "identifier": "multiwindow",
+    "description": "permissions required for multiple windows",
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "local": true,
+    "windows": [
+        "main"
+    ],
+    "permissions": [
+        "core:webview:allow-create-webview-window"
+    ]
+}

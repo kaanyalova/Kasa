@@ -1,0 +1,174 @@
+<script lang="ts">
+	import { info } from '@tauri-apps/plugin-log';
+	import X from '../Vector/X.svelte';
+	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
+	import { onMount } from 'svelte';
+	import TagDisplay from './TagDisplay.svelte';
+	import SidebarFooter from './SidebarFooter.svelte';
+
+	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
+</script>
+
+<div class="sidebar">
+	<div class="windowControls">
+		<button onclick={MediaModalStatusStore.close} class="">
+			<div class="closeButtonWrapper">
+				<X height={15} width={15}></X>
+			</div>
+		</button>
+	</div>
+
+	<div class="sideBarScrollableContents">
+		<div class="header">Known Paths</div>
+		<ul class="details multicolorRows monoFont">
+			{#each data.paths as path}
+				<li class="oneLine">{path}</li>
+			{/each}
+		</ul>
+
+		<div class="separator"></div>
+
+		<div class="header">Meta</div>
+		<ul class="details multicolorRows">
+			{#each data.meta as meta_entry}
+				<li class="metaEntry">
+					<span class="oneLine">
+						<span class="metaEntryTitle">{meta_entry.name}</span>:
+						<span
+							class:monoFont={meta_entry.isValueMonospaced}
+							class:oneLine={meta_entry.isOneLine}
+						>
+							{meta_entry.value}</span
+						>
+					</span>
+				</li>
+			{/each}
+		</ul>
+
+		<div class="separator"></div>
+
+		<div class="header">Import Info</div>
+		<ul class="details">
+			<li>Imported From <span class="redditMoveThisLater">Placeholder</span></li>
+			<li>
+				Link : <a href="https://old.reddit.com/" class="">
+					https://www.youtube.com/watch?v=dQw4w9WgXcQ</a
+				>
+
+				<!-- 	
+		This should open in users browser not in tauri There should also be the reddit's alien thing
+		next to the "badge", The Link should not be the full, just cut off after first line Not done
+		-->
+			</li>
+		</ul>
+
+		<div class="separator"></div>
+
+		<TagDisplay
+			isInEditMode={MediaModalStatusStore.tagsEditModeActive}
+			initialEditBoxContents={data.rawTagsField}
+			{updateTagsTextBoxContents}
+			{data}
+		></TagDisplay>
+	</div>
+
+	<SidebarFooter {data}></SidebarFooter>
+</div>
+
+<style>
+	.sidebar {
+		background: var(--background);
+		width: 300px;
+		color: var(--text);
+		font-family: 'Ubuntu';
+		border: var(--secondary-alt) 1px solid;
+		border-left: 0px;
+		border-radius: 0px 5px 5px 0px;
+	}
+
+	.sideBarScrollableContents {
+		overflow-y: auto;
+		height: calc(
+			80vh - 25px - 50px - 2px
+		); /* Container height - Window Controls height - Sidebar Footer height - Borders */
+	}
+
+	.windowControls {
+		height: 25px;
+		background-color: var(--accent);
+		flex-grow: 100;
+		display: flex;
+		flex-direction: row-reverse;
+		color: black;
+		padding-right: 5px;
+		border-radius: 0px 5px 0px 0px;
+	}
+
+	.closeButtonWrapper {
+		height: 100%;
+	}
+
+	.header {
+		padding-left: 2px;
+	}
+
+	.separator {
+		height: 10px;
+	}
+	.tags {
+		background-color: var(--background);
+		border: var(--secondary-alt) 1px solid;
+		border-radius: 2px;
+		font-size: small;
+		resize: none;
+		margin: 4px;
+	}
+	.tags:focus {
+		outline: var(--accent) 1px solid;
+	}
+
+	.metaEntry {
+		display: flex;
+		align-items: center;
+	}
+	.metaEntryTitle {
+		font-weight: bold;
+	}
+
+	.oneLine {
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.details {
+		font-size: small;
+		border: var(--secondary-alt) 1px solid;
+		padding: 2px;
+		border-radius: 2px;
+		margin: 4px;
+	}
+	.multicolorRows > li:nth-child(2n) {
+		background-color: var(--secondary-alt);
+	}
+
+	.monoFont {
+		font-family: 'UbuntuMono';
+	}
+
+	li {
+		padding: 2px;
+	}
+
+	.redditMoveThisLater {
+		background-color: #e64f17;
+		padding: 2px;
+		color: var(--text);
+		border-radius: 999px;
+	}
+
+	a {
+		text-decoration: underline;
+		font-size: small;
+	}
+</style>

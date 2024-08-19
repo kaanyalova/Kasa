@@ -1,0 +1,40 @@
+:root {
+    --sidebar-color: #0f1e29;
+    --bg-color: #0f1e29;
+    --dark-color: #0f1e29;
+    --border-color: #404552;
+    --border-color-lighter: #646b7e;
+    --hover-color: #c5ddec;
+    --settings-gray: #4d5c72;
+
+    --border: color-mix(in srgb, var(--primary) 10%, var(--background));
+    --border-on-secondary-alt: color-mix(in srgb, var(--primary) 10%, var(--secondary-alt));
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --text: hsl(240, 7%, 8%);
+        --text-opposite: hsl(240, 7%, 92%);
+        --background: hsl(205, 46%, 89%);
+        --primary: hsl(203, 51%, 15%);
+        --secondary: hsl(212, 100%, 34%);
+        --secondary-alt: hsl(210, 50%, 72%);
+        --secondary-border: #6898ce;
+        --secondary-transparent: color-mix(in srgb, var(--secondary) 30%, transparent);
+        --accent: hsl(34, 42%, 60%);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text: hsl(240, 7%, 92%);
+        --text-opposite: hsl(240, 7%, 8%);
+        --background: hsl(205, 46%, 11%);
+        --primary: hsl(203, 51%, 85%);
+        --secondary: hsl(212, 100%, 66%);
+        --secondary-alt: hsl(210, 50%, 27%);
+        --secondary-transparent: color-mix(in srgb, var(--secondary) 30%, transparent);
+
+        --accent: hwb(34 42% 12%);
+    }
+}

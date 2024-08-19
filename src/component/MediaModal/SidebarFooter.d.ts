@@ -1,0 +1,3 @@
+type SidebarFooterProps = {
+    data: MediaInfo
+}

@@ -1,0 +1,50 @@
+use axum::Router;
+use log::{debug, trace};
+use tokio::sync::oneshot::{self, Receiver, Sender};
+use tower_http::services::ServeFile;
+
+// https://github.com/tauri-apps/tauri/issues/3725
+// thanks apple very cool
+
+#[tauri::command]
+
+/// Returns the pointer to close the server
+#[allow(dead_code)]
+pub async fn serve_media(path: String) -> i64 {
+    let (mut kill_rx, kill_tx): (Sender<()>, Receiver<()>) = oneshot::channel();
+
+    let boxed = Box::new(kill_tx);
+
+    let raw = Box::into_raw(boxed) as i64;
+
+    println!("trying to create new server!");
+
+    debug!("trying to create new server, but debug log!");
+    trace!("trying to create new server, but trace log!");
+
+    tokio::spawn(async move {
+        let serve_dir = ServeFile::new(path.clone());
+        let router = Router::new().nest_service("/", serve_dir);
+        let listener = tokio::net::TcpListener::bind("0.0.0.0:3169").await.unwrap();
+        println!("serving! path: {}", path);
+        axum::serve(listener, router)
+            .with_graceful_shutdown(async move { kill_rx.closed().await })
+            .await
+            .unwrap();
+    })
+    .await
+    .unwrap();
+
+    raw
+}
+
+/// This should be only called once from js side
+#[tauri::command]
+#[allow(dead_code)]
+pub async fn close_server(ptr: i64) {
+    unsafe {
+        let _box: Box<Receiver<()>> = Box::from_raw(ptr as *mut Receiver<()>);
+        _box.await.unwrap();
+        println!("closing server!");
+    }
+}

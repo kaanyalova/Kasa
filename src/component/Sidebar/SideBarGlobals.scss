@@ -1,0 +1,21 @@
+// For resizing 
+//`--main-val: 50px` seems like it should be the turning point for the smaller menu
+// 100px is the default
+
+
+// Resize todos
+// on `main-val` <50px do,
+// [] Remove the button names, show only the icons, center the icons on the button
+// [] Remove the header text 
+// [] Turn the search bar into a button
+
+
+:root {
+    --main-val: 100px;
+    --sidebar-content-width: calc(var(--main-val) * 2.5);
+    --sidebar-width: calc(var(--main-val) * 3);
+    --searchbar-width: calc(var(--main-val) * 2.5);
+    --button-width: calc(var(--main-val) * 2.4); // might not be needed, but buttons looks bad on smaller sizes 
+    --resize-bar-padding: 1px;
+
+}

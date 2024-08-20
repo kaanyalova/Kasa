@@ -11,6 +11,7 @@ use kasa_core::{
         thumbnailer::{thumbnail_image_batch, ImageToThumbnail, ThumbnailFormat},
     },
 };
+use log::trace;
 use sqlx::query;
 use tauri::{AppHandle, Manager};
 
@@ -45,16 +46,19 @@ pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<Str
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<Vec<u8>> {
+pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<String> {
+    trace!("getting thumbnail for hash:{}", hash);
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
-    let connection_guard_thumbs = connection_state.db.lock().await;
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
 
     if let (Some(pool), Some(pool_thumbs)) =
         (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
     {
-        Some(get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await);
+        return Some(get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await);
     }
+
+    trace!("something went wrong when thumbnailing");
     None
 }
 

@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { MediaModalStatusStore } from '../MediaModal/MediaModalStatusStore.svelte';
 	import { info } from '@tauri-apps/plugin-log';
+	import { commands } from '$lib/tauri_bindings';
 
 	let { hash, width, height, offset_x, offset_y, isSelected }: ImageProps = $props();
 
@@ -16,14 +17,10 @@
 	 * Hash of the image
 	 */
 	async function getThumbnail(hash: string): Promise<string> {
-		const image_path: string = await invoke('get_thumbnail', { hash: hash });
-		// TODO this spams the os with env var request initialize this with the db into a store instead
-		// TODO bad way of joining paths, it should remove duplicate slashes
-		const thumbs_path: string = await invoke('get_env_var', { var: 'KASA_THUMBS_PATH' });
-
-		const path = `${thumbs_path}${image_path}`;
-
-		return convertFileSrc(path).toString();
+		const thumbnail_bytes = await commands.getThumbnailFromDb(hash);
+		// TODO support other image formats than png
+		const thumbnail = 'data:image/png;base64, ' + thumbnail_bytes;
+		return thumbnail;
 	}
 
 	onMount(async () => {

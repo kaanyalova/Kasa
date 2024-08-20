@@ -30,8 +30,10 @@
 		// https://v2.tauri.app/reference/javascript/api/namespacewindow/#onresized
 		window_size_unlisten = await getCurrentWindow().onResized(({ payload: size }) => {
 			// Rounded because floating window sizes causes it to break
-			tauri_height = Math.round(size.height);
-			tauri_width = Math.round(size.width);
+			//tauri_height = Math.round(size.height);
+			//tauri_width = Math.round(size.width);
+			tauri_height = size.height;
+			tauri_width = size.width;
 		});
 	});
 
@@ -78,7 +80,7 @@
 					gaps: 12
 				});
 
-				if (await invoke('are_dbs_mounted')) {
+				if (!(await invoke('are_dbs_mounted'))) {
 					/*(_values.length === 0)*/ setTimeout(checkDatabase, 500);
 				} else {
 					is_db_mounted = true;

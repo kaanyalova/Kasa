@@ -24,7 +24,6 @@ dev.db
 dev.db*
 *.rnote
 .env
-thumbs
 __dev*
 static/testimages
 build
@@ -36,3 +35,6 @@ dev.kasa*
 danbooru.json
 target/
 out.txt
+default.kasa*
+thumbs.kasa*
+*.kasa

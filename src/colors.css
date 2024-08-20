@@ -22,6 +22,7 @@
         --secondary-border: #6898ce;
         --secondary-transparent: color-mix(in srgb, var(--secondary) 30%, transparent);
         --accent: hsl(34, 42%, 60%);
+        --accent-hover: color-mix(in srgb, var(--accent) 80%, white 20%);
     }
 }
 
@@ -34,7 +35,7 @@
         --secondary: hsl(212, 100%, 66%);
         --secondary-alt: hsl(210, 50%, 27%);
         --secondary-transparent: color-mix(in srgb, var(--secondary) 30%, transparent);
-
         --accent: hwb(34 42% 12%);
+        --accent-hover: color-mix(in srgb, var(--accent) 80%, black 20%);
     }
 }

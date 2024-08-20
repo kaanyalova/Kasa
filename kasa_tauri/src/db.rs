@@ -1,17 +1,26 @@
+use std::{f32::consts::E, str::FromStr};
+
+use log::{error, info, warn};
 use tokio::sync::Mutex;
 
 use kasa_core::{
-    config::global_config::get_config_impl,
+    config::{self, global_config::get_config_impl},
     db::{
         self,
         db::{query_all_test_impl, query_tags_impl},
+        db_info::{get_thumbs_db_info_impl, ThumbsDBInfo},
+        migrations::prepare_dbs,
         schema::{Image, Media, Tag},
     },
     layout::google_photos::{calculate_layout, ImageRow},
 };
-use sqlx::{pool, query, query_as, query_scalar, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{migrate::MigrateDatabase, ConnectOptions};
+use sqlx::{
+    pool, query, query_as, query_scalar,
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    Pool, Sqlite,
+};
 use tauri::{async_runtime::handle, App, AppHandle, Manager};
-
 #[derive(Default)]
 pub struct DbStore {
     pub db: Mutex<Option<Pool<Sqlite>>>,
@@ -88,8 +97,11 @@ pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn connect_dbs() {
+/// Mounts the dbs into db_store, runs any pending migrations
+pub async fn connect_dbs(handle: AppHandle) {
     let config = get_config_impl();
+
+    prepare_dbs(&config).await;
 
     let pool_db = SqlitePoolOptions::new()
         .max_connections(6)
@@ -99,9 +111,14 @@ pub async fn connect_dbs() {
 
     let pool_thumbs = SqlitePoolOptions::new()
         .max_connections(6)
-        .connect(&config.db.db_path)
+        .connect(&config.thumbs.thumbs_db_path)
         .await
         .unwrap();
+
+    // mount the dbs
+    let db_store = handle.state::<DbStore>();
+    *db_store.db.lock().await = Some(pool_db);
+    *db_store.thumbs_db.lock().await = Some(pool_thumbs);
 }
 
 /*
@@ -168,6 +185,19 @@ pub async fn query_all(
         return r;
     } else {
         println!("db was not initialized yet");
+        None
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.thumbs_db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        Some(get_thumbs_db_info_impl(pool).await)
+    } else {
         None
     }
 }

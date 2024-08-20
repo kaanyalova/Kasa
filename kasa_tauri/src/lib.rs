@@ -16,6 +16,9 @@ use media::get_tags;
 //use serve_media::serve_media;
 use config::get_config;
 use db::are_dbs_mounted;
+use db::connect_dbs;
+use db::get_thumbs_db_info;
+use image::get_thumbnail_from_db;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::update_tags;
@@ -61,7 +64,10 @@ pub fn run() {
             get_tags,
             get_env_var,
             are_dbs_mounted,
-            get_config
+            get_config,
+            connect_dbs,
+            get_thumbnail_from_db,
+            get_thumbs_db_info
         ]
     });
 

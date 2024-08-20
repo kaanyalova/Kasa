@@ -14,6 +14,7 @@
 	import { MediaModalStatusStore } from '../component/MediaModal/MediaModalStatusStore.svelte';
 	import { sidebarStore } from '../component/Sidebar/SidebarStore.svelte';
 	import MainPageTitlebarInsides from '../component/Decoration/MainPageTitlebarInsides.svelte';
+	import { commands } from '$lib/tauri_bindings';
 
 	let fileServer: FileServer;
 	onMount(async () => {
@@ -28,6 +29,7 @@
 
 	onMount(async () => {
 		info('conneting  to db');
+		/*
 
 		const db_env_var: string = await invoke('get_env_var', {
 			var: 'KASA_DB_PATH'
@@ -38,6 +40,9 @@
 		await invoke('connect_to_db', {
 			dbPath: db_env_var
 		});
+		*/
+
+		await commands.connectDbs();
 	});
 
 	onDestroy(() => {

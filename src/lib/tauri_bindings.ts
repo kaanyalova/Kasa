@@ -50,14 +50,26 @@ async getTags(hash: string) : Promise<MediaTag[] | null> {
 /**
  * gets the provided env var, returns an empty string if the env var doesn't exist or something goes wrong
  */
-async getEnvVar(var: string) : Promise<string> {
-    return await TAURI_INVOKE("get_env_var", { var });
+async getEnvVar(envvar: string) : Promise<string> {
+    return await TAURI_INVOKE("get_env_var", { envvar });
 },
 async areDbsMounted() : Promise<boolean> {
     return await TAURI_INVOKE("are_dbs_mounted");
 },
 async getConfig() : Promise<GlobalConfig> {
     return await TAURI_INVOKE("get_config");
+},
+/**
+ * Mounts the dbs into db_store, runs any pending migrations
+ */
+async connectDbs() : Promise<void> {
+    await TAURI_INVOKE("connect_dbs");
+},
+async getThumbnailFromDb(hash: string) : Promise<string | null> {
+    return await TAURI_INVOKE("get_thumbnail_from_db", { hash });
+},
+async getThumbsDbInfo() : Promise<ThumbsDBInfo | null> {
+    return await TAURI_INVOKE("get_thumbs_db_info");
 }
 }
 
@@ -85,6 +97,7 @@ export type MetaEntry = { name: string; value: string; isValueMonospaced: boolea
 export type Tag = { name: string }
 export type ThumbnailFormat = "png" | "jpeg" | "avif"
 export type Thumbs = { thumbnail_resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
+export type ThumbsDBInfo = { path: string; size: string; image_count: number }
 
 /** tauri-specta globals **/
 

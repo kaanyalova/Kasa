@@ -1,7 +1,8 @@
 use std::path::{Path, PathBuf};
 
+use base64::prelude::*;
 use image::ImageFormat;
-use log::{error, warn};
+use log::{error, trace, warn};
 use sqlx::{query, query_as, query_scalar, Pool, Sqlite};
 
 use crate::thumbnail::thumbnailer::thumbnail_image_single;
@@ -74,21 +75,28 @@ pub async fn get_thumbnail_from_file_impl(
     }
 }
 
-/// Gets the thumbnail with given hash from the db, returns the bytes
+/// Gets the thumbnail with given hash from the db, returns base64 encoded image
 /// Creates the thumbnail and stores it into the db if the thumbnail doesn't exists
+///
+/// Stores the thumbnail in the db as raw bytes instead of base64 encoded strings because it is more
+/// storage efficient
 pub async fn get_thumbnail_from_db_impl(
     hash: &str,
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
-) -> Vec<u8> {
+) -> String {
     let bytes: Option<Vec<u8>> = query_scalar("SELECT bytes FROM Thumbs WHERE hash = ?")
         .bind(hash)
-        .fetch_optional(pool)
+        .fetch_optional(pool_thumbs)
         .await
         .unwrap();
 
     if let Some(bytes) = bytes {
-        return bytes;
+        // thanks sqlx very cool
+        if !bytes.is_empty() {
+            trace!("thumbnail found in db returning that");
+            return BASE64_STANDARD.encode(bytes);
+        }
     }
 
     // get the file path for the image to thumbnail
@@ -101,13 +109,23 @@ pub async fn get_thumbnail_from_db_impl(
     // TODO un hardcode these
     let thumbnail = thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG).unwrap();
 
+    trace!("writing thumbnail to db");
     // write the thumbnail to db
-    query("INSERT INTO Thumbs(bytes) VALUES (?)")
-        .bind(&thumbnail.bytes)
-        .execute(pool_thumbs)
-        .await
-        .unwrap();
+    query(
+        "INSERT INTO Thumbs(hash, x, y, x_max, y_max, format, bytes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(hash)
+    .bind(thumbnail.x)
+    .bind(thumbnail.y)
+    .bind(256) // TODO unhardcode
+    .bind(256) // TODO unhardcode
+    .bind("PNG") // TODO unhardcode
+    .bind(&thumbnail.bytes)
+    .execute(pool_thumbs)
+    .await
+    .unwrap();
 
-    // return the bytes
-    thumbnail.bytes
+    // return the encoded
+    let encoded = BASE64_STANDARD.encode(thumbnail.bytes);
+    encoded
 }

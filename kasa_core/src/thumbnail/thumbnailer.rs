@@ -10,6 +10,7 @@ use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 use image::io::Reader as ImageReader;
 use image::{error, ImageEncoder};
+use log::trace;
 use rayon::{prelude::*, result};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
@@ -225,19 +226,18 @@ pub fn thumbnail_image_single(
     let mut resizer = Resizer::new();
     resizer.resize(&src_image, &mut dest_img, None).unwrap();
 
-    let bytes: Vec<u8> = vec![];
-    let mut result_buf = BufWriter::new(bytes);
+    let mut bytes: Vec<u8> = vec![];
 
     match _format {
         ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut result_buf)
+            PngEncoder::new(&mut bytes)
                 .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
                 .unwrap();
         }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut result_buf)
+        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes)
             .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
             .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut result_buf)
+        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes)
             .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
             .unwrap(),
     }
@@ -245,7 +245,7 @@ pub fn thumbnail_image_single(
     let thumbnail = Thumbnail {
         x: dst_x,
         y: dst_y,
-        bytes: result_buf.buffer().to_vec(),
+        bytes,
     };
 
     Ok(thumbnail)

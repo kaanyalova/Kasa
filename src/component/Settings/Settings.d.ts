@@ -1,5 +1,3 @@
-
 type SettingsProps = {
-    selectedCategory: string,
-    updateSelectedCategory: Function
+    selectedCategory: string;
 }

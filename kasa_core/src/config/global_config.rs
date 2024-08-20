@@ -4,19 +4,20 @@ use std::{
     path::PathBuf,
 };
 
+use log::info;
 use serde::{Deserialize, Serialize};
 use toml_edit::{value, DocumentMut};
 
 const DEFAULT_CONFIG: &str = r#"
 [Database]
 # Path of the currently open database file
-db_path = ""
+db_path = "./default.kasa"
 
 
 
 [Thumbnails]
 # Path of the db that stores the thumbnails
-thumbs_db_path = ""
+thumbs_db_path = "./thumbs.kasa"
 
 # The max resolution for thumbnails
 thumbnail_resolution = [256, 256]
@@ -81,6 +82,7 @@ fn get_config_dir() -> PathBuf {
 
 pub fn get_config_impl() -> GlobalConfig {
     let path = get_config_dir().join("config.toml");
+    check_config(&path);
 
     let f = fs::read_to_string(path).unwrap();
 
@@ -103,15 +105,21 @@ pub fn set_value(category: &str, key: &str, val: &str) {
 }
 
 /// Checks if the config file exists, creates it if it doesn't
+/// `path` is absolute path to config.toml
 fn check_config(path: &PathBuf) {
     // create the parent "kasa" directory if it doesn't exist
     let parent = path.parent().unwrap();
 
     if !parent.is_dir() {
+        info!(
+            "Config directory doesn't exist creating at {}",
+            parent.display()
+        );
         create_dir(parent).unwrap();
     }
 
     if !path.exists() {
+        info!("Config file doesn't exist, creating at {}", path.display());
         fs::write(&path, DEFAULT_CONFIG).unwrap()
     }
 }

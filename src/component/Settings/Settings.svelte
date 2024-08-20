@@ -1,19 +1,25 @@
 <script lang="ts">
-	import SettingsSidebar from './SettingsSidebar.svelte';
+	import Database from './Screens/Database.svelte';
+	import Thumbnails from './Screens/Thumbnails.svelte';
+	import { SettingsCategories } from './Settings';
 
-	let selectedCategory = $state('');
-
-	function updateSelectedCategory(category: string) {
-		selectedCategory = category;
-	}
+	let { category: selectedCategory } = $props();
 </script>
 
-<SettingsSidebar {updateSelectedCategory} {selectedCategory}>Hello</SettingsSidebar>
-
-<div class="settings"></div>
+<div class="settings">
+	{#if selectedCategory === SettingsCategories.Thumbnails}
+		<Thumbnails></Thumbnails>
+	{/if}
+	{#if selectedCategory === SettingsCategories.Database}
+		<Database></Database>
+	{/if}
+</div>
 
 <style>
 	.settings {
 		color: var(--text);
+		display: flex;
+		flex-grow: 100;
+		padding: 6px;
 	}
 </style>

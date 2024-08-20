@@ -37,9 +37,11 @@ struct IndexFolderArgs {
     #[clap(default_value_t = 8)]
     cores: i64,
     #[arg(long)]
-    db_path: std::path::PathBuf,
+    db_path: Option<std::path::PathBuf>,
     #[arg(long)]
-    thumbs_db_path: std::path::PathBuf,
+    thumbs_db_path: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = true)]
+    use_config_file: bool,
 }
 
 #[derive(clap::Args)]
@@ -53,6 +55,8 @@ struct ThumbnailArgs {
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+    dotenvy::dotenv().unwrap();
     let args = KasaCli::parse();
     match args {
         KasaCli::PopulateTags(args) => populate_tags(args).await,

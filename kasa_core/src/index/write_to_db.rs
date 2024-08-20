@@ -1,3 +1,4 @@
+use log::debug;
 use sqlx::{query, query_builder, Execute, Pool, QueryBuilder, Sqlite};
 
 use crate::{
@@ -21,15 +22,15 @@ pub async fn write_to_db(
         "INSERT OR IGNORE INTO Media(hash, media_type, thumb_path, filesize, mime, time_added, thumbnail_x, thumbnail_y)",
     );
 
-    query_builder.push_values(inputs.generic_media_data.into_iter(), |mut b, data| {
-        b.push_bind(data.hash)
+    query_builder.push_values(inputs.generic_media_data.iter(), |mut b, data| {
+        b.push_bind(&data.hash)
             .push_bind(media_type_to_string(&media_type))
-            .push_bind(data.thumb_path)
+            .push_bind(&data.thumb_path)
             .push_bind(data.size as i64)
-            .push_bind(data.mime)
-            .push_bind(data.time_added)
-            .push_bind(data.thumbnail_x)
-            .push_bind(data.thumbnail_y);
+            .push_bind(&data.mime)
+            .push_bind(&data.time_added)
+            .push_bind(&data.thumbnail_x)
+            .push_bind(&data.thumbnail_y);
     });
 
     let query = query_builder.build();
@@ -54,7 +55,7 @@ pub async fn write_to_db(
             let mut query_builder: QueryBuilder<Sqlite> =
                 QueryBuilder::new("INSERT INTO Image(resolution_x, resolution_y, hash) ");
             // TODO remove clone()
-            query_builder.push_values(inputs.media_data.clone().into_iter(), |mut b, data| {
+            query_builder.push_values(inputs.media_data.into_iter(), |mut b, data| {
                 #[allow(irrefutable_let_patterns)] // what???
                 if let MediaTypeWithData::Image(d) = data {
                     b.push_bind(d.resolution_x as i64)
@@ -74,21 +75,24 @@ pub async fn write_to_db(
     // Write the thumbnail info to db
 
     // TODO get them from Local db preferences, or global? idk
+
+    /* *
     let thumbnail_max_x = 256;
     let thumbnail_max_y = 256;
 
     match media_type {
         MediaType::Image => {
             let mut query_builder: QueryBuilder<Sqlite> =
-                QueryBuilder::new("INSERT INTO Thumbs(hash, x, y, x_max, y_max) ");
+                QueryBuilder::new("INSERT OR IGNORE INTO Thumbs(hash, x, y, x_max, y_max) ");
 
-            query_builder.push_values(inputs.media_data.into_iter(), |mut b, data| {
+            query_builder.push_values(inputs.generic_media_data.into_iter(), |mut b, data| {
                 #[allow(irrefutable_let_patterns)] // what???
-                if let MediaTypeWithData::Image(d) = data {
-                    b.push_bind(d.hash)
-                        .push_bind(d.resolution_x)
-                        .push_bind(d.resolution_y);
-                }
+                b.push_bind(data.hash)
+                    .push_bind(data.thumbnail_x)
+                    .push_bind(data.thumbnail_y)
+                    // TODO add actual values
+                    .push_bind(256)
+                    .push_bind(256);
             });
 
             let query = query_builder.build();
@@ -98,4 +102,6 @@ pub async fn write_to_db(
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
     }
+
+    */
 }

@@ -1,6 +1,8 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use kasa_core::{db::schema::Image, layout::google_photos::calculate_layout};
 use rand::Rng;
+
+fn main() {}
 /*
 fn criterion_benchmark(c: &mut Criterion) {
     //c.sample_size(50);

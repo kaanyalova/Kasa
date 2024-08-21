@@ -39,3 +39,4 @@ default.kasa*
 thumbs.kasa*
 *.kasa
 test_output.txt
+bfg-*.jar

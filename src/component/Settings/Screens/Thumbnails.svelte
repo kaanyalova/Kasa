@@ -3,12 +3,52 @@
 	import FileManager from '../../Vector/FileManager.svelte';
 	import '../../../fonts.css';
 	import Select from 'svelte-select';
+	import { comma } from 'postcss/lib/list';
+	import type { ResolutionKey, ThumbsDBInfo } from '$lib/tauri_bindings';
+	import { dataDir } from '@tauri-apps/api/path';
+	import { isNumericString } from '$lib/isNumbericString';
+	import { debug, trace } from '@tauri-apps/plugin-log';
 
-	let promise = $state(commands.getThumbsDbInfo());
+	const THUMBNAIL_MAX = 8192;
+
+	let promise = $state(onLoad());
+
+	async function onLoad(): Promise<ThumbsDBInfo | null> {
+		const info = await commands.getThumbsDbInfo();
+		thumb_height = info!.height;
+		thumb_width = info!.width;
+		thumb_format = info!.format;
+
+		return info;
+	}
 
 	let db_path = $state('');
+	let thumb_height = $state(0);
+	let thumb_width = $state(0);
+	let thumb_format = $state('');
 
-	// TODO move the confirm button to bottom right
+	// Handle thumbnail resolution changes
+	$effect(() => {
+		thumb_height;
+		thumb_width;
+
+		if (isNumericString(thumb_height.toString())) {
+			const height = Math.min(THUMBNAIL_MAX, thumb_height);
+			const width = Math.min(THUMBNAIL_MAX, thumb_width);
+			commands.setConfigResolutionValue('Height', height, width);
+			console.log('update');
+		}
+	});
+
+	// Handle thumbnail file format changes
+	$effect(() => {
+		thumb_format;
+		// Don't send the initial empty value breaking the config parsing
+		if (thumb_format !== '') {
+			// They are lowercase on config file
+			commands.setConfigValue('Thumbnails', 'thumbnail_format', thumb_format.toLowerCase());
+		}
+	});
 </script>
 
 {#await promise then info}
@@ -43,10 +83,10 @@
 			either should we blame Gnome devs or Apple devs for this one?
 			-->
 			<div class="selectContainer">
-				<select id="imageFormatSelect" class="imageFormatSelect">
-					<option value="png" class="imageFormatSelectOption">PNG</option>
-					<option value="jpeg" class="imageFormatSelectOption">JPEG</option>
-					<option value="avif" class="imageFormatSelectOption">AVIF (slow)</option>
+				<select id="imageFormatSelect" class="imageFormatSelect" bind:value={thumb_format}>
+					<option value="PNG" class="imageFormatSelectOption">PNG</option>
+					<option value="JPEG" class="imageFormatSelectOption">JPEG</option>
+					<option value="AVIF" class="imageFormatSelectOption">AVIF (slow)</option>
 				</select>
 
 				<span class="cursedSelectIcon"> v </span>
@@ -56,13 +96,45 @@
 			Image Resolution
 
 			<div class="resolutionContainer">
-				<label class="resolutionInputLabel" for="resolutionInputWidth">Width</label>
-				<input type="text" class="resolutionInput textInput monoFont" id="resolutionInputWidth" />
+				<!-- TODO move them to their own component-->
+				<div class="resolutionInputContainer">
+					<div class="resolutionInputContainerInner">
+						<label class="resolutionInputLabel" for="resolutionInputWidth">Width</label>
+						<input
+							type="text"
+							class="resolutionInput textInput monoFont"
+							id="resolutionInputWidth"
+							bind:value={thumb_width}
+							oninput={() => {
+								console.log(thumb_width);
+							}}
+						/>
+					</div>
+					{#if thumb_width > THUMBNAIL_MAX}
+						<div class="maxSize">
+							Max: {THUMBNAIL_MAX}
+						</div>
+					{/if}
+				</div>
 
 				<div class="smallVerticalDivider"></div>
 
-				<label class="resolutionInputLabel" for="resolutionInputHeight">Height</label>
-				<input type="text" class="resolutionInput textInput monoFont" id="resolutionInputHeight" />
+				<div class="resolutionInputContainer">
+					<div class="resolutionInputContainerInner">
+						<label class="resolutionInputLabel" for="resolutionInputHeight">Height</label>
+						<input
+							type="text"
+							class="resolutionInput textInput monoFont"
+							id="resolutionInputHeight"
+							bind:value={thumb_height}
+						/>
+					</div>
+					{#if thumb_height > THUMBNAIL_MAX}
+						<div class="maxSize">
+							Max: {THUMBNAIL_MAX}
+						</div>
+					{/if}
+				</div>
 			</div>
 
 			<div class="smallHorizontalDivider"></div>
@@ -77,6 +149,20 @@
 {/await}
 
 <style>
+	.maxSize {
+		background-color: var(--secondary-alt);
+		padding: 1px;
+		padding-left: 2px;
+		padding-right: 2px;
+	}
+	.resolutionInputContainer {
+	}
+
+	.resolutionInputContainerInner {
+		display: flex;
+		height: min-content;
+	}
+
 	.bigImageExceptionCheckboxContainer {
 		display: flex;
 		align-items: center;

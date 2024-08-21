@@ -10,6 +10,9 @@ pub struct ThumbsDBInfo {
     pub path: String,
     pub size: String,
     pub image_count: i64,
+    pub height: u32,
+    pub width: u32,
+    pub format: String,
 }
 
 pub async fn get_thumbs_db_info_impl(pool_thumbs: &Pool<Sqlite>) -> ThumbsDBInfo {
@@ -26,9 +29,13 @@ pub async fn get_thumbs_db_info_impl(pool_thumbs: &Pool<Sqlite>) -> ThumbsDBInfo
         .await
         .unwrap();
 
+    let format: &str = config.thumbs.thumbnail_format.into();
     ThumbsDBInfo {
         path,
         size: file_size_human_readable,
         image_count,
+        width: config.thumbs.thumbnail_resolution[0],
+        height: config.thumbs.thumbnail_resolution[1],
+        format: format.to_string(),
     }
 }

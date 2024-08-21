@@ -12,6 +12,8 @@ use media::get_tags;
 //use serve_media::close_server;
 //use serve_media::serve_media;
 use config::get_config;
+use config::set_config_resolution_value;
+use config::set_config_value;
 use db::are_dbs_mounted;
 use db::connect_dbs;
 use db::get_thumbs_db_info;
@@ -64,7 +66,9 @@ pub fn run() {
             get_config,
             connect_dbs,
             get_thumbnail_from_db,
-            get_thumbs_db_info
+            get_thumbs_db_info,
+            set_config_value,
+            set_config_resolution_value
         ]
     });
 

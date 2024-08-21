@@ -70,6 +70,12 @@ async getThumbnailFromDb(hash: string) : Promise<string | null> {
 },
 async getThumbsDbInfo() : Promise<ThumbsDBInfo | null> {
     return await TAURI_INVOKE("get_thumbs_db_info");
+},
+async setConfigValue(category: string, key: string, valu: string) : Promise<void> {
+    await TAURI_INVOKE("set_config_value", { category, key, valu });
+},
+async setConfigResolutionValue(key: ResolutionKey, height: number, width: number) : Promise<void> {
+    await TAURI_INVOKE("set_config_resolution_value", { key, height, width });
 }
 }
 
@@ -91,13 +97,14 @@ export type ImportInfo = { importSource: string; importLink: string | null }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string }
 export type MediaTag = { name: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
+export type ResolutionKey = "Width" | "Height"
 /**
  * Basic `Tag` table only used for tag names and FTS searching in thags
  */
 export type Tag = { name: string }
 export type ThumbnailFormat = "png" | "jpeg" | "avif"
 export type Thumbs = { thumbnail_resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
-export type ThumbsDBInfo = { path: string; size: string; image_count: number }
+export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }
 
 /** tauri-specta globals **/
 

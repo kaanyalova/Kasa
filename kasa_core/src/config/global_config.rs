@@ -6,7 +6,7 @@ use std::{
 
 use log::info;
 use serde::{Deserialize, Serialize};
-use toml_edit::{value, DocumentMut};
+use toml_edit::{value, Array, DocumentMut, Value};
 
 const DEFAULT_CONFIG: &str = r#"
 [Database]
@@ -14,12 +14,11 @@ const DEFAULT_CONFIG: &str = r#"
 db_path = "./default.kasa"
 
 
-
 [Thumbnails]
 # Path of the db that stores the thumbnails
 thumbs_db_path = "./thumbs.kasa"
 
-# The max resolution for thumbnails
+# The max resolution for thumbnails, [width, height]
 thumbnail_resolution = [256, 256]
 
 # The file format for thumbnails
@@ -51,7 +50,7 @@ impl Default for Thumbs {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, strum::IntoStaticStr)]
 #[serde(rename_all = "lowercase")]
 pub enum ThumbnailFormat {
     PNG,
@@ -90,7 +89,34 @@ pub fn get_config_impl() -> GlobalConfig {
     config
 }
 
-pub fn set_value(category: &str, key: &str, val: &str) {
+#[derive(specta::Type, Serialize, Deserialize)]
+pub enum ResolutionKey {
+    Width,
+    Height,
+}
+
+/// Special function to set thumbnail resolution array keys
+pub fn set_value_resolution(key: ResolutionKey, height: u32, width: u32) {
+    let path = get_config_dir().join("config.toml");
+    check_config(&path);
+
+    let f = fs::read_to_string(&path).unwrap();
+
+    let mut toml = f.parse::<DocumentMut>().unwrap();
+
+    let index: usize = match key {
+        ResolutionKey::Width => 0,
+        ResolutionKey::Height => 1,
+    };
+
+    let vals = [width as i64, height as i64];
+    toml["Thumbnails"]["thumbnail_resolution"] = value(Value::Array(Array::from_iter(vals)));
+
+    fs::write(path, &toml.to_string()).unwrap();
+}
+
+/// Sets a string value for given category and key
+pub fn set_value_str(category: &str, key: &str, val: &str) {
     let path = get_config_dir().join("config.toml");
 
     check_config(&path);

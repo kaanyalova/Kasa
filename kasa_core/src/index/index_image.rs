@@ -1,4 +1,3 @@
-use std::os::unix::fs::MetadataExt;
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -6,7 +5,7 @@ use crate::db::schema::Image;
 
 use super::media_types::{FirstPass, MediaTypeWithData};
 
-pub fn index_image_batch(first_passes: &Vec<FirstPass>) -> (Vec<MediaTypeWithData>) {
+pub fn index_image_batch(first_passes: &Vec<FirstPass>) -> Vec<MediaTypeWithData> {
     first_passes
         .into_par_iter()
         .map(|img| {

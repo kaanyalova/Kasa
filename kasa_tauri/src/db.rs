@@ -1,26 +1,23 @@
-use std::{f32::consts::E, str::FromStr};
 
-use log::{error, info, warn};
 use tokio::sync::Mutex;
 
 use kasa_core::{
-    config::{self, global_config::get_config_impl},
+    config::{global_config::get_config_impl},
     db::{
-        self,
-        db::{query_all_test_impl, query_tags_impl},
+        db::query_tags_impl,
         db_info::{get_thumbs_db_info_impl, ThumbsDBInfo},
         migrations::prepare_dbs,
-        schema::{Image, Media, Tag},
+        schema::{Media, Tag},
     },
     layout::google_photos::{calculate_layout, ImageRow},
 };
-use sqlx::{migrate::MigrateDatabase, ConnectOptions};
+use sqlx::ConnectOptions;
 use sqlx::{
-    pool, query, query_as, query_scalar,
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    query_as,
+    sqlite::SqlitePoolOptions,
     Pool, Sqlite,
 };
-use tauri::{async_runtime::handle, App, AppHandle, Manager};
+use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
     pub db: Mutex<Option<Pool<Sqlite>>>,

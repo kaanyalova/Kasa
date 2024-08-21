@@ -1,4 +1,4 @@
-use crate::db::schema::{Media, MediaType};
+use crate::db::schema::MediaType;
 
 pub const SUPPORTED_FORMATS: [&str; 14] = [
     "image/avif", //some files may cause problesms see fox.profile0.8bpc.yuv420.odd-width.odd-height.avif

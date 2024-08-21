@@ -1,4 +1,4 @@
-use kasa_core::{db::schema::Image, layout::google_photos::calculate_layout};
+use kasa_core::db::schema::Image;
 use rand::Rng;
 
 pub fn dump_random_gi_layout() {

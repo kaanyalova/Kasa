@@ -1,10 +1,7 @@
-use itertools::Itertools;
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
 use crate::db::{
-    self,
-    schema::{Image, Media},
+    schema::Media,
 };
 
 /// A layout similar to google images

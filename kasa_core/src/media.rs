@@ -1,16 +1,11 @@
-use std::{
-    borrow::{Borrow, BorrowMut},
-    collections::HashMap,
-    os::linux::raw,
-    str::FromStr,
-};
+use std::str::FromStr;
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use human_bytes::human_bytes;
 use serde::{Deserialize, Serialize};
-use sqlx::{query, query_as, query_scalar, sqlite::SqliteRow, Pool, Sqlite};
+use sqlx::{query_as, query_scalar, Pool, Sqlite};
 
-use crate::db::schema::{media_type_to_string, HashTagPair, Image, Media, MediaType, RawTagsField};
+use crate::db::schema::{HashTagPair, Image, Media, MediaType, RawTagsField};
 
 /// Gets all the info to show to user in the sidebar for a piece of media
 pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {

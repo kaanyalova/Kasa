@@ -1,5 +1,5 @@
 use kasa_core::media::{get_info_impl, get_tags_impl, MediaInfo, MediaTag};
-use tauri::{App, AppHandle, Manager};
+use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
 

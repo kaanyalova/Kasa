@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 
 use crate::{db::schema::MediaType, thumbnail::thumbnailer::calculate_aspect_ratio};
 

@@ -1,14 +1,9 @@
-use std::{collections::HashSet, hash::Hash};
+use std::collections::HashSet;
 
-use itertools::Itertools;
 use log::trace;
-use regex::Regex;
-use sqlx::{query, query_as, query_builder, query_scalar, Pool, QueryBuilder, Sqlite};
+use sqlx::{query, query_scalar, Pool, Sqlite};
 
-use crate::db::{
-    schema::HashTagPair,
-    tags::{insert_tags, remove_tags},
-};
+use crate::db::tags::{insert_tags, remove_tags};
 
 pub async fn create_tag() {}
 pub async fn remove_tag() {}

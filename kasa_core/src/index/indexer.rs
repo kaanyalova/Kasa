@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::ParallelIterator;
 use sqlx::{Pool, Sqlite};
 use walkdir::WalkDir;
 
@@ -9,10 +9,9 @@ use crate::{
         indexer_first::index_first_batch,
         indexer_second::indexer_second_batch,
         media_types::FirstPass,
-        write_to_db::{self, write_to_db},
+        write_to_db::{write_to_db},
     },
-    supported_formats::{get_type, SUPPORTED_FORMATS},
-    xxhash::streaming_xxhash,
+    supported_formats::get_type,
 };
 
 const CHUNK_SIZE: usize = 1000;

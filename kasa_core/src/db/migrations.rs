@@ -1,7 +1,7 @@
 use log::{error, info, trace};
 use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions};
 
-use crate::config::global_config::{get_config_impl, GlobalConfig};
+use crate::config::global_config::GlobalConfig;
 
 /// Gets the db paths from config, creates the dbs if they don't exist, runs any pending migrations
 pub async fn prepare_dbs(config: &GlobalConfig) {

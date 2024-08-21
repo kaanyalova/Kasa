@@ -1,11 +1,6 @@
-use log::debug;
-use sqlx::{query, query_builder, Execute, Pool, QueryBuilder, Sqlite};
+use sqlx::{Pool, QueryBuilder, Sqlite};
 
-use crate::{
-    config::global_config::get_config_impl,
-    db::schema::{media_type_to_string, MediaType},
-    media,
-};
+use crate::db::schema::{media_type_to_string, MediaType};
 
 use super::media_types::{DbWritableMediaDataBatch, MediaTypeWithData};
 

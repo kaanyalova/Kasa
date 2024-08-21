@@ -1,6 +1,5 @@
-use std::sync::Arc;
 
-use sqlx::{query, query_scalar, Pool, Sqlite, Transaction};
+use sqlx::{query, query_scalar, Pool, Sqlite};
 
 // Utilities to keep `Tag` and `TagFTS` tables in sync
 

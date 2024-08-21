@@ -1,18 +1,16 @@
-use std::{fs, os::unix::fs::MetadataExt, path::PathBuf};
+use std::{fs, os::unix::fs::MetadataExt};
 
 use chrono::Utc;
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use sqlx::{Pool, Sqlite};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{
     db::schema::MediaType,
     index::index_image::index_image_batch,
-    supported_formats::{get_type, SUPPORTED_FORMATS_IMAGE},
 };
 
 use super::{
     media_types::{
-        DbWritableMediaDataBatch, FirstPass, GenericMediaData, MediaTypeWithData, PathData,
+        DbWritableMediaDataBatch, FirstPass, GenericMediaData, PathData,
     },
     thumbnail_sizes::get_thumbnail_size,
 };

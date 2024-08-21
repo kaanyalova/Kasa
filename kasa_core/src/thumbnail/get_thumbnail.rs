@@ -1,9 +1,8 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use base64::prelude::*;
-use image::ImageFormat;
-use log::{error, trace, warn};
-use sqlx::{query, query_as, query_scalar, Pool, Sqlite};
+use log::{error, trace};
+use sqlx::{query, query_scalar, Pool, Sqlite};
 
 use crate::thumbnail::thumbnailer::thumbnail_image_single;
 

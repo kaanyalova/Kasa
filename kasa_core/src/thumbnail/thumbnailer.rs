@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufWriter, Read};
+use std::io::BufWriter;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -9,9 +9,8 @@ use image::codecs::avif::AvifEncoder;
 use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 use image::io::Reader as ImageReader;
-use image::{error, ImageEncoder};
-use log::trace;
-use rayon::{prelude::*, result};
+use image::ImageEncoder;
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use thiserror::Error;

@@ -1,18 +1,10 @@
-use std::{
-    collections::HashMap,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
 
-use kasa_core::{
-    db::db::query_all_test_impl,
-    thumbnail::{
+use kasa_core::thumbnail::{
         get_thumbnail::{get_thumbnail_from_db_impl, get_thumbnail_from_file_impl},
-        thumbnailer::{thumbnail_image_batch, ImageToThumbnail, ThumbnailFormat},
-    },
-};
+        thumbnailer::ThumbnailFormat,
+    };
 use log::trace;
-use sqlx::query;
 use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;

@@ -1,4 +1,3 @@
-use std::{env, path::PathBuf};
 
 use kasa_core::config::global_config::{get_config_impl, GlobalConfig};
 

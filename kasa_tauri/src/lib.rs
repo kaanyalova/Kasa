@@ -4,11 +4,8 @@ use db::query_all;
 use db::query_tags;
 use db::DbStore;
 use db::MediaCache;
-use dotenvy::dotenv;
 use image::get_thumbnail;
 use linux::get_desktop;
-use log::info;
-use log::trace;
 use log::warn;
 use media::get_info;
 use media::get_tags;
@@ -49,9 +46,9 @@ pub fn run() {
         Err(_) => warn!("A .env was file not found, continuing..."),
     }
 
-    let mut context = tauri::generate_context!();
+    let context = tauri::generate_context!();
 
-    let mut builder = Builder::<tauri::Wry>::new().commands({
+    let builder = Builder::<tauri::Wry>::new().commands({
         collect_commands![
             connect_to_db,
             query_tags,

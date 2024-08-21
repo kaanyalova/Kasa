@@ -1,4 +1,3 @@
-use std::fs;
 /*
 use kasa_core::thumbnailer::{thumbnail_image_batch, ImageToThumbnail};
 

@@ -1,13 +1,6 @@
-use std::fs::DirEntry;
-use std::fs::File;
-use std::path::PathBuf;
 
 use itertools::Itertools;
 use rayon::prelude::*;
-use sqlx::QueryBuilder;
-use sqlx::Sqlite;
-use sqlx::SqlitePool;
-use walkdir::WalkDir;
 
 const CHUNK_SIZE: usize = 1000;
 

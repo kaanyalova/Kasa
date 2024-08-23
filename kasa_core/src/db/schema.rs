@@ -9,8 +9,13 @@ pub struct Media {
     pub hash: String,
     pub media_type: String,
     pub thumb_path: Option<String>,
+
+    // Thumbnails might be generated with different resolutions in the thumbs database compared to,
+    // this database, this should not matter as the layouts are calculated using aspect ratio instead,
+    // of resolution, though it might make sense to replace this with aspect ratio instead
     pub thumbnail_x: i64,
     pub thumbnail_y: i64,
+
     pub filesize: i64,
     pub mime: String,
     pub time_added: i64,

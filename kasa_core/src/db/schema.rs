@@ -4,7 +4,7 @@ use sqlx::{prelude::FromRow, Encode};
 use strum::EnumString;
 
 /// Info about Media of all types
-#[derive(FromRow, Serialize, Deserialize, Debug, Clone)]
+#[derive(FromRow, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Media {
     pub hash: String,
     pub media_type: String,

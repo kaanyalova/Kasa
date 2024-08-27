@@ -1,4 +1,3 @@
-
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::db::schema::Image;

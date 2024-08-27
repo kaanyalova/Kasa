@@ -71,31 +71,31 @@
 		await onResize();
 	});
 
-	onMount(() => {
-		const checkDatabase = async () => {
-			try {
-				const _values: Array<ImageRow> = await invoke('query_all', {
-					width: tauri_width - sidebarStore.size * 3 - 10,
-					imgHeight: 200,
-					gaps: 12
-				});
+	async function checkDatabase() {
+		try {
+			const _values: Array<ImageRow> = await invoke('query_all', {
+				width: tauri_width - sidebarStore.size * 3 - 10,
+				imgHeight: 200,
+				gaps: 12
+			});
 
-				if (!(await invoke('are_dbs_mounted'))) {
-					/*(_values.length === 0)*/ setTimeout(checkDatabase, 500);
-				} else {
-					is_db_mounted = true;
-					const _heights: Array<number> = _values.map((row) => row.height);
+			if (!(await invoke('are_dbs_mounted'))) {
+				/*(_values.length === 0)*/ setTimeout(checkDatabase, 500);
+			} else {
+				is_db_mounted = true;
+				const _heights: Array<number> = _values.map((row) => row.height);
 
-					values = _values;
-					heights = _heights;
-				}
-			} catch (error) {
-				console.error('Error querying database:', error);
-				// If there's an error, try again after a delay
-				setTimeout(checkDatabase, 500);
+				values = _values;
+				heights = _heights;
 			}
-		};
+		} catch (error) {
+			console.error('Error querying database:', error);
+			// If there's an error, try again after a delay
+			setTimeout(checkDatabase, 500);
+		}
+	}
 
+	onMount(() => {
 		checkDatabase();
 		values = values;
 

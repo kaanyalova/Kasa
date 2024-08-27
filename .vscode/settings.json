@@ -3,7 +3,9 @@
         "anymap",
         "kasa",
         "resizer",
+        "rustfmt",
         "thumbnailer",
-        "thumbnailing"
+        "thumbnailing",
+        "unseparated"
     ]
 }

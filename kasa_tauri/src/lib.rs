@@ -31,6 +31,7 @@ mod linux;
 mod media;
 //mod serve_media;
 mod config;
+mod search;
 mod tags;
 mod utils;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

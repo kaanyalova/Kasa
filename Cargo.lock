@@ -2542,6 +2542,7 @@ dependencies = [
  "itertools 0.13.0",
  "log",
  "mime_guess",
+ "nom",
  "rayon",
  "regex",
  "serde",

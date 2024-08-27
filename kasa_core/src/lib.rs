@@ -8,5 +8,6 @@ mod metadata;
 pub mod os;
 mod supported_formats;
 pub mod tags;
+mod test_util;
 pub mod thumbnail;
 mod xxhash;

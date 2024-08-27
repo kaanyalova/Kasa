@@ -1,8 +1,7 @@
-
 use tokio::sync::Mutex;
 
 use kasa_core::{
-    config::{global_config::get_config_impl},
+    config::global_config::get_config_impl,
     db::{
         db::query_tags_impl,
         db_info::{get_thumbs_db_info_impl, ThumbsDBInfo},
@@ -12,11 +11,7 @@ use kasa_core::{
     layout::google_photos::{calculate_layout, ImageRow},
 };
 use sqlx::ConnectOptions;
-use sqlx::{
-    query_as,
-    sqlite::SqlitePoolOptions,
-    Pool, Sqlite,
-};
+use sqlx::{query_as, sqlite::SqlitePoolOptions, Pool, Sqlite};
 use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {

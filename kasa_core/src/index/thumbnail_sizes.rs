@@ -1,4 +1,3 @@
-
 use crate::{db::schema::MediaType, thumbnail::thumbnailer::calculate_aspect_ratio};
 
 pub fn get_thumbnail_size(media_type: MediaType, path: &str) -> (u32, u32) {

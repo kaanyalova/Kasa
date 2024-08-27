@@ -6,10 +6,8 @@ use walkdir::WalkDir;
 use crate::{
     db::schema::MediaType,
     index::{
-        indexer_first::index_first_batch,
-        indexer_second::indexer_second_batch,
-        media_types::FirstPass,
-        write_to_db::{write_to_db},
+        indexer_first::index_first_batch, indexer_second::indexer_second_batch,
+        media_types::FirstPass, write_to_db::write_to_db,
     },
     supported_formats::get_type,
 };

@@ -3,15 +3,10 @@ use std::{fs, os::unix::fs::MetadataExt};
 use chrono::Utc;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{
-    db::schema::MediaType,
-    index::index_image::index_image_batch,
-};
+use crate::{db::schema::MediaType, index::index_image::index_image_batch};
 
 use super::{
-    media_types::{
-        DbWritableMediaDataBatch, FirstPass, GenericMediaData, PathData,
-    },
+    media_types::{DbWritableMediaDataBatch, FirstPass, GenericMediaData, PathData},
     thumbnail_sizes::get_thumbnail_size,
 };
 

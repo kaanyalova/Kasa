@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::db::{
-    schema::Media,
-};
+use crate::db::schema::Media;
 
 /// A layout similar to google images
 /// https://medium.com/@danrschlosser/building-the-image-grid-from-google-photos-6a09e193c74a

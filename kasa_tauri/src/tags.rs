@@ -1,4 +1,4 @@
-use kasa_core::tags::update_tags_impl;
+use kasa_core::tags::tags::update_tags_impl;
 use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;

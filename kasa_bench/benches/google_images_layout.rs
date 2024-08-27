@@ -1,4 +1,3 @@
-
 fn main() {}
 /*
 fn criterion_benchmark(c: &mut Criterion) {

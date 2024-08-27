@@ -76,6 +76,14 @@ async setConfigValue(category: string, key: string, valu: string) : Promise<void
 },
 async setConfigResolutionValue(key: ResolutionKey, height: number, width: number) : Promise<void> {
     await TAURI_INVOKE("set_config_resolution_value", { key, height, width });
+},
+/**
+ * `input_raw`: user tags
+ * `width`: viewport width for layout
+ * `gaps`: gaps between images
+ */
+async search(inputRaw: string, width: number, gaps: number) : Promise<void> {
+    await TAURI_INVOKE("search", { inputRaw, width, gaps });
 }
 }
 

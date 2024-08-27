@@ -8,7 +8,7 @@ use strum::EnumString;
 pub struct Media {
     pub hash: String,
     pub media_type: String,
-    pub thumb_path: Option<String>,
+    pub thumb_path: Option<String>, // can be removed
 
     // Thumbnails might be generated with different resolutions in the thumbs database compared to,
     // this database, this should not matter as the layouts are calculated using aspect ratio instead,

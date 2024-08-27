@@ -8,7 +8,7 @@
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
 	import { appWindow } from '../Decoration/utils/window';
 	import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
-	import type { UnlistenFn } from '@tauri-apps/api/event';
+	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import Image from './Image.svelte';
 
 	let values: Array<ImageRow> = $state([]);
@@ -22,6 +22,11 @@
 	let virtualList: any;
 
 	let window_size_unlisten: UnlistenFn;
+
+	// on cache update run updateLayout();
+	listen('media_updated', async (_) => {
+		await updateLayout();
+	});
 
 	onMount(async () => {
 		const initial_size = await getCurrentWindow().innerSize();

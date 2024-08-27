@@ -18,6 +18,7 @@ use db::are_dbs_mounted;
 use db::connect_dbs;
 use db::get_thumbs_db_info;
 use image::get_thumbnail_from_db;
+use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::update_tags;
@@ -69,7 +70,8 @@ pub fn run() {
             get_thumbnail_from_db,
             get_thumbs_db_info,
             set_config_value,
-            set_config_resolution_value
+            set_config_resolution_value,
+            search
         ]
     });
 

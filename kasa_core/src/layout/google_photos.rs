@@ -23,6 +23,8 @@ use crate::db::schema::Media;
 ///
 /// We use relative positioning svelte-tiny-virtual-list uses item height to calculate
 /// TODO check if svelte-tiny-list works with
+///
+/// TODO `max_height` is not used remove it
 pub fn calculate_layout(
     images: Vec<Media>,
     //downscale_mult: f64,

@@ -11,6 +11,7 @@
 	import { invoke } from '@tauri-apps/api/core';
 	import type { SearchTag } from './SearchDropDown';
 	import { stat } from '@tauri-apps/plugin-fs';
+	import { commands } from '$lib/tauri_bindings';
 
 	let entriesToShow: Array<SearchTag> = $state([]);
 	let searchContents = $state('');
@@ -53,14 +54,18 @@
 
 		entriesToShow = entries;
 	}
+
+	function onSearchButtonClicked() {
+		commands.search(searchContents, 0, 0);
+	}
 </script>
 
 <div class="parentDiv">
-	<div class="searchIcon" class:selected={shouldActuallyShow}>
+	<button class="searchIcon" class:selected={shouldActuallyShow} onclick={onSearchButtonClicked}>
 		<div class="searchIconInner">
 			<MagnifyingGlass height={15} width={15}></MagnifyingGlass>
 		</div>
-	</div>
+	</button>
 
 	<input
 		type="search"

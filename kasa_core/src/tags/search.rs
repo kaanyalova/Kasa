@@ -55,8 +55,16 @@ pub enum OrderType {
 
 /// Placeholder search until I implement proper search parsing
 /// Only supports searching for Media that have the tags
-pub async fn search_simple(raw_input: &str, pool: &Pool<Sqlite>) -> Vec<Media> {
+pub async fn search_simple_impl(raw_input: &str, pool: &Pool<Sqlite>) -> Vec<Media> {
     let tags = parse_tags(raw_input);
+
+    // show all Media on empty search
+    if tags.len() == 0 {
+        return query_as("SELECT * FROM Media")
+            .fetch_all(pool)
+            .await
+            .unwrap();
+    }
 
     let mut query_builder: QueryBuilder<Sqlite> =
         QueryBuilder::new("SELECT m.* FROM HashTagPair htp, Media m WHERE (htp.tag_name) IN (");
@@ -106,7 +114,7 @@ fn test_simple_search(pool: Pool<Sqlite>) {
 
     dbg!(parse_tags(inp));
 
-    let media_from_db = search_simple("never,gonna,give,you,up", &pool).await;
+    let media_from_db = search_simple_impl("never,gonna,give,you,up", &pool).await;
 
     assert_eq!(media_from_db.len(), 1);
 

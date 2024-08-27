@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::db::schema::Media;
+use crate::{db::schema::Media, thumbnail::thumbnailer::calculate_aspect_ratio};
+
+const LAST_ROW_HEIGHT: u64 = 250;
 
 /// A layout similar to google images
 /// https://medium.com/@danrschlosser/building-the-image-grid-from-google-photos-6a09e193c74a
@@ -114,10 +116,30 @@ pub fn calculate_layout(
                 placements.push(placement);
             }
 
-            let image_row = ImageRow {
+            let mut image_row = ImageRow {
                 height: row_height as u64 + gaps,
                 images: placements,
             };
+
+            // At last image, go back and resize all images to sensible sizes
+            if i + 1 == images_len {
+                let mut current_x_last = 0 + gaps;
+
+                for image in &mut image_row.images {
+                    let (x, y) =
+                        // this is not efficient i know, and don't care
+                        calculate_aspect_ratio(image.width as u32, image.height as u32, 99999, LAST_ROW_HEIGHT as u32);
+
+                    image.x_relative = current_x_last;
+                    current_x_last += x as u64 + gaps;
+
+                    image.width = x as u64;
+                    image.height = y as u64;
+                }
+
+                // set the row height to predetermined value
+                image_row.height = LAST_ROW_HEIGHT;
+            }
 
             rows.push(image_row);
             current_y += row_height as u64;

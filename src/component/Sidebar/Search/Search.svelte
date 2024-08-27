@@ -55,13 +55,13 @@
 		entriesToShow = entries;
 	}
 
-	function onSearchButtonClicked() {
+	function onSearch() {
 		commands.search(searchContents, 0, 0);
 	}
 </script>
 
 <div class="parentDiv">
-	<button class="searchIcon" class:selected={shouldActuallyShow} onclick={onSearchButtonClicked}>
+	<button class="searchIcon" class:selected={shouldActuallyShow} onclick={onSearch}>
 		<div class="searchIconInner">
 			<MagnifyingGlass height={15} width={15}></MagnifyingGlass>
 		</div>
@@ -106,6 +106,9 @@
 					if (keyboardSelectedIndex >= 0) {
 						console.log(`selected with keyboard ,index: ${keyboardSelectedIndex}`);
 						shouldShow = false;
+					} else {
+						// no index selected user should want to search stuff
+						onSearch();
 					}
 					break;
 			}

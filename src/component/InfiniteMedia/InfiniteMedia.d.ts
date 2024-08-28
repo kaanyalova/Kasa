@@ -5,6 +5,7 @@ type Item = {
 }
 
 type ImageRow = {
+    index: number;
     height: number;
     images: Array<ImagePlacement>;
 };

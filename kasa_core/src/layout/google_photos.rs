@@ -34,6 +34,7 @@ pub fn calculate_layout(
     max_height: u64,
     gaps: u64,
 ) -> Vec<ImageRow> {
+    let mut row_index = 0;
     /*
     let min_aspect_ratio = match width {
         0.0..=640.0 => 2.0,
@@ -117,9 +118,12 @@ pub fn calculate_layout(
             }
 
             let mut image_row = ImageRow {
+                index: row_index,
                 height: row_height as u64 + gaps,
                 images: placements,
             };
+
+            row_index += 1;
 
             // At last image, go back and resize all images to sensible sizes
             if i + 1 == images_len {
@@ -161,6 +165,7 @@ pub struct TempRow {
 
 #[derive(Debug, Serialize, Deserialize, Clone, specta::Type)]
 pub struct ImageRow {
+    index: u64,
     height: u64,
     images: Vec<ImagePlacement>,
 }

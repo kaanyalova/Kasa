@@ -62,7 +62,15 @@
 			gaps: 12
 		});
 
-		const _heights: Array<number> = _values.map((row) => row.height);
+		const _heights: Array<number> = _values.map((row) => {
+			// first row should have the gaps height
+			if (row.index === 0) {
+				return row.height;
+				//return (row.height += 12);
+			} else {
+				return row.height;
+			}
+		});
 
 		heights = _heights;
 		values = _values;
@@ -139,32 +147,34 @@
 -->
 
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
-<VirtualList
-	width="100%"
-	itemSize={heights}
-	height="100%"
-	itemCount={values.length}
-	overscanCount={8}
-	bind:this={virtualList}
->
-	<div slot="item" let:index let:style {style}>
-		{#each values[index].images as image}
-			<Image
-				isSelected={false}
-				hash={image.hash}
-				height={image.height}
-				width={image.width}
-				offset_x={image.x_relative}
-				offset_y={image.y_relative}
-			></Image>
-		{/each}
-	</div>
-</VirtualList>
+<div class="list">
+	<VirtualList
+		height="100%"
+		width="100%"
+		itemSize={heights}
+		itemCount={values.length}
+		overscanCount={8}
+		bind:this={virtualList}
+	>
+		<div slot="item" let:index let:style {style}>
+			{#each values[index].images as image}
+				<Image
+					isSelected={false}
+					hash={image.hash}
+					height={image.height}
+					width={image.width}
+					offset_x={image.x_relative}
+					offset_y={image.y_relative}
+				></Image>
+			{/each}
+		</div>
+	</VirtualList>
+</div>
 
 <style>
-	.infiniteMedia {
+	.list {
+		height: calc(100% - 12px); /* onscroll events won't fire without this one, why... ?*/
 		position: relative;
-		user-select: none;
-		-webkit-user-select: none;
+		top: 12px;
 	}
 </style>

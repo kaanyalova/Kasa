@@ -100,7 +100,7 @@ async search(inputRaw: string, width: number, gaps: number) : Promise<void> {
 export type Database = { db_path: string }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
-export type ImageRow = { height: number; images: ImagePlacement[] }
+export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string }
 export type MediaTag = { name: string }

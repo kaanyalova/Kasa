@@ -26,10 +26,18 @@ thumbnail_format = "png"
 
 "#;
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
 
 pub struct Database {
     pub db_path: String,
+}
+
+impl Default for Database {
+    fn default() -> Self {
+        Self {
+            db_path: "./default.kasa".to_string(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]

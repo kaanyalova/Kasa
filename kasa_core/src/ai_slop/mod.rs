@@ -1,13 +1,5 @@
 use std::hash::Hash;
 
-use anyhow::Result;
-use errors::SlopTagParseError;
-use nom::{
-    bytes::complete::{tag, take_till, take_until, take_while},
-    character::is_alphabetic,
-    multi::many0,
-    IResult,
-};
 use serde::{Deserialize, Serialize};
 
 mod a1111;

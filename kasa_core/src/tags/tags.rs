@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use log::trace;
 use sqlx::{query, query_scalar, Pool, Sqlite};

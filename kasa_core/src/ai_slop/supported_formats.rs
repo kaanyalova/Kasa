@@ -1,10 +1,9 @@
 use anyhow::{Ok, Result};
-use std::{collections::HashMap, hash::Hash, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf};
 
 use image::EncodableLayout;
-use img_parts::png::{Png, PngChunk};
+use img_parts::png::Png;
 
-use crate::db;
 
 use super::errors::SlopTagParseError;
 

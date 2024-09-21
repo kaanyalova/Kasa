@@ -1,4 +1,4 @@
-use sqlx::{pool, query, Pool, Sqlite};
+use sqlx::{query, Pool, Sqlite};
 
 use crate::db::schema::Media;
 

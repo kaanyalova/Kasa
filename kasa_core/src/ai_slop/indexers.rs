@@ -1,19 +1,16 @@
 use anyhow::{Ok, Result};
 use exif::{In, Tag};
-use fast_image_resize::images::Image;
 use itertools::Itertools;
 use nom::Finish;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use serde_json::Value;
-use sqlx::{query_builder, Execute, Pool, QueryBuilder, Sqlite};
+use sqlx::{Execute, Pool, QueryBuilder, Sqlite};
 use std::{
-    fs::{self, File},
+    fs::{File},
     io::BufReader,
     path::PathBuf,
     usize,
 };
 
-use rayon::iter::Flatten;
 
 use crate::{
     ai_slop::comfy::ComfyExifJson,
@@ -296,7 +293,7 @@ fn test_a1111_tags_jpeg() {
 
 #[test]
 fn test_comfy_tags_png() {
-    let mut tags = get_prompt_tags_from_img(
+    let tags = get_prompt_tags_from_img(
         &"src/ai_slop/test_assets/comfy_example.png".into(),
         usize::MAX,
     )

@@ -1,13 +1,10 @@
-use std::{collections::HashMap, os::linux::raw};
+use std::collections::HashMap;
 
-use log::trace;
-use nom::IResult;
-use sqlx::{query, query_as, query_builder, Execute, Pool, QueryBuilder, Sqlite};
+use sqlx::{query_as, Pool, QueryBuilder, Sqlite};
 
 use crate::{
     db::{
-        self,
-        schema::{Media, MediaType},
+        schema::Media,
     },
     test_util::db_utils::{insert_hash_tag_pair_row, insert_media_row},
 };
@@ -36,7 +33,7 @@ pub fn parse() {
 
 pub fn search(input: Vec<SearchInput>, pool: &Pool<Sqlite>) {
     // HashMap of tag and vector of hashes
-    let mut tags: HashMap<String, Vec<String>> = HashMap::new();
+    let tags: HashMap<String, Vec<String>> = HashMap::new();
 }
 
 pub enum SearchInput {

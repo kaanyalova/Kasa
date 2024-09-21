@@ -1,8 +1,4 @@
-use kasa_core::{
-    db::schema::Media,
-    layout::google_photos::{calculate_layout, ImageRow},
-    tags::search::search_simple_impl,
-};
+use kasa_core::tags::search::search_simple_impl;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::{DbStore, MediaCache};

@@ -1,20 +1,15 @@
-use core::error;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fmt::Debug,
-    fs,
     path::PathBuf,
 };
 
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use log::{error, trace, warn};
-use pest::pratt_parser::Op;
+use log::{error, trace};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-use crate::db;
 
 use super::{
     errors::SlopTagParseError,

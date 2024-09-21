@@ -1,7 +1,6 @@
-use std::path::PathBuf;
 
 use kasa_core::ai_slop::indexers::get_prompt_tags_from_ids_batch;
-use sqlx::{query_scalar, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{query_scalar, sqlite::SqlitePoolOptions};
 
 pub async fn index_all_ai_images(db_path: &str, max_tag_len: usize) {
     let pool = SqlitePoolOptions::new()

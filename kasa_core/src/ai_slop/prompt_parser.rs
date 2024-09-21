@@ -1,27 +1,15 @@
-use std::hash::Hash;
-use std::{cmp::max, vec};
+use std::vec;
 
-use anyhow::Ok as fuck_off;
-use anyhow::Result;
 use log::{error, trace};
 use nom::bytes::complete::tag;
 use nom::combinator::fail;
-use nom::error::VerboseError;
-use nom::Err;
 use nom::{
-    branch::alt,
-    bytes::complete::{take, take_till, take_until, take_until1, take_while},
-    character::{complete::char, is_alphabetic, is_alphanumeric},
-    combinator::map,
-    error::context,
-    multi::{many0, separated_list0, separated_list1},
-    sequence::separated_pair,
-    Finish, IResult,
+    bytes::complete::{take, take_until, take_until1, take_while},
+    character::complete::char,
+    multi::{many0, separated_list1},
+    sequence::separated_pair, IResult,
 };
-use serde::Deserialize;
-use serde::Serialize;
 
-use crate::db;
 
 use super::SlopTag;
 

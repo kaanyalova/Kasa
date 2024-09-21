@@ -1,5 +1,4 @@
 use thiserror::Error;
-use tokio::sync::mpsc::error;
 
 #[derive(Error, Debug)]
 pub enum SlopTagParseError {

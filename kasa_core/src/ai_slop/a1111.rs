@@ -1,27 +1,16 @@
-use anyhow::Ok as FuckYou;
 use anyhow::Result;
 use core::str;
 use exif::{In, Tag};
-use img_parts::png::Png;
-use log::error;
-use nom::Err;
 use nom::{
     bytes::{
-        self,
-        complete::{tag, take, take_until, take_while},
+        complete::{tag, take},
     },
-    character::{is_alphabetic, is_alphanumeric},
-    multi::many0,
-    AsBytes, IResult,
+    multi::many0, IResult,
 };
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
-use rayon::vec;
-use std::any::Any;
 use std::{fs::File, io::BufReader, path::PathBuf};
-use tokio::time::Sleep;
 
-use crate::db;
 
 use super::prompt_parser::parse_prompt;
 use super::SlopTag;

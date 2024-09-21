@@ -4,13 +4,7 @@ use itertools::Itertools;
 use nom::Finish;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use sqlx::{Execute, Pool, QueryBuilder, Sqlite};
-use std::{
-    fs::{File},
-    io::BufReader,
-    path::PathBuf,
-    usize,
-};
-
+use std::{fs::File, io::BufReader, path::PathBuf, usize};
 
 use crate::{
     ai_slop::comfy::ComfyExifJson,
@@ -198,32 +192,21 @@ pub async fn get_prompt_tags_from_ids_batch(
             .map(|(t, h)| (t.unwrap(), h))
             .filter(|(t, h)| t.is_some())
             .map(|(t, h)| {
-                t.unwrap()
-                    .positive
-                    .into_par_iter()
-                    .map(move |t| ImageTagReference {
-                        hash: h.to_owned(),
-                        tag: t.name,
-                    })
+                let pos: Vec<String> = t.unwrap().positive.into_iter().map(|t| t.name).collect();
+                ImageTagReference { hash: h, tag: pos }
             })
-            .flatten()
             .collect();
 
-        //dbg!(&sloptag_vecs);
-
         for t in sloptag_vecs {
-            insert_tags(vec![t.tag], pool, Some(t.hash)).await;
+            insert_tags(t.tag, pool, Some(t.hash)).await;
         }
-        //let _ = sloptag_vecs
-        //    .into_iter()
-        //    .map(move |t| async { insert_tags(vec![t.tag], pool, Some(t.hash)).await });
     }
 }
 
 #[derive(Debug)]
 struct ImageTagReference {
     pub hash: String,
-    pub tag: String,
+    pub tag: Vec<String>,
 }
 
 pub enum SlopImageMeta {

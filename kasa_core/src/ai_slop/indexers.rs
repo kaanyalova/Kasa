@@ -132,12 +132,8 @@ pub fn get_prompt_tags_from_img(path: &PathBuf, max_tag_len: usize) -> Result<Op
             Ok(Some(parse_comfy_tags_from_meta(&parsed)))
         }
         SlopImageMeta::ComfyOther(meta_b) => {
-            std::fs::write("./out.bin", &meta_b.clone())?;
-
-            //println!("{:?}", String::from_utf8(meta_b.clone()));
             let meta = unsafe { String::from_utf8_unchecked(meta_b.clone()) }; // todo remove unsafe
             let meta = meta.replace("\n", "");
-            // I have no idea what is going on here, maybe that was why there was `\0`s on A1111's metadata
 
             let json: ComfyExifJson = serde_json::from_str(&meta)?;
 
@@ -180,7 +176,7 @@ pub async fn get_prompt_tags_from_ids_batch(
 
         let paths = paths_query.fetch_all(pool).await.unwrap();
 
-        let sloptag_vecs: Vec<ImageTagReference> = paths
+        let sloptag_vecs: Vec<ImageTagReferences> = paths
             .into_par_iter()
             .map(|_path| {
                 (
@@ -193,20 +189,20 @@ pub async fn get_prompt_tags_from_ids_batch(
             .filter(|(t, h)| t.is_some())
             .map(|(t, h)| {
                 let pos: Vec<String> = t.unwrap().positive.into_iter().map(|t| t.name).collect();
-                ImageTagReference { hash: h, tag: pos }
+                ImageTagReferences { hash: h, tags: pos }
             })
             .collect();
 
         for t in sloptag_vecs {
-            insert_tags(t.tag, pool, Some(t.hash)).await;
+            insert_tags(t.tags, pool, Some(t.hash)).await;
         }
     }
 }
 
 #[derive(Debug)]
-struct ImageTagReference {
+struct ImageTagReferences {
     pub hash: String,
-    pub tag: Vec<String>,
+    pub tags: Vec<String>,
 }
 
 pub enum SlopImageMeta {

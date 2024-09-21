@@ -7,6 +7,9 @@ use crate::config::global_config::GlobalConfig;
 
 /// Gets the db paths from config, creates the dbs if they don't exist, runs any pending migrations
 pub async fn prepare_dbs(config: &GlobalConfig) {
+    // WARNING on development  this causes different path outputs when using the cli and
+    //  the tauri app, tauri seems to have ./kasa_tauri as its base directory while
+    //  kasa_cli_utils have ./ as its base dir,
     let db_path_absolute = std::path::absolute(&config.db.db_path)
         .unwrap()
         .to_string_lossy()
@@ -78,6 +81,7 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
 
     info!("running migrations");
 
+    dbg!(db_path_absolute);
     // run migrations
     // TODO show that migrations are running to users
     sqlx::migrate!("../migrations/db")
@@ -85,7 +89,7 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
         .await
         .unwrap();
 
-    trace!("running migrations for thumbs");
+    dbg!(thumbs_path_absolute);
     sqlx::migrate!("../migrations/thumbs")
         .run(&pool_thumbs)
         .await

@@ -98,6 +98,11 @@ pub async fn connect_dbs(handle: AppHandle) {
 
     prepare_dbs(&config).await;
 
+    // WARNING ON DEVELOPMENT this causes different path outputs when using the cli and
+    // the tauri app, tauri seems to have ./kasa_tauri as its base directory while
+    // kasa_cli_utils have ./ as its base dir. Don't use the cli without --db-path
+    // if you have something like ../dev.kasa in your config.toml or it will create
+    // the db at the parent dir of this repo
     let db_path_absolute = std::path::absolute(&config.db.db_path)
         .unwrap()
         .to_string_lossy()

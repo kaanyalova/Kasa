@@ -13,19 +13,34 @@
 
 	let promise = $state(onLoad());
 
+	let db_path = $state('');
+	let thumb_height = $state(0);
+	let thumb_width = $state(0);
+	let thumb_format = $state('');
+	let image_count = $state(0);
+	let db_size = $state('');
+
 	async function onLoad(): Promise<ThumbsDBInfo | null> {
 		const info = await commands.getThumbsDbInfo();
 		thumb_height = info!.height;
 		thumb_width = info!.width;
 		thumb_format = info!.format;
+		db_path = info!.path;
+		db_size = info!.size;
+		image_count = info!.image_count;
 
 		return info;
 	}
 
-	let db_path = $state('');
-	let thumb_height = $state(0);
-	let thumb_width = $state(0);
-	let thumb_format = $state('');
+	async function onConfirmThumbnailDatabase() {
+		await commands.setConfigValue('Thumbnails', 'thumbs_db_path', db_path);
+		await commands.connectDbs();
+		await onLoad();
+	}
+
+	$effect(() => {
+		console.log(db_path);
+	});
 
 	// Handle thumbnail resolution changes
 	$effect(() => {
@@ -56,7 +71,7 @@
 		<span class="title">Thumbnail Database</span>
 		<div class="borderedBox">
 			<div class="pathInput">
-				<input type="text" value={info?.path} class="dbPathInput textInput monoFont" />
+				<input type="text" bind:value={db_path} class="dbPathInput textInput monoFont" />
 				<button class="fileSelectButton">
 					<span class="details">Browse</span>
 					<div class="icon">
@@ -65,9 +80,9 @@
 				>
 			</div>
 			<div class="bottomRow">
-				<div class="details dbInfoText">{info?.image_count} Images {info?.size}</div>
+				<div class="details dbInfoText">{image_count} Images {db_size}</div>
 				<div>
-					<button class="confirmButton"> Confirm </button>
+					<button class="confirmButton" onclick={onConfirmThumbnailDatabase}> Confirm </button>
 				</div>
 			</div>
 		</div>

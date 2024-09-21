@@ -84,6 +84,9 @@ async setConfigResolutionValue(key: ResolutionKey, height: number, width: number
  */
 async search(inputRaw: string, width: number, gaps: number) : Promise<void> {
     await TAURI_INVOKE("search", { inputRaw, width, gaps });
+},
+async mountThumbnailDb(path: string) : Promise<void> {
+    await TAURI_INVOKE("mount_thumbnail_db", { path });
 }
 }
 

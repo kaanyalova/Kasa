@@ -15,7 +15,7 @@ use kasa_core::{
 };
 use sqlx::ConnectOptions;
 use sqlx::{query_as, sqlite::SqlitePoolOptions, Pool, Sqlite};
-use tauri::{AppHandle, Manager};
+use tauri::{App, AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
     pub db: Mutex<Option<Pool<Sqlite>>>,
@@ -138,7 +138,11 @@ pub async fn query_all(
     count: i64,
     handle: AppHandle,
 ) -> Result<Option<Vec<TestMedia>>, ()> {
-    let connection_state = handle.state::<DbStore>();
+    let connection_state = h    // WARNING ON DEVELOPMENT this causes different path outputs when using the cli and
+    // the tauri app, tauri seems to have ./kasa_tauri as its base directory while
+    // kasa_cli_utils have ./ as its base dir. Don't use the cli without --db-path
+    // if you have something like ../dev.kasa in your config.toml or it will create
+    // the db at the parent dir of this repoandle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
     if let Some(pool) = connection_guard.as_ref() {
         let media = query_all_test_impl(count, page, pool).await;

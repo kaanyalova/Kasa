@@ -71,7 +71,7 @@ pub fn run() {
             get_thumbs_db_info,
             set_config_value,
             set_config_resolution_value,
-            search
+            search,
         ]
     });
 

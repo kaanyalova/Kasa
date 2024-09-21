@@ -1,3 +1,6 @@
+use std::fs;
+
+use log::info;
 use tokio::sync::Mutex;
 
 use kasa_core::{
@@ -95,15 +98,25 @@ pub async fn connect_dbs(handle: AppHandle) {
 
     prepare_dbs(&config).await;
 
+    let db_path_absolute = fs::canonicalize(&config.db.db_path)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+
+    let thumbs_path_absolute = fs::canonicalize(&config.thumbs.thumbs_db_path)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+
     let pool_db = SqlitePoolOptions::new()
         .max_connections(6)
-        .connect(&config.db.db_path)
+        .connect(&db_path_absolute)
         .await
         .unwrap();
 
     let pool_thumbs = SqlitePoolOptions::new()
         .max_connections(6)
-        .connect(&config.thumbs.thumbs_db_path)
+        .connect(&thumbs_path_absolute)
         .await
         .unwrap();
 
@@ -146,7 +159,7 @@ pub async fn get_layout_from_cache(
     if let Some(media) = cache {
         return Some(calculate_layout(media, width, img_height, gaps));
     } else {
-        dbg!("No media found on cache!");
+        info!("No media found on cache!");
         return None;
     }
 }

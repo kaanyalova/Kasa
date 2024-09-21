@@ -1,3 +1,5 @@
+use std::{fs, path::Path};
+
 use log::{error, info, trace};
 use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions};
 
@@ -5,10 +7,20 @@ use crate::config::global_config::GlobalConfig;
 
 /// Gets the db paths from config, creates the dbs if they don't exist, runs any pending migrations
 pub async fn prepare_dbs(config: &GlobalConfig) {
+    let db_path_absolute = fs::canonicalize(&config.db.db_path)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+
+    let thumbs_path_absolute = fs::canonicalize(&config.thumbs.thumbs_db_path)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+
     info!("trying to connect to dbs");
     //let config = get_config_impl();
 
-    let does_db_exist = sqlx::Sqlite::database_exists(&config.db.db_path)
+    let does_db_exist = sqlx::Sqlite::database_exists(&db_path_absolute)
         .await
         .unwrap();
 
@@ -22,12 +34,13 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
             "kasa database doesn't exist creating database at {}",
             &config.db.db_path
         );
-        sqlx::Sqlite::create_database(&config.db.db_path)
+
+        sqlx::Sqlite::create_database(&db_path_absolute)
             .await
             .unwrap();
     }
 
-    let does_thumbs_db_exist = sqlx::Sqlite::database_exists(&config.thumbs.thumbs_db_path)
+    let does_thumbs_db_exist = sqlx::Sqlite::database_exists(&thumbs_path_absolute)
         .await
         .unwrap();
 
@@ -48,18 +61,18 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
             .unwrap();
     } else {
         info!("thumbs db exists skipping db creation");
-        info!("thumbs db exists at {}", &config.thumbs.thumbs_db_path);
+        info!("thumbs db exists at {}", &thumbs_path_absolute);
     }
 
     let pool_db = SqlitePoolOptions::new()
         .max_connections(6)
-        .connect(&config.db.db_path)
+        .connect(&db_path_absolute)
         .await
         .unwrap();
 
     let pool_thumbs = SqlitePoolOptions::new()
         .max_connections(6)
-        .connect(&config.thumbs.thumbs_db_path)
+        .connect(&thumbs_path_absolute)
         .await
         .unwrap();
 

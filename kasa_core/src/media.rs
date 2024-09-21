@@ -1,7 +1,8 @@
-use std::str::FromStr;
+use std::{os::linux::raw, str::FromStr};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use human_bytes::human_bytes;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{query_as, query_scalar, Pool, Sqlite};
 
@@ -90,22 +91,33 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
 
     // The user might write invalid syntax to the Tags input box in that case we don't want to remove the user input
     // and replace it with the HashTagPair entries, we probably want to warn the user in the UI though
-    let raw_tags_field: Option<RawTagsField> =
+    let raw_tags_field_from_db: Option<RawTagsField> =
         query_as("SELECT * FROM RawTagsField WHERE hash = ? ")
             .bind(&media.hash)
             .fetch_optional(pool)
             .await
             .unwrap();
 
+    let tags_len = tags.len();
+
+    let raw_tags_field: String = match raw_tags_field_from_db {
+        Some(tags) => tags.text,
+        None => {
+            // If the image has auto generated tags we want to generate the raw_tags_field on demand
+            if tags_len > 0 {
+                tags.iter().map(|t| t.name.clone()).join(", ")
+            } else {
+                "".to_string()
+            }
+        }
+    };
+
     MediaInfo {
         tags,
         meta,
         import,
         paths,
-        raw_tags_field: match raw_tags_field {
-            Some(tags) => tags.text,
-            None => "".to_string(),
-        },
+        raw_tags_field,
         hash: hash.to_string(),
         media_type: media.media_type.to_string(),
     }
@@ -156,7 +168,7 @@ pub struct ImportInfo {
     pub import_link: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaTag {
     name: String,

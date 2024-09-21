@@ -1,11 +1,13 @@
 {
     "cSpell.words": [
         "anymap",
+        "exif",
         "kasa",
         "resizer",
         "rustfmt",
         "thumbnailer",
         "thumbnailing",
-        "unseparated"
+        "unseparated",
+        "usercomment"
     ]
 }

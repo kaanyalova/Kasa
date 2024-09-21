@@ -1,3 +1,4 @@
+pub mod ai_slop;
 pub mod config;
 pub mod db;
 pub mod index;

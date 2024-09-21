@@ -1,10 +1,12 @@
 mod dump_random_gi_layout;
+mod index_all_ai_images;
 mod index_folder;
 mod populate_tags;
 mod thumbnail;
 
 use clap::Parser;
 use dump_random_gi_layout::dump_random_gi_layout;
+use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
 use populate_tags::populate_tags;
 //use thumbnail::thumbnail;
@@ -16,7 +18,18 @@ enum KasaCli {
     PopulateTags(PopulateTagsArgs),
     IndexFolder(IndexFolderArgs),
     DumpGILayout,
-    //ThumbnailFolder(ThumbnailArgs),
+    IndexAllAIImages(IndexAllAIImagesArgs), //ThumbnailFolder(ThumbnailArgs),
+}
+
+#[derive(clap::Args)]
+#[command(version, about, long_about = None)]
+struct IndexAllAIImagesArgs {
+    #[clap(default_value_t = 50)]
+    #[arg(long)]
+    tag_max_len: u64,
+
+    #[arg(long)]
+    db_path: std::path::PathBuf,
 }
 
 #[derive(clap::Args)]
@@ -62,5 +75,8 @@ async fn main() {
         KasaCli::PopulateTags(args) => populate_tags(args).await,
         KasaCli::IndexFolder(args) => index_folder(args).await,
         KasaCli::DumpGILayout => dump_random_gi_layout(),
+        KasaCli::IndexAllAIImages(args) => {
+            index_all_ai_images(args.db_path.to_str().unwrap(), args.tag_max_len as usize).await
+        }
     }
 }

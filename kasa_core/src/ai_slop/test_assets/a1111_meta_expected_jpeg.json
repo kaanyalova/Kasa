@@ -1,0 +1,202 @@
+{
+    "positive": [
+        {
+            "name": "bioluminescent-shikoku_gleams",
+            "power": 1.0
+        },
+        {
+            "name": "highres",
+            "power": 1.0
+        },
+        {
+            "name": "best_quality",
+            "power": 1.0
+        },
+        {
+            "name": "cinematic",
+            "power": 1.0
+        },
+        {
+            "name": "epic._concept_art",
+            "power": 1.0
+        },
+        {
+            "name": "digital_art",
+            "power": 1.0
+        },
+        {
+            "name": "realistic",
+            "power": 1.0
+        },
+        {
+            "name": "professional_masterpiece",
+            "power": 1.0
+        },
+        {
+            "name": "curvilinear_perspective",
+            "power": 1.0
+        },
+        {
+            "name": "great_lighting",
+            "power": 1.0
+        },
+        {
+            "name": "dappled_soft_lighting",
+            "power": 1.0
+        },
+        {
+            "name": "volumetric_lighting",
+            "power": 1.0
+        },
+        {
+            "name": "detailed_highlights",
+            "power": 1.0
+        },
+        {
+            "name": "rim_lighting",
+            "power": 1.0
+        }
+    ],
+    "negative": [
+        {
+            "name": "low_quality",
+            "power": 1.0
+        },
+        {
+            "name": "jpeg_artifacts",
+            "power": 1.0
+        },
+        {
+            "name": "blurry",
+            "power": 1.0
+        },
+        {
+            "name": "noisy",
+            "power": 1.0
+        },
+        {
+            "name": "amateur",
+            "power": 1.0
+        },
+        {
+            "name": "poorly_drawn",
+            "power": 1.0
+        },
+        {
+            "name": "flat",
+            "power": 1.0
+        },
+        {
+            "name": "low_contrast",
+            "power": 1.0
+        },
+        {
+            "name": "unrealistic",
+            "power": 1.0
+        },
+        {
+            "name": "oversaturated",
+            "power": 1.0
+        },
+        {
+            "name": "underexposed",
+            "power": 1.0
+        },
+        {
+            "name": "deformed",
+            "power": 1.0
+        },
+        {
+            "name": "distorted",
+            "power": 1.0
+        },
+        {
+            "name": "disfigured",
+            "power": 1.0
+        },
+        {
+            "name": "semi-realistic",
+            "power": 1.4
+        },
+        {
+            "name": "cgi",
+            "power": 1.4
+        },
+        {
+            "name": "3d",
+            "power": 1.4
+        },
+        {
+            "name": "render",
+            "power": 1.4
+        },
+        {
+            "name": "sketch",
+            "power": 1.4
+        },
+        {
+            "name": "cartoon",
+            "power": 1.4
+        },
+        {
+            "name": "drawing",
+            "power": 1.4
+        },
+        {
+            "name": "anime",
+            "power": 1.4
+        },
+        {
+            "name": "text",
+            "power": 1.0
+        },
+        {
+            "name": "close_up",
+            "power": 1.0
+        },
+        {
+            "name": "cropped",
+            "power": 1.0
+        },
+        {
+            "name": "kid",
+            "power": 1.0
+        },
+        {
+            "name": "chibi",
+            "power": 1.0
+        },
+        {
+            "name": "ugly",
+            "power": 1.0
+        },
+        {
+            "name": "duplicate",
+            "power": 1.0
+        },
+        {
+            "name": "morbid",
+            "power": 1.0
+        },
+        {
+            "name": "deformed",
+            "power": 1.0
+        },
+        {
+            "name": "blurry",
+            "power": 1.0
+        },
+        {
+            "name": "bad_proportions",
+            "power": 1.0
+        },
+        {
+            "name": "disfigured",
+            "power": 1.0
+        },
+        {
+            "name": "exaggerated_proportions",
+            "power": 1.0
+        }
+    ]
+}

@@ -42,10 +42,10 @@ pub fn media_type_to_string(i: &MediaType) -> String {
 }
 
 /// File paths, a file can have multiple of them, files are identified by their hashes
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct Path {
-    hash: String,
-    path: String,
+    pub hash: String,
+    pub path: String,
 }
 
 /// Basic `Tag` table only used for tag names and FTS searching in thags

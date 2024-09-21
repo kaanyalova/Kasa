@@ -9,7 +9,7 @@ use sqlx::{query, query_scalar, Pool, Sqlite};
 ///
 /// If the media_hash is `Some(_)` it creates the tags into `Tag` table and creates the `HashTagPairs` from provided tags
 /// and hash, if it is `None` it only creates the tags in the `Tag` table.
-pub async fn insert_tags(tags: Vec<&str>, pool: &Pool<Sqlite>, media_hash: Option<&str>) {
+pub async fn insert_tags(tags: Vec<String>, pool: &Pool<Sqlite>, media_hash: Option<String>) {
     // This runs a query for every tag, might be possible to optimize this somehow?
 
     // Insert tag pairs into HashTagPair
@@ -19,8 +19,8 @@ pub async fn insert_tags(tags: Vec<&str>, pool: &Pool<Sqlite>, media_hash: Optio
 
     if let Some(media_hash) = media_hash {
         for tag in &tags {
-            query("INSERT INTO HashTagPair(hash, tag_name) VALUES (?, ?)")
-                .bind(media_hash)
+            query("INSERT INTO HashTagPair(hash, tag_name) VALUES (?, ?) ON CONFLICT DO NOTHING")
+                .bind(&media_hash)
                 .bind(tag)
                 .execute(&mut *tx)
                 .await
@@ -63,13 +63,13 @@ pub async fn insert_tags(tags: Vec<&str>, pool: &Pool<Sqlite>, media_hash: Optio
 /// If the media_hash is Some(_) it removes any `HashTagPairs` along with `Tag`s
 /// if it is none it only removes `Tag`s
 
-pub async fn remove_tags(tags: Vec<&str>, pool: &Pool<Sqlite>, media_hash: Option<&str>) {
+pub async fn remove_tags(tags: Vec<String>, pool: &Pool<Sqlite>, media_hash: Option<String>) {
     let mut tx = pool.begin().await.unwrap();
 
     if let Some(media_hash) = media_hash {
         for tag in &tags {
             query("DELETE FROM HashTagPair WHERE hash = ? AND tag_name = ?")
-                .bind(media_hash)
+                .bind(&media_hash)
                 .bind(tag)
                 .execute(&mut *tx)
                 .await
@@ -80,7 +80,7 @@ pub async fn remove_tags(tags: Vec<&str>, pool: &Pool<Sqlite>, media_hash: Optio
     for tag in tags {
         let tag_reference_count: i64 =
             query_scalar("SELECT COUNT(*) FROM HashTagPair WHERE tag_name = ?")
-                .bind(tag)
+                .bind(&tag)
                 .fetch_one(pool)
                 .await
                 .unwrap();
@@ -111,7 +111,7 @@ pub async fn remove_tags(tags: Vec<&str>, pool: &Pool<Sqlite>, media_hash: Optio
 
             if should_cleanup_tags_global_config || should_cleanup_tags_per_tag {
                 query("DELETE From Tag WHERE name = ?")
-                    .bind(tag)
+                    .bind(&tag)
                     .execute(&mut *tx)
                     .await
                     .unwrap();
@@ -142,11 +142,11 @@ pub fn parse_tags(input: &str) -> Vec<&str> {
 /// TODOS
 /// - Implicit tags
 /// - Make sure there to deduplicate the HashTagPairs
-pub async fn update_tags_impl(raw_input: &str, hash: &str, pool: &Pool<Sqlite>) {
+pub async fn update_tags_impl(raw_input: &str, hash: String, pool: &Pool<Sqlite>) {
     query(
         "INSERT INTO RawTagsField(hash, _text) VALUES (? , ?) ON CONFLICT DO UPDATE SET _text = ?",
     )
-    .bind(hash)
+    .bind(&hash)
     .bind(raw_input)
     .bind(raw_input)
     .execute(pool)
@@ -157,7 +157,7 @@ pub async fn update_tags_impl(raw_input: &str, hash: &str, pool: &Pool<Sqlite>) 
 
     let previous_tags: Vec<String> =
         query_scalar("SELECT tag_name FROM HashTagPair WHERE hash = ?")
-            .bind(hash)
+            .bind(&hash)
             .fetch_all(pool)
             .await
             .unwrap();
@@ -166,8 +166,17 @@ pub async fn update_tags_impl(raw_input: &str, hash: &str, pool: &Pool<Sqlite>) 
         HashSet::from_iter(previous_tags.iter().map(|tag| tag.as_str()));
     let tags_hs: HashSet<&str> = HashSet::from_iter(tags);
 
-    let to_add: Vec<&str> = tags_hs.difference(&previous_tags_hs).cloned().collect();
-    let to_remove: Vec<&str> = previous_tags_hs.difference(&tags_hs).cloned().collect();
+    let to_add: Vec<String> = tags_hs
+        .difference(&previous_tags_hs)
+        .cloned()
+        .map(|t| t.to_string())
+        .collect();
+
+    let to_remove: Vec<String> = previous_tags_hs
+        .difference(&tags_hs)
+        .cloned()
+        .map(|t| t.to_string())
+        .collect();
 
     trace!("---TAG TRANSACTION---");
     trace!("Previous tags: {:?}", previous_tags_hs);
@@ -176,6 +185,6 @@ pub async fn update_tags_impl(raw_input: &str, hash: &str, pool: &Pool<Sqlite>) 
     trace!("Removing tags from db: {:?}", to_remove);
     trace!("---------------------");
 
-    insert_tags(to_add, pool, Some(hash)).await;
+    insert_tags(to_add, pool, Some(hash.clone())).await;
     remove_tags(to_remove, pool, Some(hash)).await;
 }

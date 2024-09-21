@@ -34,8 +34,8 @@ pub async fn get_thumbs_db_info_impl(pool_thumbs: &Pool<Sqlite>) -> ThumbsDBInfo
         path,
         size: file_size_human_readable,
         image_count,
-        width: config.thumbs.thumbnail_resolution[0],
-        height: config.thumbs.thumbnail_resolution[1],
+        width: config.thumbs.resolution[0],
+        height: config.thumbs.resolution[1],
         format: format.to_string(),
     }
 }

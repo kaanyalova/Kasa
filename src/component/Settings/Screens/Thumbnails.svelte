@@ -4,7 +4,7 @@
 	import '../../../fonts.css';
 	import Select from 'svelte-select';
 	import { comma } from 'postcss/lib/list';
-	import type { ResolutionKey, ThumbsDBInfo } from '$lib/tauri_bindings';
+	import type { ThumbsDBInfo } from '$lib/tauri_bindings';
 	import { dataDir } from '@tauri-apps/api/path';
 	import { isNumericString } from '$lib/isNumbericString';
 	import { debug, trace } from '@tauri-apps/plugin-log';
@@ -50,7 +50,7 @@
 		if (isNumericString(thumb_height.toString())) {
 			const height = Math.min(THUMBNAIL_MAX, thumb_height);
 			const width = Math.min(THUMBNAIL_MAX, thumb_width);
-			commands.setConfigResolutionValue('Height', height, width);
+			commands.setConfigResolutionValue(height, width);
 			console.log('update');
 		}
 	});

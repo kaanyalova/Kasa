@@ -16,6 +16,6 @@ pub fn set_config_value(category: &str, key: &str, valu: &str) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn set_config_resolution_value(key: ResolutionKey, height: u32, width: u32) {
-    set_value_resolution(key, height, width)
+pub fn set_config_resolution_value(height: u32, width: u32) {
+    set_value_resolution(height, width)
 }

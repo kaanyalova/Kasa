@@ -19,7 +19,7 @@ db_path = "./default.kasa"
 thumbs_db_path = "./thumbs.kasa"
 
 # The max resolution for thumbnails, [width, height]
-thumbnail_resolution = [256, 256]
+resolution = [256, 256]
 
 # The file format for thumbnails
 thumbnail_format = "png"
@@ -43,7 +43,7 @@ impl Default for Database {
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
 
 pub struct Thumbs {
-    pub thumbnail_resolution: [u32; 2],
+    pub resolution: [u32; 2],
     pub thumbnail_format: ThumbnailFormat,
     pub thumbs_db_path: String,
 }
@@ -51,7 +51,7 @@ pub struct Thumbs {
 impl Default for Thumbs {
     fn default() -> Self {
         Self {
-            thumbnail_resolution: [256, 256],
+            resolution: [256, 256],
             thumbnail_format: ThumbnailFormat::PNG,
             thumbs_db_path: Default::default(),
         }
@@ -104,7 +104,7 @@ pub enum ResolutionKey {
 }
 
 /// Special function to set thumbnail resolution array keys
-pub fn set_value_resolution(key: ResolutionKey, height: u32, width: u32) {
+pub fn set_value_resolution(height: u32, width: u32) {
     let path = get_config_dir().join("config.toml");
     check_config(&path);
 
@@ -112,13 +112,8 @@ pub fn set_value_resolution(key: ResolutionKey, height: u32, width: u32) {
 
     let mut toml = f.parse::<DocumentMut>().unwrap();
 
-    let index: usize = match key {
-        ResolutionKey::Width => 0,
-        ResolutionKey::Height => 1,
-    };
-
     let vals = [width as i64, height as i64];
-    toml["Thumbnails"]["thumbnail_resolution"] = value(Value::Array(Array::from_iter(vals)));
+    toml["Thumbnails"]["resolution"] = value(Value::Array(Array::from_iter(vals)));
 
     fs::write(path, &toml.to_string()).unwrap();
 }
@@ -163,7 +158,6 @@ fn default_config_parse() {
     #[derive(Serialize, Deserialize, Debug, Default, PartialEq)]
     #[serde(deny_unknown_fields)]
     // Make sure this is the same as above, but with the `deny_unknown_fields`
-
     pub struct GlobalConfig {
         #[serde(rename = "Database")]
         pub db: Database,

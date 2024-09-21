@@ -7,12 +7,12 @@ use crate::config::global_config::GlobalConfig;
 
 /// Gets the db paths from config, creates the dbs if they don't exist, runs any pending migrations
 pub async fn prepare_dbs(config: &GlobalConfig) {
-    let db_path_absolute = fs::canonicalize(&config.db.db_path)
+    let db_path_absolute = std::path::absolute(&config.db.db_path)
         .unwrap()
         .to_string_lossy()
         .to_string();
 
-    let thumbs_path_absolute = fs::canonicalize(&config.thumbs.thumbs_db_path)
+    let thumbs_path_absolute = std::path::absolute(&config.thumbs.thumbs_db_path)
         .unwrap()
         .to_string_lossy()
         .to_string();

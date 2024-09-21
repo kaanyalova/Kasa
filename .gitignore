@@ -40,5 +40,5 @@ thumbs.kasa*
 *.kasa
 test_output.txt
 bfg-*.jar
-./*wal
-./*shm
+*.kasa-wal
+*.kasa-shm

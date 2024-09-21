@@ -4,7 +4,6 @@ use std::{collections::HashMap, path::PathBuf};
 use image::EncodableLayout;
 use img_parts::png::Png;
 
-
 use super::errors::SlopTagParseError;
 
 pub const SLOP_SUPPORTED_FORMATS: [&str; 4] =
@@ -45,9 +44,9 @@ fn png_meta_parsing() {
 
     assert_eq!(expected, meta_a1111);
 
-    let meta_comfy = parse_png_meta(&"src/ai_slop/test_assets/comfy_example.png".into()).unwrap();
+    let _meta_comfy = parse_png_meta(&"src/ai_slop/test_assets/comfy_example.png".into()).unwrap();
 
-    let expected_json =
+    let _expected_json =
         std::fs::read_to_string("src/ai_slop/test_assets/comfy_meta_expected.json").unwrap();
 
     // TODO fix this test!, no need for recursive json, at least for png meta

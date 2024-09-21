@@ -1,7 +1,4 @@
-use itertools::Itertools;
 use rayon::prelude::*;
-
-const CHUNK_SIZE: usize = 1000;
 
 use crate::supported_formats::SUPPORTED_FORMATS;
 use crate::xxhash::streaming_xxhash;

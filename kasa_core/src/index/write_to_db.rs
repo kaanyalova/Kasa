@@ -8,7 +8,7 @@ pub async fn write_to_db(
     inputs: DbWritableMediaDataBatch,
     media_type: MediaType,
     pool: &Pool<Sqlite>,
-    pool_thumbs: &Pool<Sqlite>,
+    _pool_thumbs: &Pool<Sqlite>, // TODO delete this unused
 ) {
     // Write the basic Media data to the db
 

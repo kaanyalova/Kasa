@@ -2,15 +2,13 @@ use anyhow::Result;
 use core::str;
 use exif::{In, Tag};
 use nom::{
-    bytes::{
-        complete::{tag, take},
-    },
-    multi::many0, IResult,
+    bytes::complete::{tag, take},
+    multi::many0,
+    IResult,
 };
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use std::{fs::File, io::BufReader, path::PathBuf};
-
 
 use super::prompt_parser::parse_prompt;
 use super::SlopTag;
@@ -21,7 +19,8 @@ use super::{
 };
 
 /// Parses tags from A1111 generated images
-/// Does not support
+#[allow(unused)]
+#[deprecated]
 fn parse_a1111_tags(path: PathBuf, max_tag_len: usize) -> Result<SlopTags> {
     let mime = mime_guess::from_path(&path).first();
 
@@ -166,12 +165,14 @@ pub fn parse_a111_jpeg_usercomment(input: &[u8]) -> IResult<&[u8], String> {
 
 #[test]
 fn a1111_png_meta_parsing() {
+    #[allow(deprecated)]
     let tags = parse_a1111_tags(
         "src/ai_slop/test_assets/a1111_example.png".into(),
         usize::MAX,
     )
     .unwrap();
 
+    #[allow(unused)]
     let expected = SlopTags {
         positive: vec![
             SlopTag {
@@ -203,6 +204,7 @@ fn a1111_png_meta_parsing() {
 
 #[test]
 fn a1111_jpeg_meta_parsing() {
+    #[allow(deprecated)]
     let tags = parse_a1111_tags("src/ai_slop/test_assets/a1111_example.jpeg".into(), 30).unwrap();
 
     let expected_json =

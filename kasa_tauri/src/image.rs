@@ -9,9 +9,6 @@ use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
 
-const THUMBNAIL_FORMAT: &str = "png";
-const THUMBNAIL_SIZE: (u32, u32) = (256, 256);
-
 #[tauri::command]
 #[specta::specta]
 pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<String>, ()> {

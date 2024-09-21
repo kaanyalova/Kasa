@@ -31,7 +31,7 @@ pub fn calculate_layout(
     images: Vec<Media>,
     //downscale_mult: f64,
     width: f64,
-    max_height: u64,
+    _max_height: u64, // TODO remove this unused
     gaps: u64,
 ) -> Vec<ImageRow> {
     let mut row_index = 0;
@@ -156,11 +156,6 @@ pub fn calculate_layout(
     }
 
     rows
-}
-
-pub struct TempRow {
-    x: u64,
-    y: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, specta::Type)]

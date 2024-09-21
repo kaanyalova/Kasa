@@ -3,7 +3,6 @@ use rand::Rng;
 
 pub fn dump_random_gi_layout() {
     let mut images = vec![];
-    let width = 1000;
 
     for _ in 0..=100_000 {
         let x = rand::thread_rng().gen_range(0..2000);

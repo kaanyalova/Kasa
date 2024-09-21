@@ -1,5 +1,3 @@
-use std::fs;
-
 use log::info;
 use tokio::sync::Mutex;
 
@@ -13,9 +11,8 @@ use kasa_core::{
     },
     layout::google_photos::{calculate_layout, ImageRow},
 };
-use sqlx::ConnectOptions;
 use sqlx::{query_as, sqlite::SqlitePoolOptions, Pool, Sqlite};
-use tauri::{App, AppHandle, Manager};
+use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
     pub db: Mutex<Option<Pool<Sqlite>>>,
@@ -25,23 +22,6 @@ pub struct DbStore {
 #[derive(Default)]
 pub struct MediaCache {
     pub media: Mutex<Option<Vec<Media>>>,
-}
-
-async fn update_row_cache(handle: AppHandle, media: &Vec<Media>) {
-    let state = handle.state::<MediaCache>();
-    *state.media.lock().await = Some(media.clone());
-}
-
-async fn clean_row_cache(handle: AppHandle) {
-    let state = handle.state::<MediaCache>();
-    *state.media.lock().await = None;
-}
-
-#[tauri::command]
-pub async fn get_media_from_cache(handle: AppHandle) -> Option<Vec<Media>> {
-    let state = handle.state::<MediaCache>();
-    let media = state.media.lock().await;
-    media.clone()
 }
 
 #[tauri::command]
@@ -142,7 +122,7 @@ pub async fn query_all(
     // the tauri app, tauri seems to have ./kasa_tauri as its base directory while
     // kasa_cli_utils have ./ as its base dir. Don't use the cli without --db-path
     // if you have something like ../dev.kasa in your config.toml or it will create
-    // the db at the parent dir of this repoandle.state::<DbStore>();
+    // the db at the parent dir of this handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
     if let Some(pool) = connection_guard.as_ref() {
         let media = query_all_test_impl(count, page, pool).await;

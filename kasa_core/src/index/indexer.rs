@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use rayon::iter::ParallelIterator;
 use sqlx::{Pool, Sqlite};
 use walkdir::WalkDir;
 

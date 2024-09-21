@@ -31,6 +31,7 @@ impl Hash for SlopTag {
     }
 }
 
+#[allow(unused)]
 impl SlopTag {
     fn new(name: &str, power: f64) -> Self {
         SlopTag {

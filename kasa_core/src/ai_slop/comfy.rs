@@ -1,15 +1,9 @@
-use std::{
-    collections::HashSet,
-    fmt::Debug,
-    path::PathBuf,
-};
+use std::{collections::HashSet, fmt::Debug, path::PathBuf};
 
 use anyhow::Result;
 use indexmap::IndexMap;
-use itertools::Itertools;
 use log::{error, trace};
 use serde::{Deserialize, Serialize};
-
 
 use super::{
     errors::SlopTagParseError,
@@ -229,6 +223,7 @@ fn get_final_node(input: &ComfyPrompt, node_id: &str) -> Option<String> {
 }
 
 #[deprecated]
+#[allow(unused)]
 fn parse_comfy_tags(path: PathBuf) -> Result<SlopTags> {
     let mime = mime_guess::from_path(&path).first();
 

@@ -3,11 +3,12 @@ use exif::{In, Tag};
 use itertools::Itertools;
 use nom::Finish;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use sqlx::{Execute, Pool, QueryBuilder, Sqlite};
+use sqlx::{Pool, QueryBuilder, Sqlite};
 use std::{fs::File, io::BufReader, path::PathBuf, usize};
 
+#[allow(unused)] // SlopTag is unused even though it is used in tests
 use crate::{
-    ai_slop::comfy::ComfyExifJson,
+    ai_slop::{comfy::ComfyExifJson, SlopTag},
     db::{self},
     tags::tags::insert_tags,
 };
@@ -17,7 +18,7 @@ use super::{
     comfy::{parse_comfy_tags_from_meta, ComfyPrompt},
     errors::SlopTagParseError,
     supported_formats::{parse_png_meta, SLOP_SUPPORTED_FORMATS},
-    SlopTag, SlopTags,
+    SlopTags,
 };
 
 /// Gets AI metadata from various image types for A1111 and Comfy metadata
@@ -170,12 +171,12 @@ pub async fn get_prompt_tags_from_ids_batch(
         //dbg!(sql);
 
         let paths_query = query_builder.build_query_as::<db::schema::Path>();
-        let s = paths_query.sql();
 
         //dbg!(s);
 
         let paths = paths_query.fetch_all(pool).await.unwrap();
 
+        #[allow(unused_variables)] // rustc asks for underscore but it is already there?
         let sloptag_vecs: Vec<ImageTagReferences> = paths
             .into_par_iter()
             .map(|_path| {
@@ -184,12 +185,15 @@ pub async fn get_prompt_tags_from_ids_batch(
                     _path.hash,
                 )
             })
-            .filter(|(t, h)| t.is_ok())
-            .map(|(t, h)| (t.unwrap(), h))
-            .filter(|(t, h)| t.is_some())
-            .map(|(t, h)| {
+            .filter(|(t, _h)| t.is_ok())
+            .map(|(t, _h)| (t.unwrap(), _h))
+            .filter(|(t, _h)| t.is_some())
+            .map(|(t, _h)| {
                 let pos: Vec<String> = t.unwrap().positive.into_iter().map(|t| t.name).collect();
-                ImageTagReferences { hash: h, tags: pos }
+                ImageTagReferences {
+                    hash: _h,
+                    tags: pos,
+                }
             })
             .collect();
 

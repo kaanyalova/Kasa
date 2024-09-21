@@ -1,5 +1,5 @@
 use kasa_core::config::global_config::{
-    get_config_impl, set_value_resolution, set_value_str, GlobalConfig, ResolutionKey,
+    get_config_impl, set_value_resolution, set_value_str, GlobalConfig,
 };
 
 #[tauri::command]

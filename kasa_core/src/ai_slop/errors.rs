@@ -19,7 +19,3 @@ pub enum SlopTagParseError {
     #[error("A1111 The positive prompts don't have a valid ending")]
     A1111NoPromptEndFound,
 }
-
-
-
-enum ParseError {}

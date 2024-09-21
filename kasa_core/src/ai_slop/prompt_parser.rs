@@ -7,9 +7,9 @@ use nom::{
     bytes::complete::{take, take_until, take_until1, take_while},
     character::complete::char,
     multi::{many0, separated_list1},
-    sequence::separated_pair, IResult,
+    sequence::separated_pair,
+    IResult,
 };
-
 
 use super::SlopTag;
 
@@ -34,10 +34,6 @@ enum ParenthesisType {
 
     /// <>
     Angled,
-}
-
-enum Tag {
-    Single(String),
 }
 
 /// Parses the various types of parenthesis between expressions
@@ -226,7 +222,7 @@ fn parse_parenthesis_expr(input: &str) -> IResult<String, (Vec<String>, f64)> {
                 return Ok((input.to_string(), (vec![], 1f64)));
             }
 
-            let (input, (tags, power)) = parse_parenthesis_inner(&parenthesis_expr.inner)?;
+            let (input, (tags, _power)) = parse_parenthesis_inner(&parenthesis_expr.inner)?;
 
             let pow = 1f64 - 1.1f64.powf(parenthesis_expr.count as f64);
             // make sure it isn't lower than 0

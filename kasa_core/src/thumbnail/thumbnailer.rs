@@ -8,8 +8,7 @@ use fast_image_resize::{IntoImageView, Resizer};
 use image::codecs::avif::AvifEncoder;
 use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
-use image::io::Reader as ImageReader;
-use image::ImageEncoder;
+use image::{ImageEncoder, ImageReader};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
@@ -33,7 +32,7 @@ pub struct ImageToThumbnail {
 ///
 ///
 /// Each images path is supplied in `ImageToThumbnail.in_path`
-/// Each thumbnail is outputted at ` {thumbnails_path}/{out_name}.{thumnnailer_format}`
+/// Each thumbnail is outputted at ` {thumbnails_path}/{out_name}.{thumbnailer_format}`
 pub fn thumbnail_image_batch(
     images: &Vec<ImageToThumbnail>,
     resolution: (u32, u32),

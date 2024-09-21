@@ -1,6 +1,4 @@
-use std::fs;
-
-use log::{error, info, trace};
+use log::{error, info};
 use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions};
 
 use crate::config::global_config::GlobalConfig;

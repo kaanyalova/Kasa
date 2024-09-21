@@ -8,7 +8,9 @@ use crate::db::{DbStore, MediaCache};
 /// `input_raw`: user tags
 /// `width`: viewport width for layout
 /// `gaps`: gaps between images  
-pub async fn search(handle: AppHandle, input_raw: String, width: u64, gaps: u64) {
+pub async fn search(handle: AppHandle, input_raw: String, _width: u64, _gaps: u64) {
+    // TODO remove width and gaps
+    //
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
     if let Some(pool) = connection_guard.as_ref() {

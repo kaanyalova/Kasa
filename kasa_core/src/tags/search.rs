@@ -2,10 +2,9 @@ use std::collections::HashMap;
 
 use sqlx::{query_as, Pool, QueryBuilder, Sqlite};
 
+#[allow(unused)]
 use crate::{
-    db::{
-        schema::Media,
-    },
+    db::schema::Media,
     test_util::db_utils::{insert_hash_tag_pair_row, insert_media_row},
 };
 
@@ -15,7 +14,7 @@ pub fn parse() {
     todo!()
 }
 
-// Tags seperated by commas
+// Tags separated by commas
 // `tag1, tag2`
 //
 // OR queries
@@ -31,6 +30,7 @@ pub fn parse() {
 // `tag1, imported between 3 days ago and now`
 // `tag1, imported yesterday`
 
+#[allow(unused)]
 pub fn search(input: Vec<SearchInput>, pool: &Pool<Sqlite>) {
     // HashMap of tag and vector of hashes
     let tags: HashMap<String, Vec<String>> = HashMap::new();

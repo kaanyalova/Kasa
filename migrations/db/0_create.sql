@@ -35,6 +35,7 @@ CREATE TABLE Path (
 CREATE TABLE HashTagPair (
     hash TEXT NOT NULL,
     tag_name TEXT NOT NULL,
+    source TEXT,
     UNIQUE(hash, tag_name)
 );
 

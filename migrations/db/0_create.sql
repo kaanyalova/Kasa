@@ -8,7 +8,8 @@ CREATE TABLE Media (
     mime TEXT NOT NULL,
     thumbnail_x INT ,
     thumbnail_y INT,
-    time_added INT
+    time_added INT,
+    has_file_ref BOOLEAN
 );
 
 

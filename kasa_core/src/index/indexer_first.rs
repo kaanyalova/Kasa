@@ -10,7 +10,6 @@ use super::media_types::FirstPass;
 /// Inserting thousands of rows without grouping is really slow
 /// so we first group the items with their types to process them in the second pass later
 ///
-/// This removes any
 pub fn index_first_batch(chunk: Chunk) -> Vec<FirstPass> {
     chunk
         .into_par_iter()

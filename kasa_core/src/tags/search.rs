@@ -78,6 +78,8 @@ pub async fn search_simple_impl(raw_input: &str, pool: &Pool<Sqlite>) -> Vec<Med
 
     query_builder.push_bind(tags.len() as i32);
 
+    query_builder.push("AND m.has_file_ref = true");
+
     let query = query_builder.build_query_as::<Media>();
 
     query.fetch_all(pool).await.unwrap()
@@ -88,7 +90,7 @@ fn test_simple_search(pool: Pool<Sqlite>) {
     // set up db
     sqlx::migrate!("../migrations/db").run(&pool).await.unwrap();
 
-    let media = Media {
+    let var_name = Media {
         hash: "123".to_string(),
         media_type: "Image".to_string(),
         thumb_path: Some("nowhere".to_string()),
@@ -97,7 +99,9 @@ fn test_simple_search(pool: Pool<Sqlite>) {
         filesize: 9999,
         mime: "nota/mime".to_string(),
         time_added: 0,
+        has_file_ref: true,
     };
+    let media = var_name;
 
     insert_media_row(&pool, &media).await;
 

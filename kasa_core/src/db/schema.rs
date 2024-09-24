@@ -19,6 +19,8 @@ pub struct Media {
     pub filesize: i64,
     pub mime: String,
     pub time_added: i64,
+
+    pub has_file_ref: bool,
 }
 
 // Possible values of `media_type`
@@ -46,6 +48,7 @@ pub fn media_type_to_string(i: &MediaType) -> String {
 pub struct Path {
     pub hash: String,
     pub path: String,
+    pub imported_from: String,
 }
 
 /// Basic `Tag` table only used for tag names and FTS searching in tags

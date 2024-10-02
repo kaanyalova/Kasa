@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use kasa_core::thumbnail::{
-    get_thumbnail::{get_thumbnail_from_db_impl, get_thumbnail_from_file_impl},
-    thumbnailer::ThumbnailFormat,
+    thumbnail_image::ThumbnailFormat,
+    thumbnailer::{get_thumbnail_from_db_impl, get_thumbnail_from_file_impl},
 };
 use log::trace;
 use tauri::{AppHandle, Manager};

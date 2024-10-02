@@ -1,277 +1,157 @@
-use std::fs::File;
-use std::io::BufWriter;
 use std::path::PathBuf;
 
-use anyhow::Result;
-use fast_image_resize::images::Image;
-use fast_image_resize::{IntoImageView, Resizer};
-use image::codecs::avif::AvifEncoder;
-use image::codecs::jpeg::JpegEncoder;
-use image::codecs::png::PngEncoder;
-use image::{ImageEncoder, ImageReader};
-use rayon::prelude::*;
-use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
-use thiserror::Error;
+use base64::prelude::*;
+use log::{error, trace};
+use sqlx::{query, query_scalar, Pool, Sqlite};
 
-use crate::supported_formats::SUPPORTED_FORMATS;
+use crate::{
+    supported_formats,
+    thumbnail::{thumbnail_image::thumbnail_image_single, thumbnail_video::thumbnail_video},
+};
 
-pub struct ImageToThumbnail {
-    /// Also the hash of the image
-    pub out_name: String,
-    pub in_path: String,
-}
+use super::thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat};
 
-/// Thumbnails images
-/// parallely iterates over each image in images
-///
-/// Each image is downscaled to `resolution` where
-/// the longer side of the image is scaled to the longer size of the output resolution without changing the
-/// aspect ratio
-///
-///
-///
-/// Each images path is supplied in `ImageToThumbnail.in_path`
-/// Each thumbnail is outputted at ` {thumbnails_path}/{out_name}.{thumbnailer_format}`
-pub fn thumbnail_image_batch(
-    images: &Vec<ImageToThumbnail>,
-    resolution: (u32, u32),
+/// Returns the relative path of the thumbnail inside the thumbnails directory
+pub async fn get_thumbnail_from_file_impl(
+    pool: &Pool<Sqlite>,
+    hash: &str,
     thumbnails_path: PathBuf,
-    thumbnailer_format: &str,
-) {
-    images.par_iter().for_each(|i| {
-        // check if thumbnail is in the path, it should skip processing if it is in the db
-        // but this might be useful in dev environments, so enable it on debug builds only
-        #[cfg(debug_assertions)]
-        {
-            let is_thumbnail_there = thumbnails_path
-                .join(format!("{}.{}", i.out_name, thumbnailer_format))
-                .exists();
+    thumbnail_format: ThumbnailFormat,
+    resolution_max: (u32, u32),
+) -> Option<String> {
+    // Check if the thumbnail exist in the db, return that if it does
+    let thumbs_path: Option<String> = query_scalar("SELECT thumb_path FROM Media WHERE hash = ?")
+        .bind(hash)
+        .fetch_optional(pool)
+        .await
+        .unwrap();
 
-            if is_thumbnail_there {
-                return;
-            }
-        }
-
-        // check if the image format is one of the image formats supported by Image
-
-        // This guesses mime types based on file extensions not as accurate as reading file headers,
-        // but much faster
-        let mime = mime_guess::from_path(&i.in_path)
-            .first_or_octet_stream()
-            .to_string();
-        if !SUPPORTED_FORMATS.contains(&mime.as_ref()) {
-            //dbg!(
-            //    "file {} is unsupported by the thumbnailer, the mime was: {}",
-            //    &i.in_path,
-            //    mime
-            //);
-            return;
-        }
-
-        dbg!("thumbnailing image: {}", &i.in_path);
-
-        let src_image = ImageReader::open(&i.in_path).unwrap().decode().unwrap();
-
-        let (dst_x, dst_y) = calculate_aspect_ratio(
-            src_image.width(),
-            src_image.height(),
-            resolution.0,
-            resolution.1,
-        );
-
-        dbg!("thumbnail is {}x{} pixels", dst_x, dst_y);
-        dbg!(
-            "other vals, src_x = {}, src_y = {}, dest_max_x = {}, dest_max_y = {}",
-            src_image.width(),
-            src_image.height(),
-            resolution.0,
-            resolution.1
-        );
-
-        let src_color_type = src_image.color();
-
-        let mut dest_img = Image::new(dst_x, dst_y, src_image.pixel_type().unwrap());
-
-        // might be better to not create a resizer every time
-        let mut resizer = Resizer::new();
-        resizer.resize(&src_image, &mut dest_img, None).unwrap();
-
-        let out_file = format!("{}.{}", i.out_name, thumbnailer_format);
-        let out_path = thumbnails_path.join(out_file);
-
-        println!("trying to output the file into {}", &out_path.display());
-        let file = File::create(out_path).unwrap();
-        let mut result_buf = BufWriter::new(file);
-
-        PngEncoder::new(&mut result_buf)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap();
-    })
-}
-
-#[derive(Debug, Error)]
-pub enum ThumbnailerError {
-    #[error("The format is unsupported by the thumbnailer, mime {0}")]
-    FormatUnsupported(String),
-    #[error("Something went wrong while thumbnailing image, details: {0}")]
-    ImageOperationError(String),
-}
-
-/// Thumbnails a single image, returns the thumbnail size
-/// Saves the image to given path
-pub fn thumbnail_image_single_to_file(
-    path: &str,
-    out_path: &str,
-    resolution: (u32, u32),
-    format: &ThumbnailFormat,
-) -> Result<(u32, u32)> {
-    let mime = mime_guess::from_path(path)
-        .first_or_octet_stream()
-        .to_string();
-    if !SUPPORTED_FORMATS.contains(&mime.as_ref()) {
-        //dbg!(
-        //    "file {} is unsupported by the thumbnailer, the mime was: {}",
-        //    &i.in_path,
-        //    mime
-        //);
-
-        return Err(ThumbnailerError::FormatUnsupported(mime).into());
+    let thumbs = thumbs_path.unwrap();
+    if &thumbs != "" {
+        return Some(thumbs);
     }
-    let src_image = ImageReader::open(path).unwrap().decode();
+    /*
+    This does not work
+        if let Some(thumb) = thumbs_path {
+            println!(
+                "thumb already exists for hash:{} thumbs_path:{}",
+                hash, thumb
+            );
+            return thumb;
+        }
+    */
+    let out_path = thumbnails_path
+        .join(hash)
+        .with_extension(&thumbnail_format.to_string().to_lowercase());
 
-    let src_image = match src_image {
-        Ok(img) => img,
-        Err(e) => return Err(ThumbnailerError::ImageOperationError(e.to_string()).into()),
-    };
+    let path: String = query_scalar("SELECT path FROM Path WHERE hash = ?")
+        .bind(hash)
+        .fetch_one(pool)
+        .await
+        .unwrap();
 
-    let src_color_type = src_image.color();
+    match thumbnail_image_single_to_file(
+        &path,
+        out_path.to_str().unwrap(),
+        resolution_max,
+        &thumbnail_format,
+    ) {
+        Ok(_size) => {
+            let thumbnail_path =
+                format!("{}.{}", hash, thumbnail_format.to_string().to_lowercase());
 
-    let (dst_x, dst_y) = calculate_aspect_ratio(
-        src_image.width(),
-        src_image.height(),
-        resolution.0,
-        resolution.1,
-    );
-
-    let mut dest_img = Image::new(dst_x, dst_y, src_image.pixel_type().unwrap());
-
-    let mut resizer = Resizer::new();
-    resizer.resize(&src_image, &mut dest_img, None).unwrap();
-
-    let file = File::create(out_path).unwrap();
-    let mut result_buf = BufWriter::new(file);
-
-    match format {
-        ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut result_buf)
-                .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
+            // insert the thumbnail path into the db
+            query("UPDATE Media SET thumb_path = ? WHERE hash = ?")
+                .bind(&thumbnail_path)
+                .bind(hash)
+                .execute(pool)
+                .await
                 .unwrap();
+
+            return Some(thumbnail_path);
         }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut result_buf)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut result_buf)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
+        Err(e) => {
+            error!("An error occurred while processing thumbnail Error: {}", e);
+            None
+        }
     }
-
-    Ok((dst_x, dst_y))
 }
 
-pub struct Thumbnail {
-    pub x: u32,
-    pub y: u32,
-    pub bytes: Vec<u8>,
-}
+/// Gets the thumbnail with given hash from the db, returns base64 encoded image
+/// Creates the thumbnail and stores it into the db if the thumbnail doesn't exists
+///
+/// Stores the thumbnail in the db as raw bytes instead of base64 encoded strings because it is more
+/// storage efficient
+pub async fn get_thumbnail_from_db_impl(
+    hash: &str,
+    pool: &Pool<Sqlite>,
+    pool_thumbs: &Pool<Sqlite>,
+) -> String {
+    let bytes: Option<Vec<u8>> = query_scalar("SELECT bytes FROM Thumbs WHERE hash = ?")
+        .bind(hash)
+        .fetch_optional(pool_thumbs)
+        .await
+        .unwrap();
 
-/// Thumbnails a single image, returns the thumbnail size and bytes of the image
-pub fn thumbnail_image_single(
-    path: &str,
-    resolution: (u32, u32),
-    _format: &ThumbnailFormat,
-) -> Result<Thumbnail> {
-    let mime = mime_guess::from_path(path)
-        .first_or_octet_stream()
-        .to_string();
-    if !SUPPORTED_FORMATS.contains(&mime.as_ref()) {
-        //dbg!(
-        //    "file {} is unsupported by the thumbnailer, the mime was: {}",
-        //    &i.in_path,
-        //    mime
-        //);
-
-        return Err(ThumbnailerError::FormatUnsupported(mime).into());
+    if let Some(bytes) = bytes {
+        // thanks sqlx very cool
+        if !bytes.is_empty() {
+            trace!("thumbnail found in db returning that");
+            return BASE64_STANDARD.encode(bytes);
+        }
     }
-    let src_image = ImageReader::open(path).unwrap().decode();
 
-    let src_image = match src_image {
-        Ok(img) => img,
-        Err(e) => return Err(ThumbnailerError::ImageOperationError(e.to_string()).into()),
+    // get the file path for the image to thumbnail
+    let path: String = query_scalar("SELECT path FROM Path WHERE hash = ?")
+        .bind(hash)
+        .fetch_one(pool)
+        .await
+        .unwrap();
+
+    // TODO un hardcode these
+
+    let mime: String = query_scalar("SELECT mime FROM Media WHERE hash = ?")
+        .bind(hash)
+        .fetch_one(pool)
+        .await
+        .unwrap();
+
+    let _type = supported_formats::get_type(&mime);
+
+    let thumbnail = match _type {
+        crate::db::schema::MediaType::Image => {
+            thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG).unwrap()
+        }
+        crate::db::schema::MediaType::Video => {
+            thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 0).unwrap()
+        }
+        crate::db::schema::MediaType::Game => {
+            unimplemented!()
+        }
+        crate::db::schema::MediaType::Unknown => {
+            // Unknown media should not get indexed.
+            unreachable!()
+        }
     };
 
-    let src_color_type = src_image.color();
+    //let thumbnail = thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG).unwrap();
 
-    let (dst_x, dst_y) = calculate_aspect_ratio(
-        src_image.width(),
-        src_image.height(),
-        resolution.0,
-        resolution.1,
-    );
-
-    let mut dest_img = Image::new(dst_x, dst_y, src_image.pixel_type().unwrap());
-
-    let mut resizer = Resizer::new();
-    resizer.resize(&src_image, &mut dest_img, None).unwrap();
-
-    let mut bytes: Vec<u8> = vec![];
-
-    match _format {
-        ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut bytes)
-                .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-                .unwrap();
-        }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
-    }
-
-    let thumbnail = Thumbnail {
-        x: dst_x,
-        y: dst_y,
-        bytes,
-    };
-
-    Ok(thumbnail)
-}
-
-/// https://stackoverflow.com/a/14731922
-/// Conserve aspect ratio of the original region. Useful when shrinking/enlarging
-//  images to fit into a certain area.
-pub fn calculate_aspect_ratio(
-    src_x: u32,
-    src_y: u32,
-    dest_max_x: u32,
-    dest_max_y: u32,
-) -> (u32, u32) {
-    let ratio = f64::min(
-        dest_max_x as f64 / src_x as f64,
-        dest_max_y as f64 / src_y as f64,
-    );
-    (
-        (src_x as f64 * ratio as f64) as u32,
-        (src_y as f64 * ratio as f64) as u32,
+    // write the thumbnail to db
+    query(
+        "INSERT INTO Thumbs(hash, x, y, x_max, y_max, format, bytes) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
-}
+    .bind(hash)
+    .bind(thumbnail.x)
+    .bind(thumbnail.y)
+    .bind(256) // TODO unhardcode
+    .bind(256) // TODO unhardcode
+    .bind("PNG") // TODO unhardcode
+    .bind(&thumbnail.bytes)
+    .execute(pool_thumbs)
+    .await
+    .unwrap();
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Display)]
-#[serde(rename_all = "lowercase")]
-pub enum ThumbnailFormat {
-    PNG,
-    JPEG,
-    AVIF,
+    // return the encoded
+    let encoded = BASE64_STANDARD.encode(thumbnail.bytes);
+    encoded
 }

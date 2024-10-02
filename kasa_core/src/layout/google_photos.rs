@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{db::schema::Media, thumbnail::thumbnailer::calculate_aspect_ratio};
+use crate::{db::schema::Media, thumbnail::thumbnail_image::calculate_aspect_ratio};
 
 const LAST_ROW_HEIGHT: u64 = 250;
 

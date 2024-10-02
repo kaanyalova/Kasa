@@ -198,7 +198,13 @@ pub async fn get_prompt_tags_from_ids_batch(
             .collect();
 
         for t in sloptag_vecs {
-            insert_tags(t.tags, pool, Some(t.hash)).await;
+            insert_tags(
+                t.tags,
+                pool,
+                Some(t.hash),
+                Some("ai_prompt_import".to_string()),
+            )
+            .await;
         }
     }
 }

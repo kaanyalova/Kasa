@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.86"
+ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next" }
 base64 = "0.22.1"
 chrono = "0.4.38"
 crossbeam-channel = "0.5.12"
@@ -49,6 +49,7 @@ toml_edit = "0.22.20"
 walkdir = "2.4.0"
 #wl-clipboard-rs = "0.9.0"
 xxhash-rust = { version = "0.8.10", features = ["xxh3"] }
+anyhow = "1.0.89"
 
 [dev-dependencies]
 tempfile = "3.12.0"

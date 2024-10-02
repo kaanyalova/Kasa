@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use log::trace;
+use pest::pratt_parser::Op;
 use sqlx::{query, query_scalar, Pool, Sqlite};
 
 // Utilities to keep `Tag` and `TagFTS` tables in sync
@@ -9,7 +10,12 @@ use sqlx::{query, query_scalar, Pool, Sqlite};
 ///
 /// If the media_hash is `Some(_)` it creates the tags into `Tag` table and creates the `HashTagPairs` from provided tags
 /// and hash, if it is `None` it only creates the tags in the `Tag` table.
-pub async fn insert_tags(tags: Vec<String>, pool: &Pool<Sqlite>, media_hash: Option<String>) {
+pub async fn insert_tags(
+    tags: Vec<String>,
+    pool: &Pool<Sqlite>,
+    media_hash: Option<String>,
+    source: Option<String>,
+) {
     // This runs a query for every tag, might be possible to optimize this somehow?
 
     // Insert tag pairs into HashTagPair
@@ -19,9 +25,10 @@ pub async fn insert_tags(tags: Vec<String>, pool: &Pool<Sqlite>, media_hash: Opt
 
     if let Some(media_hash) = media_hash {
         for tag in &tags {
-            query("INSERT INTO HashTagPair(hash, tag_name) VALUES (?, ?) ON CONFLICT DO NOTHING")
+            query("INSERT INTO HashTagPair(hash, tag_name, source) VALUES (?, ?, ?) ON CONFLICT DO NOTHING")
                 .bind(&media_hash)
                 .bind(tag)
+                .bind(&source)
                 .execute(&mut *tx)
                 .await
                 .unwrap();
@@ -185,6 +192,6 @@ pub async fn update_tags_impl(raw_input: &str, hash: String, pool: &Pool<Sqlite>
     trace!("Removing tags from db: {:?}", to_remove);
     trace!("---------------------");
 
-    insert_tags(to_add, pool, Some(hash.clone())).await;
+    insert_tags(to_add, pool, Some(hash.clone()), None).await;
     remove_tags(to_remove, pool, Some(hash)).await;
 }

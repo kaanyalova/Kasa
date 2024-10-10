@@ -63,14 +63,14 @@ pub async fn write_to_db(
             let query = query_builder.build();
             query.execute(pool).await.unwrap();
         }
-        MediaType::Video => todo!(),
+        MediaType::Video => { /* TODO implement video meta */ }
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
     }
 
-    sqlx_query("UPDATE Media SET has_file_ref = false WHERE hash NOT IN (SELECT Media.hash FROM Path LEFT JOIN Media ON Media.hash = Path.hash WHERE Path.hash IS NULL)").execute(pool).await.unwrap();
-
     // Mark any unreferenced files
+    sqlx_query("UPDATE Media SET has_file_ref = false WHERE hash IN (SELECT Media.hash FROM Path LEFT JOIN Media ON Media.hash = Path.hash WHERE Path.hash IS NULL)").execute(pool).await.unwrap();
+
     /*
     UPDATE Media
     SET thumb_path = 'Unreferenced'

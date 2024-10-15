@@ -87,8 +87,10 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 		display: flex;
 		justify-content: start;
 		text-align: left;
-		padding: 0px;
-		margin: 2px;
+		margin-left: 2px;
+		margin-right: 2px;
+		margin-top: 1px;
+		margin-bottom: 1px;
 	}
 	button.selected {
 		background-color: #6b819b;

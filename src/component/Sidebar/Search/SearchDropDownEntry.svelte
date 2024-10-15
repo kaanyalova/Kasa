@@ -82,6 +82,7 @@
 	.insides {
 		display: flex;
 		flex-grow: 100;
+		border-radius: 5px;
 	}
 
 	.tagCount {

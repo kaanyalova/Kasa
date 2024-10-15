@@ -8,12 +8,13 @@
 	import MagnifyingGlass from '../../Vector/MagnifyingGlass.svelte';
 	import { info } from '@tauri-apps/plugin-log';
 	import '../SideBarGlobals.scss';
-	import { invoke } from '@tauri-apps/api/core';
 	import type { SearchTag } from './SearchDropDown';
 	import { stat } from '@tauri-apps/plugin-fs';
-	import { commands } from '$lib/tauri_bindings';
+	import { commands, type TagQueryOutput } from '$lib/tauri_bindings';
+	import { comma } from 'postcss/lib/list';
+	import { handleSelect } from './HandleSelect';
 
-	let entriesToShow: Array<SearchTag> = $state([]);
+	let entriesToShow: Array<TagQueryOutput> = $state([]);
 	let searchContents = $state('');
 	let shouldShow = $state(false);
 	let shouldActuallyShow = $derived(
@@ -41,12 +42,12 @@
 	}
 
 	async function getDropdownEntriesFromDB() {
-		const entries: Array<SearchTag> = await invoke('query_tags', {
-			tagName: searchContents,
-			count: 10
-		}).then((e) => {
-			return e as Array<SearchTag>;
-		});
+		const searchContentsSplit = searchContents.split(',');
+		const lastEntry = searchContentsSplit[searchContentsSplit.length - 1].trim();
+
+		info(`${lastEntry} le`);
+
+		const entries: Array<TagQueryOutput> = await commands.queryTags(lastEntry, 10);
 
 		if (entries.length > 0) {
 			shouldShow = true;
@@ -76,7 +77,9 @@
 		bind:value={searchContents}
 		oninput={() => handleSearch()}
 		onfocus={() => {
-			shouldShow = true;
+			if (searchContents !== '') {
+				shouldShow = true;
+			}
 		}}
 		onkeydown={(event) => {
 			const dropDownLenght = entriesToShow.length;
@@ -105,6 +108,11 @@
 				case 'Enter':
 					if (keyboardSelectedIndex >= 0) {
 						console.log(`selected with keyboard ,index: ${keyboardSelectedIndex}`);
+						searchContents = handleSelect(
+							entriesToShow[keyboardSelectedIndex].name,
+							searchContents
+						);
+
 						shouldShow = false;
 					} else {
 						// no index selected user should want to search stuff

@@ -44,7 +44,9 @@
     "@tauri-apps/plugin-fs": "^2.0.0-rc.1",
     "@tauri-apps/plugin-log": "^2.0.0-rc.0",
     "@tauri-apps/plugin-os": "^2.0.0-rc.0",
+    "colorjs.io": "^0.5.2",
     "svelte-select": "^5.8.3",
-    "svelte-tiny-virtual-list": "^2.1.2"
+    "svelte-tiny-virtual-list": "^2.1.2",
+    "vidstack": "^1.12.11"
   }
 }

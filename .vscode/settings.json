@@ -17,6 +17,7 @@
         "itertools",
         "Karras",
         "kasa",
+        "matroska",
         "memchr",
         "memmem",
         "mult",
@@ -40,6 +41,14 @@
         "vals",
         "valu",
         "vecs",
+        "vidstack",
         "walkdir"
+    ],
+    "colorize.languages": [
+        "typescript",
+        "javascript",
+        "css",
+        "scss",
+        "svelte"
     ]
 }

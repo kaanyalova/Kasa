@@ -1,3 +1,4 @@
+use log::error;
 use std::{fs::File, path::Path};
 
 #[inline]
@@ -19,7 +20,10 @@ pub fn streaming_xxhash(path: &Path) -> u128 {
                     println!("unexpected end of file reached");
                     break;
                 }
-                _ => panic!("error reading chunk: {}", error),
+                _ => {
+                    error!("error reading chunk: {}", error);
+                    break;
+                }
             },
         }
     }

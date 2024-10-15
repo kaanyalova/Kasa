@@ -1,7 +1,8 @@
 import type { Optional } from "$lib/Option";
+import type { TagQueryOutput } from "$lib/tauri_bindings";
 
 type SearchDropDownProps = {
-    entriesToShow: Array<SearchTag>;
+    entriesToShow: Array<TagQueryOutput>;
     keyboardSelectedIndex: number;
     searchContents: String;
 };

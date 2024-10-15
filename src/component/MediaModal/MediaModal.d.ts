@@ -28,6 +28,9 @@ type MediaInfo = {
     rawTagsField: string,
     hash: string,
     mediaType: string,
+    mime: string,
+    aspectRatio: number,
+    fileName: string,
 }
 
 type MediaTag = {

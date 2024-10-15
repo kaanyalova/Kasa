@@ -5,6 +5,11 @@
 	import clickOutside from '$lib/clickOutside';
 	import Sidebar from './Sidebar.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
+	import { onMount } from 'svelte';
+	import { commands } from '$lib/tauri_bindings';
+	import 'vidstack/bundle';
+	import { MediaPlayer } from 'vidstack';
+	import { stat } from '@tauri-apps/plugin-fs';
 
 	let { imageHash }: MediaModalProps = $props();
 
@@ -16,12 +21,23 @@
 	}
 
 	async function getData(): Promise<MediaInfo> {
-		return await invoke('get_info', {
+		const info: MediaInfo = await invoke('get_info', {
 			hash: imageHash
 		});
+
+		return info;
 	}
 
-	async function reloadData() {}
+	onMount(async () => {
+		// we want to get the media server up as soon as possible, parsing all the meta can take a while so
+		// we have a function that just gets the type
+		const mediaType = await commands.getMediaType(imageHash);
+
+		if (mediaType === 'Video') {
+			await commands.serveMedia(imageHash);
+		}
+		//await commands.serveMedia(imageHash);
+	});
 
 	async function onClose() {
 		if (MediaModalStatusStore.tagsEditModeActive) {
@@ -31,7 +47,7 @@
 			});
 		} else {
 		}
-
+		commands.closeServer();
 		MediaModalStatusStore.close();
 	}
 </script>
@@ -50,7 +66,36 @@
 		>
 			<div class="imageWrapper">
 				<!-- svelte-ignore a11y_img_redundant_alt -->
-				<img src={convertFileSrc(data.paths[0])} alt="An image provided by user" />
+				{#if data!.mediaType == 'Image'}
+					<img
+						src={convertFileSrc(data!.paths[0])}
+						alt="An image provided by user"
+						style="aspect-ratio: {data!.aspectRatio};"
+					/>
+				{:else if data!.mediaType == 'Video'}
+					<!--There is a slight pop-in when videos are first loaded-->
+
+					<media-player
+						autoplay
+						controlsDelay={1000}
+						title={data!.fileName}
+						class="mediaPlayer"
+						style="aspect-ratio: {data!.aspectRatio};"
+					>
+						<media-provider>
+							<!--
+							Video player refuses video/x-matkroska wtf, but video/webm works for all videos
+							https://stackoverflow.com/questions/17018119/how-to-play-mkv-file-in-browser 
+							-->
+							<source type="video/webm" src="http://localhost:3169" />
+						</media-provider>
+						<media-video-layout></media-video-layout>
+					</media-player>
+
+					<!--
+					<video src="http://localhost:3169" controls></video>
+					-->
+				{/if}
 			</div>
 
 			<Sidebar {data} {updateTagsTextBoxContents}></Sidebar>
@@ -79,6 +124,10 @@
 		object-fit: contain;
 	}
 
+	.mediaPlayer {
+		height: 100%;
+		object-fit: contain;
+	}
 	.imageWrapper {
 		display: inline-flex;
 		align-items: center;

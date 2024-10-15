@@ -123,14 +123,14 @@ pub async fn get_thumbnail_from_db_impl(
             thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG).unwrap()
         }
         crate::db::schema::MediaType::Video => {
-            thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 0).unwrap()
+            thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 5000).unwrap()
         }
         crate::db::schema::MediaType::Game => {
             unimplemented!()
         }
         crate::db::schema::MediaType::Unknown => {
             // Unknown media should not get indexed.
-            unreachable!()
+            unreachable!("Unknown mime type {}, you somehow managed to index a format that wasn't on the supported formats list.", mime)
         }
     };
 

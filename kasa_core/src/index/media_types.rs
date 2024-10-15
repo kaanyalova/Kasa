@@ -42,6 +42,7 @@ pub struct ImageData {
 #[derive(Debug, Clone)]
 pub enum MediaTypeWithData {
     Image(Image),
+    Video, // TODO add metadata
 }
 
 // Not a table anymore ,move this later

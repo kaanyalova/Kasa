@@ -1,4 +1,7 @@
-use std::str::FromStr;
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use human_bytes::human_bytes;
@@ -29,7 +32,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
     // meta entries for all formats
     meta.push(MetaEntry {
         name: "File Type".to_string(),
-        value: media.mime,
+        value: media.mime.clone(),
         is_value_monospaced: true,
         is_one_line: true,
     });
@@ -77,7 +80,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
                 is_one_line: true,
             })
         }
-        MediaType::Video => unimplemented!(),
+        MediaType::Video => { /* TODO implement video meta */ }
         MediaType::Game => unimplemented!(),
         MediaType::Unknown => unimplemented!(),
     };
@@ -112,6 +115,14 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         }
     };
 
+    let aspect_ratio = media.thumbnail_x as f64 / media.thumbnail_y as f64;
+
+    let file_name = PathBuf::from(&paths[0])
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+
     MediaInfo {
         tags,
         meta,
@@ -120,6 +131,17 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         raw_tags_field,
         hash: hash.to_string(),
         media_type: media.media_type.to_string(),
+        mime: {
+            // Workaround, mime_guess parses all matroska files as x-matroska
+            // we assume they are all video
+            if media.mime == "video/x-matroska" {
+                "video/matroska".to_string()
+            } else {
+                media.mime.to_string()
+            }
+        },
+        aspect_ratio,
+        file_name,
     }
 }
 
@@ -140,6 +162,14 @@ pub async fn get_tags_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<MediaTag> {
     tags
 }
 
+pub async fn get_media_type_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
+    query_scalar("SELECT media_type FROM Media WHERE hash = ?")
+        .bind(hash)
+        .fetch_one(pool)
+        .await
+        .unwrap()
+}
+
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -150,6 +180,9 @@ pub struct MediaInfo {
     pub raw_tags_field: String,
     pub hash: String,
     pub media_type: String,
+    pub mime: String,
+    pub aspect_ratio: f64,
+    pub file_name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

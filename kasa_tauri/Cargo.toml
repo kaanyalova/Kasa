@@ -21,8 +21,8 @@ tauri = { version = "2.0.0-rc", features = ["protocol-asset", "devtools"] }
 tauri-plugin-fs = "2.0.0-rc"
 tauri-plugin-log = "2.0.0-rc"
 tokio = { version = "1.38.0", features = ["full"] }
-#axum = "0.7.5"
-#tower-http = { version = "0.5.2", features = ["fs"] }
+axum = "0.7.5"
+tower-http = { version = "0.5.2", features = ["fs"] }
 sqlx = { version = "0.7.4", features = ["sqlite", "runtime-tokio"] }
 kasa_core = { path = "../kasa_core" }
 #tauri-plugin-theme = "0.4.1"

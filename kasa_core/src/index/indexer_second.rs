@@ -25,7 +25,9 @@ pub fn indexer_second_batch(
     // Any new MediaTypes can be added here along with their batch processing functions
     let media_data = match media_type {
         MediaType::Image => index_image_batch(&first_passes),
-        MediaType::Video => todo!(),
+        MediaType::Video => {
+            vec![] // TODO video meta
+        }
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
     };
@@ -60,6 +62,7 @@ pub fn indexer_second_batch(
         generic_media_data,
         paths,
     };
+
 
     out
 }

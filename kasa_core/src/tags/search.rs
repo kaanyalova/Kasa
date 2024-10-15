@@ -113,8 +113,6 @@ fn test_simple_search(pool: Pool<Sqlite>) {
 
     let inp = "never,gonna,give,you,up";
 
-    dbg!(parse_tags(inp));
-
     let media_from_db = search_simple_impl("never,gonna,give,you,up", &pool).await;
 
     assert_eq!(media_from_db.len(), 1);

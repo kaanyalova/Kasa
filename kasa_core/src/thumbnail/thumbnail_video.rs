@@ -1,4 +1,5 @@
 use anyhow::Result;
+use exif::Rational;
 use fast_image_resize::images::Image;
 use fast_image_resize::{IntoImageView, PixelType, Resizer};
 use ffmpeg::ffi::av_rescale;
@@ -46,10 +47,14 @@ fn extract_frame(input_path: &str, timestamp: i64) -> Result<(Video, (u32, u32))
         Flags::BILINEAR,
     )?;
 
+    let time_base = decoder.time_base();
+
+    // this doesn't work on some videos, it just selects the default frame 0, decoder.time_base() also shows 0/1 on some videos
+    // what is going on, is the conversion from c struct to rust broken?
     let ts = timestamp * 1000; // what??? https://github.com/pop-os/cosmic-player/blob/52b9439ca4ff4d2daeefc18ea5ba90cc8c36886c/src/player.rs#L608
 
     // TODO, special handling for really short videos
-    ictx.seek(ts, ..ts)?;
+    ictx.seek(ts, ..)?;
 
     for (stream, packet) in ictx.packets() {
         if stream.index() == video_stream_index {
@@ -162,4 +167,10 @@ pub fn thumbnail_video(
     };
 
     Ok(thumbnail)
+}
+
+#[test]
+fn test_frames() {
+    let thumb = thumbnail_video("/home/kaan/Videolar/ffmpeg_playground/p4/Persona.4.the.Golden.Animation.S01E01.1080p.SHAHID.WEB-DL.JPN.AAC2.0.H.264.MSubs-ToonsHub.mkv", (256,256), &ThumbnailFormat::PNG, 100_000).unwrap();
+    std::fs::write("out.png", thumb.bytes).unwrap();
 }

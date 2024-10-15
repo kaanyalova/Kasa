@@ -1,10 +1,10 @@
-use log::info;
+use log::{error, info};
 use tokio::sync::Mutex;
 
 use kasa_core::{
     config::global_config::get_config_impl,
     db::{
-        db::query_tags_impl,
+        db::{query_tags_impl, TagQueryOutput},
         db_info::{get_thumbs_db_info_impl, ThumbsDBInfo},
         migrations::prepare_dbs,
         schema::{Media, Tag},
@@ -41,20 +41,17 @@ pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()>
 
 #[tauri::command]
 #[specta::specta]
-pub async fn query_tags(
-    tag_name: String,
-    count: i64,
-    handle: AppHandle,
-) -> Result<Option<Vec<Tag>>, ()> {
+pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<TagQueryOutput> {
     println!("querying tags!");
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
 
     if let Some(pool) = connection_guard.as_ref() {
         let tags = query_tags_impl(tag_name, count, pool).await;
-        return Ok(Some(tags));
+        return tags;
     } else {
-        return Ok(None);
+        error!("no db found when querying tags");
+        return vec![];
     }
 }
 

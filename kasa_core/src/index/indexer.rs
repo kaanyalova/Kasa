@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 use sqlx::{Pool, Sqlite};
 use walkdir::WalkDir;
@@ -59,24 +61,19 @@ pub async fn index(path: String, pool: Pool<Sqlite>, pool_thumbs: Pool<Sqlite>) 
     for file_chunk in &walkdir.into_iter().chunks(CHUNK_SIZE) {
         let chunk: Chunk = file_chunk.collect();
 
-        let first_pass = index_first_batch(chunk);
+        let first_passes = index_first_batch(chunk);
 
         // We might check for hash duplicates here to skip the second pass if the file is same
         // but the user is unlikely to have a lot of duplicates in same directory, it is not worth
         // to check every file just to find a few duplicates
 
         // Here we construct "groups" of files to be sent to second_pass
-        type MediaGroup = Vec<(MediaType, Vec<FirstPass>)>;
-
-        // Group the using mime types to be passed into the second pass
-        let first_pass_grouped: MediaGroup = first_pass
+        let first_pass_groups = first_passes
             .into_iter()
-            .chunk_by(|i: &FirstPass| get_type(i.mime.as_str()))
-            .into_iter()
-            .map(|(_type, group_iter)| (_type, group_iter.collect()))
-            .collect();
+            .map(|p| (get_type(&p.mime), p))
+            .into_group_map();
 
-        for (_type, group) in first_pass_grouped {
+        for (_type, group) in first_pass_groups {
             // Process the batched `FirstPass`es into second_batches
             let batch = indexer_second_batch(_type, group);
             // write them to the db

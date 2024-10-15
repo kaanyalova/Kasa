@@ -1,4 +1,6 @@
-use kasa_core::media::{get_info_impl, get_tags_impl, MediaInfo, MediaTag};
+use core::hash;
+
+use kasa_core::media::{get_info_impl, get_media_type_impl, get_tags_impl, MediaInfo, MediaTag};
 use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
@@ -28,5 +30,18 @@ pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<MediaTag>> 
         Some(tags)
     } else {
         None
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_media_type(handle: AppHandle, hash: String) -> String {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        get_media_type_impl(&hash, pool).await
+    } else {
+        "".to_string()
     }
 }

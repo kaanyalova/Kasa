@@ -81,7 +81,6 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
 
     info!("running migrations");
 
-    dbg!(db_path_absolute);
     // run migrations
     // TODO show that migrations are running to users
     sqlx::migrate!("../migrations/db")
@@ -89,7 +88,6 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
         .await
         .unwrap();
 
-    dbg!(thumbs_path_absolute);
     sqlx::migrate!("../migrations/thumbs")
         .run(&pool_thumbs)
         .await

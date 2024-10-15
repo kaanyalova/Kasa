@@ -13,13 +13,8 @@ async connectToDb(dbPath: string) : Promise<Result<null, null>> {
     else return { status: "error", error: e  as any };
 }
 },
-async queryTags(tagName: string, count: number) : Promise<Result<Tag[] | null, null>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("query_tags", { tagName, count }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async queryTags(tagName: string, count: number) : Promise<TagQueryOutput[]> {
+    return await TAURI_INVOKE("query_tags", { tagName, count });
 },
 async queryAll(width: number, imgHeight: number, gaps: number) : Promise<ImageRow[] | null> {
     return await TAURI_INVOKE("query_all", { width, imgHeight, gaps });
@@ -84,6 +79,21 @@ async setConfigResolutionValue(height: number, width: number) : Promise<void> {
  */
 async search(inputRaw: string, width: number, gaps: number) : Promise<void> {
     await TAURI_INVOKE("search", { inputRaw, width, gaps });
+},
+/**
+ * Returns the pointer to close the server
+ */
+async serveMedia(hash: string) : Promise<void> {
+    await TAURI_INVOKE("serve_media", { hash });
+},
+/**
+ * This should be only called once from js side
+ */
+async closeServer() : Promise<void> {
+    await TAURI_INVOKE("close_server");
+},
+async getMediaType(hash: string) : Promise<string> {
+    return await TAURI_INVOKE("get_media_type", { hash });
 }
 }
 
@@ -102,13 +112,23 @@ export type GlobalConfig = { Database: Database; Thumbnails: Thumbs }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string; mime: string; aspectRatio: number; fileName: string }
 export type MediaTag = { name: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 /**
- * Basic `Tag` table only used for tag names and FTS searching in thags
+ * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
+ * of virtual tables
  */
-export type Tag = { name: string }
+export type TagDetail = { name: string; 
+/**
+ * Should the tag be deleted when there is no `HashTagPair`s containing this tag left
+ */
+delete_on_no_references_left: boolean; color: string | null; group: string | null; 
+/**
+ * Should this tag use its own color instead of the group one
+ */
+override_group_color: boolean }
+export type TagQueryOutput = { name: string; count: number; tag_details: TagDetail }
 export type ThumbnailFormat = "png" | "jpeg" | "avif"
 export type Thumbs = { resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
 export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }

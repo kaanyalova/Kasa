@@ -16,15 +16,15 @@
 	button {
 		margin: 3px;
 		padding: 0px;
-		background: color-mix(in srgb, var(--secondary) 30%, transparent);
+		/*background: color-mix(in srgb, var(--secondary) 30%, transparent);*/
 		display: flex;
 		flex-direction: row;
 		border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
-		border-radius: 10px;
+		border-radius: 6px;
 		color: var(--text);
 		font-size: large;
 		width: var(--button-width);
-		box-shadow: rgba(143, 143, 143, 0.24) 0px 2px 6px;
+		/*box-shadow: rgba(143, 143, 143, 0.24) 0px 2px 6px;*/
 	}
 
 	button:hover {

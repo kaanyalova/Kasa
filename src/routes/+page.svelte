@@ -17,15 +17,6 @@
 	import { commands } from '$lib/tauri_bindings';
 
 	let fileServer: FileServer;
-	onMount(async () => {
-		//c//onst a = await conver(
-		//	'/home/kaan/Resimler/fox.profile0.8bpc.yuv420.odd-width.odd-height.avif'
-		//);
-		//console.log(a);
-
-		fileServer = await FileServer.create('/home/kaan/Videolar/kojima.mp4');
-		info('creating server!');
-	});
 
 	onMount(async () => {
 		info('conneting  to db');
@@ -43,11 +34,6 @@
 		*/
 
 		await commands.connectDbs();
-	});
-
-	onDestroy(() => {
-		fileServer.destroy();
-		info('destroying server!');
 	});
 
 	function toLight() {}

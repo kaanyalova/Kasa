@@ -80,15 +80,6 @@ pub fn thumbnail_image_batch(
             resolution.1,
         );
 
-        dbg!("thumbnail is {}x{} pixels", dst_x, dst_y);
-        dbg!(
-            "other vals, src_x = {}, src_y = {}, dest_max_x = {}, dest_max_y = {}",
-            src_image.width(),
-            src_image.height(),
-            resolution.0,
-            resolution.1
-        );
-
         let src_color_type = src_image.color();
 
         let mut dest_img = Image::new(dst_x, dst_y, src_image.pixel_type().unwrap());

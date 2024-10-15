@@ -1,27 +1,32 @@
-use db::connect_to_db;
-use db::get_layout_from_cache;
-use db::query_all;
-use db::query_tags;
-use db::DbStore;
-use db::MediaCache;
-use image::get_thumbnail;
-use linux::get_desktop;
-use log::warn;
-use media::get_info;
-use media::get_tags;
-//use serve_media::close_server;
-//use serve_media::serve_media;
+use std::sync::Arc;
+
 use config::get_config;
 use config::set_config_resolution_value;
 use config::set_config_value;
 use db::are_dbs_mounted;
 use db::connect_dbs;
+use db::connect_to_db;
+use db::get_layout_from_cache;
 use db::get_thumbs_db_info;
+use db::query_all;
+use db::query_tags;
+use db::DbStore;
+use db::MediaCache;
+use image::get_thumbnail;
 use image::get_thumbnail_from_db;
+use linux::get_desktop;
+use log::warn;
+use media::get_info;
+use media::get_media_type;
+use media::get_tags;
+use media_server::close_server;
+use media_server::serve_media;
+use media_server::MediaServerStore;
 use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::update_tags;
+use tokio::sync::Mutex;
 use utils::get_env_var;
 
 use tauri_specta::{collect_commands, Builder};
@@ -32,6 +37,7 @@ mod linux;
 mod media;
 //mod serve_media;
 mod config;
+mod media_server;
 mod search;
 mod tags;
 mod utils;
@@ -72,6 +78,9 @@ pub fn run() {
             set_config_value,
             set_config_resolution_value,
             search,
+            serve_media,
+            close_server,
+            get_media_type,
         ]
     });
 
@@ -98,6 +107,7 @@ pub fn run() {
         })
         .manage(DbStore::default())
         .manage(MediaCache::default())
+        .manage(MediaServerStore::default())
         .run(context)
         .expect("error while running tauri application");
 }

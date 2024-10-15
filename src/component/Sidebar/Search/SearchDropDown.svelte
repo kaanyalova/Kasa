@@ -83,10 +83,12 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 	}
 	*/
 	button {
+		border-radius: 5px;
 		flex-grow: 100;
 		display: flex;
 		justify-content: start;
 		text-align: left;
+		padding: 0px;
 		margin-left: 2px;
 		margin-right: 2px;
 		margin-top: 1px;

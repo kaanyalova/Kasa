@@ -68,7 +68,7 @@
 	<div class=""></div>
 	<div class="count">
 		<div style="color: #ffffff" class="insides">
-			<div style="background-color: {countColor};" class="tagCount">
+			<div style="background-color: {getCountColor(count)};" class="tagCount">
 				{formatCount(count)}
 			</div>
 			<div class="tagName">
@@ -92,6 +92,7 @@
 		justify-content: center;
 		background-color: var(--background);
 		border-radius: 5px 0px 0px 5px;
+		color: black;
 	}
 
 	.tagName {
@@ -103,6 +104,7 @@
 		font-family: 'Ubuntu';
 		flex-grow: 100;
 		border: 1px solid var(--border);
+		border-radius: 5px;
 	}
 
 	.entry:hover {

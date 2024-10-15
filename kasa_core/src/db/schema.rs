@@ -24,7 +24,7 @@ pub struct Media {
 }
 
 // Possible values of `media_type`
-#[derive(Debug, Serialize, Deserialize, PartialEq, Encode, EnumString, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Encode, EnumString, Clone, Copy, Eq, Hash)]
 pub enum MediaType {
     Image,
     Video,
@@ -82,7 +82,7 @@ pub struct RawTagsField {
 
 /// Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
 /// of virtual tables
-#[derive(Debug, FromRow, Clone)]
+#[derive(Debug, FromRow, Clone, Serialize, Deserialize, specta::Type)]
 #[allow(unused)]
 pub struct TagDetail {
     name: String,

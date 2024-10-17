@@ -8,6 +8,10 @@
 	import { dataDir } from '@tauri-apps/api/path';
 	import { isNumericString } from '$lib/isNumbericString';
 	import { debug, trace } from '@tauri-apps/plugin-log';
+	import BorderedBox from '../../Shared/BorderedBox.svelte';
+	import HorizontalDivider from '../../Shared/Dividers/HorizontalDivider.svelte';
+	import { DividerSizes } from '../../Shared/Dividers/DividerSizes';
+	import VerticalDivider from '../../Shared/Dividers/VerticalDivider.svelte';
 
 	const THUMBNAIL_MAX = 8192;
 
@@ -69,7 +73,7 @@
 {#await promise then info}
 	<div class="thumbnails">
 		<span class="title">Thumbnail Database</span>
-		<div class="borderedBox">
+		<BorderedBox>
 			<div class="pathInput">
 				<input type="text" bind:value={db_path} class="dbPathInput textInput monoFont" />
 				<button class="fileSelectButton">
@@ -85,12 +89,12 @@
 					<button class="confirmButton" onclick={onConfirmThumbnailDatabase}> Confirm </button>
 				</div>
 			</div>
-		</div>
+		</BorderedBox>
 
-		<div class="horizontalDivider"></div>
+		<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
 		<span class="title">Thumbnail Format</span>
 
-		<div class="borderedBox">
+		<BorderedBox>
 			<label for="imageFormatSelect">Image Format</label>
 
 			<!--
@@ -107,7 +111,7 @@
 				<span class="cursedSelectIcon"> v </span>
 			</div>
 
-			<div class="smallHorizontalDivider"></div>
+			<HorizontalDivider height={DividerSizes.Small}></HorizontalDivider>
 			Image Resolution
 
 			<div class="resolutionContainer">
@@ -132,7 +136,7 @@
 					{/if}
 				</div>
 
-				<div class="smallVerticalDivider"></div>
+				<VerticalDivider width={DividerSizes.Small}></VerticalDivider>
 
 				<div class="resolutionInputContainer">
 					<div class="resolutionInputContainerInner">
@@ -152,14 +156,14 @@
 				</div>
 			</div>
 
-			<div class="smallHorizontalDivider"></div>
+			<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
 			<div class="bigImageExceptionCheckboxContainer">
 				<input type="checkbox" id="bigImageExceptionCheckbox" class="bigImageExceptionCheckbox" />
 				<label for="bigImageExceptionCheckbox">
 					Generate larger resolution thumbnails for images with high aspect ratio (recommended)
 				</label>
 			</div>
-		</div>
+		</BorderedBox>
 	</div>
 {/await}
 
@@ -189,9 +193,6 @@
 		margin-right: 4px;
 	}
 
-	.smallVerticalDivider {
-		width: 10px;
-	}
 	.resolutionInputLabel {
 		padding-left: 2px;
 		padding-right: 2px;
@@ -239,14 +240,6 @@
 
 	.imageFormatSelect:focus {
 		outline: 1px solid var(--accent);
-	}
-
-	.smallHorizontalDivider {
-		height: 10px;
-	}
-
-	.horizontalDivider {
-		height: 20px;
 	}
 
 	.dbInfoText {
@@ -303,14 +296,6 @@
 
 	.textInput:focus {
 		outline: 1px solid var(--accent);
-	}
-
-	.borderedBox {
-		border: 1px solid var(--secondary-alt);
-		padding: 4px;
-		display: flex;
-		flex-direction: column;
-		font-size: smaller;
 	}
 
 	.details {

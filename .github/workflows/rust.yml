@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install tauri dev tools
-      run: sh <(curl https://create.tauri.app/sh)
+      run: sh <(curl https://create.tauri.app/sh) -y
     - name: Build
       run: cargo tauri build
     - name: Run tests

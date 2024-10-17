@@ -12,16 +12,23 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
+
+
+    runs-on: ubuntu-latest
+   
+    steps:  
+    - uses: actions/checkout@v4  
+
+    - name: Setup rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Setup bun
+      uses: oven-sh/setup-bun@v2
+  
     - name: Install tauri dev tools
       run: cargo install tauri-cli --version "^2.0.0" --locked
-    - name: Install bun
-      run: |
-        curl -fsSL https://bun.sh/install | bash
-        source /home/runner/.bashrc  
+    
     - name: Install bun dependencies
       run: bun i 
     - name: Build

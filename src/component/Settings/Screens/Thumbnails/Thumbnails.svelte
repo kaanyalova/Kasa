@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { commands } from '$lib/tauri_bindings';
-	import FileManager from '../../Vector/FileManager.svelte';
-	import '../../../fonts.css';
+	import FileManager from '../../../Vector/FileManager.svelte';
+	import '../../../../fonts.css';
 	import Select from 'svelte-select';
 	import { comma } from 'postcss/lib/list';
 	import type { ThumbsDBInfo } from '$lib/tauri_bindings';
 	import { dataDir } from '@tauri-apps/api/path';
 	import { isNumericString } from '$lib/isNumbericString';
-	import { debug, trace } from '@tauri-apps/plugin-log';
-	import BorderedBox from '../../Shared/BorderedBox.svelte';
-	import HorizontalDivider from '../../Shared/Dividers/HorizontalDivider.svelte';
-	import { DividerSizes } from '../../Shared/Dividers/DividerSizes';
-	import VerticalDivider from '../../Shared/Dividers/VerticalDivider.svelte';
+	import { debug, info, trace } from '@tauri-apps/plugin-log';
+	import BorderedBox from '../../../Shared/BorderedBox.svelte';
+	import HorizontalDivider from '../../../Shared/Dividers/HorizontalDivider.svelte';
+	import { DividerSizes } from '../../../Shared/Dividers/DividerSizes';
+	import VerticalDivider from '../../../Shared/Dividers/VerticalDivider.svelte';
+	import ResolutionInput from './ResolutionInput.svelte';
 
 	const THUMBNAIL_MAX = 8192;
 
@@ -55,7 +56,6 @@
 			const height = Math.min(THUMBNAIL_MAX, thumb_height);
 			const width = Math.min(THUMBNAIL_MAX, thumb_width);
 			commands.setConfigResolutionValue(height, width);
-			console.log('update');
 		}
 	});
 
@@ -115,45 +115,11 @@
 			Image Resolution
 
 			<div class="resolutionContainer">
-				<!-- TODO move them to their own component-->
-				<div class="resolutionInputContainer">
-					<div class="resolutionInputContainerInner">
-						<label class="resolutionInputLabel" for="resolutionInputWidth">Width</label>
-						<input
-							type="text"
-							class="resolutionInput textInput monoFont"
-							id="resolutionInputWidth"
-							bind:value={thumb_width}
-							oninput={() => {
-								console.log(thumb_width);
-							}}
-						/>
-					</div>
-					{#if thumb_width > THUMBNAIL_MAX}
-						<div class="maxSize">
-							Max: {THUMBNAIL_MAX}
-						</div>
-					{/if}
-				</div>
+				<ResolutionInput bind:_value={thumb_width} max_size={THUMBNAIL_MAX}></ResolutionInput>
 
 				<VerticalDivider width={DividerSizes.Small}></VerticalDivider>
 
-				<div class="resolutionInputContainer">
-					<div class="resolutionInputContainerInner">
-						<label class="resolutionInputLabel" for="resolutionInputHeight">Height</label>
-						<input
-							type="text"
-							class="resolutionInput textInput monoFont"
-							id="resolutionInputHeight"
-							bind:value={thumb_height}
-						/>
-					</div>
-					{#if thumb_height > THUMBNAIL_MAX}
-						<div class="maxSize">
-							Max: {THUMBNAIL_MAX}
-						</div>
-					{/if}
-				</div>
+				<ResolutionInput bind:_value={thumb_height} max_size={THUMBNAIL_MAX}></ResolutionInput>
 			</div>
 
 			<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
@@ -168,15 +134,6 @@
 {/await}
 
 <style>
-	.maxSize {
-		background-color: var(--secondary-alt);
-		padding: 1px;
-		padding-left: 2px;
-		padding-right: 2px;
-	}
-	.resolutionInputContainer {
-	}
-
 	.resolutionInputContainerInner {
 		display: flex;
 		height: min-content;
@@ -283,15 +240,15 @@
 		font-size: 16px;
 	}
 
+	.dbPathInput {
+		flex-grow: 100;
+	}
+
 	.textInput {
 		background-color: var(--background);
 		border: 1px solid var(--secondary-alt);
 		padding-right: 6px;
 		padding-left: 6px;
-	}
-
-	.dbPathInput {
-		flex-grow: 100;
 	}
 
 	.textInput:focus {

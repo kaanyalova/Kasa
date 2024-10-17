@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Database from './Screens/Database.svelte';
-	import Thumbnails from './Screens/Thumbnails.svelte';
+	import Thumbnails from './Screens/Thumbnails/Thumbnails.svelte';
 	import { SettingsCategories } from './Settings';
 
 	let { category: selectedCategory } = $props();

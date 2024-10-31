@@ -1,0 +1,6 @@
+clean_dependencies:
+    rm -rf ./py/dependencies/charset_normalizer
+    rm -rf ./py/dependencies/gallery-dl
+    rm -rf ./py/dependencies/idna
+    rm -rf ./py/dependencies/requests
+    rm -rf ./py/dependencies/urllib3

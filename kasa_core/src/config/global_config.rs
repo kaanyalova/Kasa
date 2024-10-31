@@ -24,6 +24,12 @@ resolution = [256, 256]
 # The file format for thumbnails
 thumbnail_format = "png"
 
+
+[Downloader]
+
+# Path that gallery_dl will output the extracted media
+output_path = ""
+
 "#;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
@@ -46,6 +52,11 @@ pub struct Thumbs {
     pub resolution: [u32; 2],
     pub thumbnail_format: ThumbnailFormat,
     pub thumbs_db_path: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
+pub struct Downloader {
+    pub output_path: String,
 }
 
 impl Default for Thumbs {
@@ -72,6 +83,8 @@ pub struct GlobalConfig {
     pub db: Database,
     #[serde(rename = "Thumbnails")]
     pub thumbs: Thumbs,
+    #[serde(rename = "Downloader")]
+    pub downloader: Downloader,
 }
 
 fn get_config_dir() -> PathBuf {
@@ -163,6 +176,8 @@ fn default_config_parse() {
         pub db: Database,
         #[serde(rename = "Thumbnails")]
         pub thumbs: Thumbs,
+        #[serde(rename = "Downloader")]
+        pub downloader: Downloader,
     }
 
     let config: GlobalConfig = toml::from_str(DEFAULT_CONFIG).unwrap();
@@ -174,7 +189,7 @@ fn default_config_parse() {
 fn test_config_creation() {
     let tempdir = tempfile::tempdir().unwrap().into_path();
 
-    let config_path = tempdir.join("kasa").join("config.toml");
+    let config_path = tempdir.join("kDebugasa").join("config.toml");
 
     check_config(&config_path);
 

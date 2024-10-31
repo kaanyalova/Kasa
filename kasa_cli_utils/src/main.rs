@@ -1,24 +1,34 @@
 mod dump_random_gi_layout;
+mod gdl;
 mod index_all_ai_images;
 mod index_folder;
 mod populate_tags;
 mod thumbnail;
 
-use clap::Parser;
+use clap::{builder::Str, Parser};
 use dump_random_gi_layout::dump_random_gi_layout;
+use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
 use populate_tags::populate_tags;
+
 //use thumbnail::thumbnail;
 
 #[derive(Parser)] // requires `derive` feature
-#[command(name = "kasa-cli")]
-#[command(bin_name = "kasa-cli")]
 enum KasaCli {
     PopulateTags(PopulateTagsArgs),
     IndexFolder(IndexFolderArgs),
     DumpGILayout,
     IndexAllAIImages(IndexAllAIImagesArgs), //ThumbnailFolder(ThumbnailArgs),
+    #[command(alias = "gdl")]
+    GalleryDL(GalleryDlArgs),
+}
+
+#[derive(clap::Args)]
+#[command(version, about, long_about = None)]
+
+struct GalleryDlArgs {
+    url: String,
 }
 
 #[derive(clap::Args)]
@@ -78,5 +88,6 @@ async fn main() {
         KasaCli::IndexAllAIImages(args) => {
             index_all_ai_images(args.db_path.to_str().unwrap(), args.tag_max_len as usize).await
         }
+        KasaCli::GalleryDL(args) => gdl(&args.url).await,
     }
 }

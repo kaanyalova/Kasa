@@ -1,0 +1,26 @@
+--- job.py	2024-10-26 23:14:23.634765568 +0300
++++ job_patched.py	2024-10-27 00:20:12.805581554 +0300
+@@ -291,6 +291,7 @@
+         self.visited = parent.visited if parent else set()
+         self._extractor_filter = None
+         self._skipcnt = 0
++        self.output_paths = []
+ 
+     def handle_url(self, url, kwdict):
+         """Download the resource specified in 'url'"""
+@@ -363,6 +364,7 @@
+         # download succeeded
+         pathfmt.finalize()
+         self.out.success(pathfmt.path)
++        self.output_paths.append(pathfmt.path)
+         self._skipcnt = 0
+         if archive and self._archive_write_file:
+             archive.add(kwdict)
+@@ -493,6 +495,7 @@
+                     raise self._skipexc()
+             else:
+                 self._skipcnt = 0
++        self.output_paths.append(pathfmt.path)
+ 
+     def download(self, url):
+         """Download 'url'"""

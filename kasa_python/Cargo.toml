@@ -1,0 +1,35 @@
+[package]
+name = "kasa_python"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
+    "encodings",
+    "freeze-stdlib",
+    "rustpython-compiler",
+    "importlib",
+
+] }
+rustpython-stdlib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa" }
+rustpython-pylib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
+    #"freeze-stdlib",
+] }
+rustpython = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
+    "freeze-stdlib",
+    "sqlite",
+    "ssl",
+] }
+
+anyhow = "1.0.91"
+serde_json = "1.0.132"
+serde = { version = "1.0.213", features = ["derive"] }
+thiserror = "1.0.65"
+
+
+[build-dependencies]
+flate2 = "1.0.34"
+reqwest = { version = "0.12.8", features = ["blocking"] }
+tar = "0.4.42"
+diffy = "0.4.0"

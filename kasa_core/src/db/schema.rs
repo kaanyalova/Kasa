@@ -1,3 +1,4 @@
+use pest::pratt_parser::Op;
 use rayon::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{prelude::FromRow, Encode};
@@ -63,6 +64,8 @@ pub struct HashTagPair {
     pub hash: String,
     pub tag_name: String,
     pub source: Option<String>,
+    /// Tag "category" from the source
+    pub source_type: Option<String>,
 }
 
 /// Additional information about `Image` media type

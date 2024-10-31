@@ -1,0 +1,26 @@
+--- utils.py	2024-10-25 12:45:51.826090736 +0300
++++ utils_patched.py	2024-10-25 12:45:05.354795440 +0300
+@@ -7,7 +7,7 @@
+ from re import findall
+ from typing import Generator, List, Optional, Set, Tuple, Union
+ 
+-from _multibytecodec import MultibyteIncrementalDecoder
++# from _multibytecodec import MultibyteIncrementalDecoder
+ 
+ from .constant import (
+     ENCODING_MARKS,
+@@ -259,10 +259,10 @@
+         "utf_32_le",
+         "utf_32_be",
+         "utf_7",
+-    } or issubclass(
+-        importlib.import_module("encodings.{}".format(name)).IncrementalDecoder,
+-        MultibyteIncrementalDecoder,
+-    )
++    }  # or issubclass(
++    #  importlib.import_module("encodings.{}".format(name)).IncrementalDecoder,
++    #  MultibyteIncrementalDecoder,
++    # )
+ 
+ 
+ def identify_sig_or_bom(sequence: bytes) -> Tuple[Optional[str], bytes]:

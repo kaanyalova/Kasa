@@ -1,5 +1,4 @@
-
-use kasa_core::ai_slop::indexers::get_prompt_tags_from_ids_batch;
+use kasa_core::index::postprocess::ai_indexer::get_prompt_tags_from_ids_batch;
 use sqlx::{query_scalar, sqlite::SqlitePoolOptions};
 
 pub async fn index_all_ai_images(db_path: &str, max_tag_len: usize) {

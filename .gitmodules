@@ -1,0 +1,3 @@
+[submodule "kasa_python/py/dependencies/gallery_dl"]
+	path = kasa_python/py/dependencies/gallery_dl
+	url = https://github.com/mikf/gallery-dl

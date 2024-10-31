@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use kasa_python::ExtractedTag;
 use log::trace;
 use pest::pratt_parser::Op;
 use sqlx::{query, query_scalar, Pool, Sqlite};
@@ -56,6 +57,62 @@ pub async fn insert_tags(
 
             query("INSERT INTO TagDetail(name) VALUES (?)")
                 .bind(tag)
+                .execute(&mut *tx)
+                .await
+                .unwrap();
+        }
+    }
+
+    tx.commit().await.unwrap();
+}
+
+pub async fn insert_tags_with_source_types(
+    tags: Vec<ExtractedTag>,
+    pool: &Pool<Sqlite>,
+    media_hash: Option<String>,
+    source: Option<String>,
+) {
+    // This runs a query for every tag, might be possible to optimize this somehow?
+
+    // Insert tag pairs into HashTagPair
+    // Check if tags exist on Tag and TagFTS
+    // If it exists on Tag bump the count by one
+    let mut tx = pool.begin().await.unwrap();
+
+    if let Some(media_hash) = media_hash {
+        for tag in &tags {
+            query("INSERT INTO HashTagPair(hash, tag_name, source, source_type) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING")
+                .bind(&media_hash)
+                .bind(&tag.name)
+                .bind(&source)
+                .bind(&tag._type)
+                .execute(&mut *tx)
+                .await
+                .unwrap();
+        }
+    }
+
+    for tag in &tags {
+        let does_tag_exist: Option<i64> = query_scalar("SELECT 1 FROM Tag WHERE name = ? ")
+            .bind(&tag.name)
+            .fetch_optional(pool)
+            .await
+            .unwrap();
+
+        let does_tag_exist = match does_tag_exist {
+            Some(_) => true,
+            None => false,
+        };
+
+        if !does_tag_exist {
+            query("INSERT INTO Tag(name) VALUES (?)")
+                .bind(&tag.name)
+                .execute(&mut *tx)
+                .await
+                .unwrap();
+
+            query("INSERT INTO TagDetail(name) VALUES (?)")
+                .bind(&tag.name)
                 .execute(&mut *tx)
                 .await
                 .unwrap();

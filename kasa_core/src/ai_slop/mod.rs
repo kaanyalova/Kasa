@@ -2,12 +2,11 @@ use std::hash::Hash;
 
 use serde::{Deserialize, Serialize};
 
-mod a1111;
-mod comfy;
-mod errors;
-pub mod indexers;
+pub mod a1111;
+pub mod comfy;
+pub mod errors;
 mod prompt_parser;
-mod supported_formats;
+pub mod supported_formats;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SlopTags {

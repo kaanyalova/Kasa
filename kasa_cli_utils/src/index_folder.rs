@@ -49,5 +49,5 @@ pub async fn index_folder(args: IndexFolderArgs) {
         .await
         .unwrap();
 
-    index(args.folder.to_str().unwrap().into(), pool, pool_thumbs).await;
+    index(args.folder.to_str().unwrap().into(), &pool, &pool_thumbs).await;
 }

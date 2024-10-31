@@ -38,6 +38,7 @@ CREATE TABLE HashTagPair (
     hash TEXT NOT NULL,
     tag_name TEXT NOT NULL,
     source TEXT,
+    source_type TEXT,
     UNIQUE(hash, tag_name)
 );
 
@@ -63,3 +64,12 @@ CREATE TABLE TagGroup (
     name TEXT NOT NULL,
     color TEXT
 ); 
+
+CREATE TABLE IndexSource (
+    path TEXT NOT NULL
+);
+
+
+CREATE TABLE VirtualIndexSource (
+    path TEXT NOT NULL
+);

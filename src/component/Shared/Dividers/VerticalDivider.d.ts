@@ -1,3 +1,3 @@
 type VerticalDividerProps = {
-    width: number
+    width: number,
 }

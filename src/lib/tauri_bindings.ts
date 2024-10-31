@@ -94,6 +94,23 @@ async closeServer() : Promise<void> {
 },
 async getMediaType(hash: string) : Promise<string> {
     return await TAURI_INVOKE("get_media_type", { hash });
+},
+async addIndexSource(path: string) : Promise<void> {
+    await TAURI_INVOKE("add_index_source", { path });
+},
+async removeIndexSource(path: string) : Promise<void> {
+    await TAURI_INVOKE("remove_index_source", { path });
+},
+async getIndexPaths() : Promise<string[]> {
+    return await TAURI_INVOKE("get_index_paths");
+},
+async indexAll() : Promise<Result<null, null>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("index_all") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 use sqlx::{Pool, Sqlite};
-use walkdir::WalkDir;
+use tokio::task::spawn_blocking;
 
 use crate::{
     db::schema::MediaType,
@@ -12,6 +12,7 @@ use crate::{
     },
     supported_formats::get_type,
 };
+use walkdir::WalkDir;
 
 const CHUNK_SIZE: usize = 1000;
 
@@ -54,30 +55,31 @@ const CHUNK_SIZE: usize = 1000;
 /// In that case second_pass should only return Vec<MediaTypeWithData>
 ///
 ///
-pub type Chunk = Vec<Result<walkdir::DirEntry, walkdir::Error>>;
 
-pub async fn index(path: String, pool: Pool<Sqlite>, pool_thumbs: Pool<Sqlite>) {
-    let walkdir = WalkDir::new(path);
-    for file_chunk in &walkdir.into_iter().chunks(CHUNK_SIZE) {
-        let chunk: Chunk = file_chunk.collect();
+pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
+    let mut walkdir = WalkDir::new(path)
+        .into_iter()
+        .filter_map(|p| p.ok())
+        //.filter(|p| p.file_type().is_file())
+        //.filter_map(|p| p.path().to_str().map(String::from))
+        .peekable();
+
+    while let Some(_) = walkdir.peek() {
+        let chunk: Chunk = walkdir.by_ref().take(CHUNK_SIZE).collect();
 
         let first_passes = index_first_batch(chunk);
 
-        // We might check for hash duplicates here to skip the second pass if the file is same
-        // but the user is unlikely to have a lot of duplicates in same directory, it is not worth
-        // to check every file just to find a few duplicates
-
-        // Here we construct "groups" of files to be sent to second_pass
         let first_pass_groups = first_passes
             .into_iter()
             .map(|p| (get_type(&p.mime), p))
             .into_group_map();
 
         for (_type, group) in first_pass_groups {
-            // Process the batched `FirstPass`es into second_batches
             let batch = indexer_second_batch(_type, group);
-            // write them to the db
+
             write_to_db(batch, _type, &pool, &pool_thumbs).await;
         }
     }
 }
+
+pub type Chunk = Vec<walkdir::DirEntry>;

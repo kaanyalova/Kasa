@@ -14,28 +14,28 @@ pub fn index_first_batch(chunk: Chunk) -> Vec<FirstPass> {
     chunk
         .into_par_iter()
         .filter_map(|chunk| {
-            if let Ok(f) = chunk {
-                if f.file_type().is_file() {
-                    let hash = streaming_xxhash(&f.path());
-                    let path = f.path();
+            //if let Ok(f) = chunk {
+            if chunk.file_type().is_file() {
+                let hash = streaming_xxhash(&chunk.path());
+                let path = chunk.path();
 
-                    let _media = FirstPass {
-                        hash: hash.to_string(),
-                        path: path.to_string_lossy().to_string(),
-                        mime: mime_guess::from_path(path)
-                            .first_or_octet_stream()
-                            .to_string(),
-                    };
+                let _media = FirstPass {
+                    hash: hash.to_string(),
+                    path: path.to_string_lossy().to_string(),
+                    mime: mime_guess::from_path(path)
+                        .first_or_octet_stream()
+                        .to_string(),
+                };
 
-                    Some(_media)
-                } else {
-                    // DirEntry is a path (or something like that)
-                    None
-                }
+                Some(_media)
             } else {
-                // DirEntry is not Ok
+                // DirEntry is a path (or something like that)
                 None
             }
+            // } else {
+            //     // DirEntry is not Ok
+            //     None
+            //}
         })
         .filter(|f| {
             // filter the unsupported formats out

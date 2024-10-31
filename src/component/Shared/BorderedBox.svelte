@@ -1,8 +1,8 @@
 <script lang="ts">
-	let { children }: any = $props();
+	let { children, padding = 4 }: BorderedBoxProps = $props();
 </script>
 
-<div class="borderedBox">
+<div class="borderedBox" style="padding: {padding}px;">
 	{@render children()}
 </div>
 

@@ -47,17 +47,15 @@
 	});
 
 	async function onResize() {
-		cooldown = setTimeout(updateLayout, 200);
+		cooldown = setTimeout(updateLayout, 500);
 	}
 
 	async function updateLayout() {
 		// webkit render bug?
 		//values = [];
 
-		info(`calculating sizes w:${tauri_width}`);
-
 		const _values: Array<ImageRow> = await invoke('get_layout_from_cache', {
-			width: tauri_width - sidebarStore.size * 3 - 10,
+			width: tauri_width - sidebarStore.size * 3 - 20, // webkit scroll bar is buggy when content is overlapped with it
 			imgHeight: tauri_height / 2,
 			gaps: 12
 		});
@@ -74,6 +72,7 @@
 
 		heights = _heights;
 		values = _values;
+		info(`calculating sizes w:${tauri_width}`);
 	}
 
 	$effect(async () => {

@@ -14,6 +14,7 @@ use db::DbStore;
 use db::MediaCache;
 use image::get_thumbnail;
 use image::get_thumbnail_from_db;
+use index::*;
 use linux::get_desktop;
 use log::warn;
 use media::get_info;
@@ -37,6 +38,7 @@ mod linux;
 mod media;
 //mod serve_media;
 mod config;
+mod index;
 mod media_server;
 mod search;
 mod tags;
@@ -81,6 +83,10 @@ pub fn run() {
             serve_media,
             close_server,
             get_media_type,
+            add_index_source,
+            remove_index_source,
+            get_index_paths,
+            index_all
         ]
     });
 

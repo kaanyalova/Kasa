@@ -79,7 +79,7 @@
 	}
 
 	.filler {
-		flex-grow: 100;
+		flex-grow: 1;
 	}
 
 	.sidebarParent {

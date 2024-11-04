@@ -1,9 +1,13 @@
 <script lang="ts">
+	import VerticalDivider from '../../Shared/Dividers/VerticalDivider.svelte';
+
 	let { onClick, name, category, selectedCategory }: SidebarEntryProps = $props();
 </script>
 
 <button onclick={() => onClick()} class:isSelected={category === selectedCategory}>
 	<div class="buttonInner">
+		<VerticalDivider width={4}></VerticalDivider>
+
 		<slot></slot>
 		<div class="buttonInnerText">{name}</div>
 	</div>
@@ -12,7 +16,7 @@
 <style>
 	button {
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 		justify-content: start;
 		flex-direction: row;
 		padding: 4px;
@@ -24,6 +28,7 @@
 
 	.isSelected {
 		background-color: var(--secondary-alt);
+		font-weight: bold;
 	}
 
 	.buttonInner {

@@ -42,12 +42,12 @@
 <style>
 	.insides {
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 		justify-content: center;
 		align-items: center;
 	}
 	.insidesFiller {
-		flex-grow: 100;
+		flex-grow: 1;
 	}
 
 	.iconContainer {

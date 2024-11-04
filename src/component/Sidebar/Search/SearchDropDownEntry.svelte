@@ -81,7 +81,7 @@
 <style>
 	.insides {
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 		border-radius: 5px;
 	}
 
@@ -96,13 +96,13 @@
 	}
 
 	.tagName {
-		flex-grow: 100;
+		flex-grow: 1;
 		padding-left: 5px;
 	}
 
 	.entry {
 		font-family: 'Ubuntu';
-		flex-grow: 100;
+		flex-grow: 1;
 		border: 1px solid var(--border);
 		border-radius: 5px;
 	}

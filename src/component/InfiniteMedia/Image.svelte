@@ -98,7 +98,7 @@
 	.fakeImage {
 		border: 1px solid var(--secondary-alt);
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 		align-items: center;
 		justify-content: center;
 		position: absolute;

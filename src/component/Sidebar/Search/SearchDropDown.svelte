@@ -47,7 +47,7 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 	.entry {
 		display: flex;
 		flex-direction: row;
-		flex-grow: 100;
+		flex-grow: 1;
 		align-items: flex-end;
 	}
 
@@ -84,7 +84,7 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 	*/
 	button {
 		border-radius: 5px;
-		flex-grow: 100;
+		flex-grow: 1;
 		display: flex;
 		justify-content: start;
 		text-align: left;

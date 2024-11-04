@@ -151,7 +151,7 @@
 		margin: 15px;
 		justify-content: center;
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 	}
 
 	.searchBar.selected {

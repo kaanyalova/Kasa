@@ -96,7 +96,7 @@
 	.windowControls {
 		height: 25px;
 		background-color: var(--accent);
-		flex-grow: 100;
+		flex-grow: 1;
 		display: flex;
 		flex-direction: row-reverse;
 		color: black;

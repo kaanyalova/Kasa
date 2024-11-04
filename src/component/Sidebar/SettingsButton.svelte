@@ -26,7 +26,7 @@
 		background: var(--primary);
 		display: flex;
 		flex-direction: row;
-		flex-grow: 100;
+		flex-grow: 1;
 		border: 1px solid var(--secondary-transparent);
 		color: var(--text-opposite);
 		border-radius: 10px;
@@ -43,7 +43,7 @@
 		align-items: center;
 		justify-content: center;
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 	}
 
 	button:hover > .iconContainer {

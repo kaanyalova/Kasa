@@ -13,6 +13,9 @@
 	import { DividerSizes } from '../../../Shared/Dividers/DividerSizes';
 	import VerticalDivider from '../../../Shared/Dividers/VerticalDivider.svelte';
 	import ResolutionInput from './ResolutionInput.svelte';
+	import PathInput from '../../Shared/PathInput.svelte';
+	import { path } from '@tauri-apps/api';
+	import Title from '../../Shared/Title.svelte';
 
 	const THUMBNAIL_MAX = 8192;
 
@@ -72,29 +75,20 @@
 
 {#await promise then info}
 	<div class="thumbnails">
-		<span class="title">Thumbnail Database</span>
-		<BorderedBox>
-			<div class="pathInput">
-				<input type="text" bind:value={db_path} class="dbPathInput textInput monoFont" />
-				<button class="fileSelectButton">
-					<span class="details">Browse</span>
-					<div class="icon">
-						<FileManager height={18} width={18}></FileManager>
-					</div></button
-				>
-			</div>
-			<div class="bottomRow">
-				<div class="details dbInfoText">{image_count} Images {db_size}</div>
-				<div>
-					<button class="confirmButton" onclick={onConfirmThumbnailDatabase}> Confirm </button>
-				</div>
-			</div>
+		<Title>Thumnnail Database</Title>
+		<BorderedBox padding={4}>
+			<PathInput
+				details={`${image_count} Images ${db_size}`}
+				bind:path={db_path}
+				onConfirm={() => console.log('confirm callback')}
+			></PathInput>
 		</BorderedBox>
 
 		<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
-		<span class="title">Thumbnail Format</span>
 
-		<BorderedBox>
+		<Title>Thumbnail Format</Title>
+
+		<BorderedBox padding={4}>
 			<label for="imageFormatSelect">Image Format</label>
 
 			<!--
@@ -115,11 +109,13 @@
 			Image Resolution
 
 			<div class="resolutionContainer">
-				<ResolutionInput bind:_value={thumb_width} max_size={THUMBNAIL_MAX}></ResolutionInput>
+				<ResolutionInput bind:value={thumb_width} max_size={THUMBNAIL_MAX} label="Width"
+				></ResolutionInput>
 
 				<VerticalDivider width={DividerSizes.Small}></VerticalDivider>
 
-				<ResolutionInput bind:_value={thumb_height} max_size={THUMBNAIL_MAX}></ResolutionInput>
+				<ResolutionInput bind:value={thumb_height} max_size={THUMBNAIL_MAX} label="Height"
+				></ResolutionInput>
 			</div>
 
 			<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
@@ -231,7 +227,7 @@
 
 	.thumbnails {
 		display: flex;
-		flex-grow: 100;
+		flex-grow: 1;
 		flex-direction: column;
 	}
 
@@ -241,7 +237,7 @@
 	}
 
 	.dbPathInput {
-		flex-grow: 100;
+		flex-grow: 1;
 	}
 
 	.textInput {

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{db::schema::Media, thumbnail::thumbnail_image::calculate_aspect_ratio};
+use log::error;
 
 const LAST_ROW_HEIGHT: u64 = 250;
 
@@ -89,6 +90,7 @@ pub fn calculate_layout(
             // only on last image
 
             // Add the values to the current row
+
             let row_height: f64 = width as f64 / row_aspect_ratio;
 
             let mut current_x = 0 + gaps; // add gaps to first one in the row
@@ -98,8 +100,14 @@ pub fn calculate_layout(
             //let width = width as u64 - (current_row_temp.len() as u64 * gaps - 1);
 
             for i in &current_row_temp {
-                let aspect_ratio = i.thumbnail_x as f64 / i.thumbnail_y as f64;
-                let width = (row_height * aspect_ratio) as u64 - gaps;
+                let aspect_ratio: f64 = i.thumbnail_x as f64 / i.thumbnail_y as f64;
+                let mut width = (row_height * aspect_ratio) as u64 - gaps;
+
+                // will overflow with super small images otherwise
+                if width <= gaps {
+                    width = gaps + 1;
+                }
+
                 let height = row_height as u64;
 
                 let placement = ImagePlacement {
@@ -126,7 +134,10 @@ pub fn calculate_layout(
             row_index += 1;
 
             // At last image, go back and resize all images to sensible sizes
-            if i + 1 == images_len {
+
+            // 3.0 seems to work for this value
+            if i + 1 == images_len && row_aspect_ratio < 3.0 {
+                // min_aspect_ratio ~= 10 in 1080p
                 let mut current_x_last = 0 + gaps;
 
                 for image in &mut image_row.images {
@@ -142,7 +153,9 @@ pub fn calculate_layout(
                 }
 
                 // set the row height to predetermined value
-                image_row.height = LAST_ROW_HEIGHT;
+                //image_row.height = LAST_ROW_HEIGHT;
+
+                assert!(width as u64 >= current_x_last, "Width of the images are larger than the width of screen, something went wrong with last row layout. The assertion that (width = {} >= current_x_last = {}) failed", width, current_x_last);
             }
 
             rows.push(image_row);
@@ -172,4 +185,35 @@ pub struct ImagePlacement {
     width: u64,
     height: u64,
     hash: String,
+}
+
+#[test]
+// We definitely don't want the last row to be larger than the width, the `row_aspect_ratio < 3.0` somehow
+// seems to be fixed it, but run this test just in case
+fn test_random_generation() {
+    use rand::Rng;
+
+    for _test in 1..10_000 {
+        let mut media = vec![];
+        for _m in 1..100 {
+            let rand_x = rand::thread_rng().gen_range(1..=2000);
+            let rand_y = rand::thread_rng().gen_range(1..=2000);
+
+            media.push({
+                Media {
+                    hash: "hash".to_string(),
+                    media_type: "".to_string(),
+                    thumb_path: Some("".to_string()),
+                    thumbnail_x: rand_x,
+                    thumbnail_y: rand_y,
+                    filesize: 100,
+                    mime: "".to_string(),
+                    time_added: 0,
+                    has_file_ref: false,
+                }
+            });
+        }
+
+        calculate_layout(media, 1920.0, 0, 0);
+    }
 }

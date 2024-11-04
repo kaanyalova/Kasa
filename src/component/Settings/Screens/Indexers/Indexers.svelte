@@ -1,0 +1,179 @@
+<script lang="ts">
+	import { onDestroy } from 'svelte';
+	import BorderedBox from '../../../Shared/BorderedBox.svelte';
+	import { DividerSizes } from '../../../Shared/Dividers/DividerSizes';
+	import VerticalDivider from '../../../Shared/Dividers/VerticalDivider.svelte';
+	import LoupePlus from '../../../Vector/LoupePlus.svelte';
+	import SearchHardrive from '../../../Vector/SearchHardrive.svelte';
+	import Button from '../../Shared/Button.svelte';
+	import ConfirmationDialog from '../../Shared/ConfirmationDialog.svelte';
+	import { ConfirmationScreenStore } from '../../Shared/ConfirmationDialogStore.svelte';
+	import Database from '../Database.svelte';
+	import IndexerButton from './IndexerButton.svelte';
+	onDestroy(() => {
+		ConfirmationScreenStore.close();
+	});
+</script>
+
+<ConfirmationDialog></ConfirmationDialog>
+<div class="indexers">
+	<div class="leftPanel">
+		<BorderedBox padding={4}>Confirm</BorderedBox>
+	</div>
+
+	<div class="rightPanel">
+		<ul>
+			<li class="flex">
+				<!--
+				Does it make sense to make this directly open up the system file picker? Rest of the path pickers support both
+				directly entering the path and the file picker. 
+
+				But the other ones write to the config file instead of the DB so it should be fine?
+				-->
+				<IndexerButton onClick={() => {}}>
+					{#snippet text()}
+						<div>Add index</div>
+					{/snippet}
+					<!--Replace with search-folder gnome icon-->
+					<LoupePlus width={20} height={20}></LoupePlus>
+				</IndexerButton>
+			</li>
+
+			<li class="flex"></li>
+			<li class="flex">
+				<IndexerButton onClick={() => {}}>
+					{#snippet text()}
+						Re-scan all
+					{/snippet}
+					<SearchHardrive width={20} height={20}></SearchHardrive>
+				</IndexerButton>
+			</li>
+
+			<li class="flex">
+				<IndexerButton onClick={() => {}}>
+					{#snippet text()}
+						Re-scan selected
+					{/snippet}
+
+					<SearchHardrive width={20} height={20}></SearchHardrive>
+				</IndexerButton>
+			</li>
+
+			<!--
+			Does not have any confirmations, as user will need to select the indexes in the first place
+			and re-indexing is not that hard
+			-->
+			<li class="flex">
+				<IndexerButton onClick={() => {}}>
+					{#snippet text()}
+						Remove selected
+					{/snippet}
+					<SearchHardrive width={20} height={20}></SearchHardrive>
+				</IndexerButton>
+			</li>
+
+			<!--
+			Not red, though not as destructive as ones bellow it as the user can still re-index their files, there is still a confirmation though
+			-->
+			<li class="flex">
+				<IndexerButton
+					onClick={() => {
+						ConfirmationScreenStore.newDialog(
+							'Are you sure?',
+							'This will delete <strong>all the indexers</strong> but the metadata will stay',
+							() => {
+								console.log('Delete all indexes');
+							},
+							undefined,
+							undefined,
+							true
+						);
+					}}
+				>
+					{#snippet text()}
+						Remove all indexers
+					{/snippet}
+
+					<SearchHardrive width={20} height={20}></SearchHardrive>
+				</IndexerButton>
+			</li>
+
+			<li class="flex">
+				<!--Make this one red, and add a confirmation box on top-->
+				<IndexerButton
+					backgroundColor="var(--destructive)"
+					textColor="white"
+					onClick={() => {
+						ConfirmationScreenStore.newDialog(
+							'Are you sure?',
+							'This will both delete <strong>the references to files</strong> and <strong>all the stored metadata</strong>',
+							() => {
+								console.log('Exiting');
+							},
+							undefined,
+							undefined,
+							true
+						);
+					}}
+				>
+					{#snippet text()}
+						<div class="">
+							<ul>
+								<li>Remove selected</li>
+								<li><strong> along with all data </strong></li>
+							</ul>
+						</div>
+					{/snippet}
+
+					<SearchHardrive width={20} height={20}></SearchHardrive>
+				</IndexerButton>
+			</li>
+
+			<li class="flex">
+				<IndexerButton
+					backgroundColor="var(--destructive)"
+					textColor="white"
+					onClick={() => {
+						ConfirmationScreenStore.newDialog(
+							'Are you sure?',
+							'This will both delete <strong>all references to files</strong> and <strong>all the stored metadata</strong>',
+							() => {
+								console.log('Nuke data');
+							}
+						);
+					}}
+				>
+					{#snippet text()}
+						<div class="">
+							<ul>
+								<li>Remove <strong>ALL</strong> indexes</li>
+								<li><strong>along with all data</strong></li>
+							</ul>
+						</div>
+					{/snippet}
+					<SearchHardrive width={20} height={20}></SearchHardrive>
+				</IndexerButton>
+			</li>
+
+			<li></li>
+		</ul>
+	</div>
+</div>
+
+<style>
+	.indexers {
+		display: flex;
+		flex-grow: 1;
+	}
+
+	.rightPanel {
+		display: flex;
+		flex-grow: 0.01;
+		flex-direction: column;
+	}
+
+	.leftPanel {
+		display: flex;
+		flex-grow: 1;
+	}
+</style>

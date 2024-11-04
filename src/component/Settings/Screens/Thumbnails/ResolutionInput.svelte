@@ -1,10 +1,10 @@
 <script lang="ts">
-	let { _value = $bindable(), max_size }: ResolutionInputProps = $props();
+	let { value: _value = $bindable(), max_size, label }: ResolutionInputProps = $props();
 </script>
 
 <div class="">
 	<div class="resolutionInputContainerInner">
-		<label class="resolutionInputLabel" for="resolutionInput">Height</label>
+		<label class="resolutionInputLabel" for="resolutionInput">{label}</label>
 		<input
 			type="text"
 			class="resolutionInput textInput monoFont"

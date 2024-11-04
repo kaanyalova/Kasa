@@ -55,13 +55,12 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- TODO keyboard navigation -->
-<dialog open={MediaModalStatusStore.isOpen}>
+<dialog open={false}>
 	{#await getData() then data}
 		<div
 			class="dialogContents"
 			use:clickOutside={async () => {
 				await onClose();
-				info('close!');
 			}}
 		>
 			<div class="imageWrapper">

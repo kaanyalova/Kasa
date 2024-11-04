@@ -1,4 +1,5 @@
 type ResolutionInputProps = {
-    _value: number,
+    value: number,
     max_size: number,
+    label: string,
 }

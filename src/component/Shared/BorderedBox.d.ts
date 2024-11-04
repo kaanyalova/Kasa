@@ -1,4 +1,4 @@
 type BorderedBoxProps = {
-    padding: number,
+    padding: ?number,
     children: any,
 }

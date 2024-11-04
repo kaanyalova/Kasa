@@ -111,6 +111,9 @@ async indexAll() : Promise<Result<null, null>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async downloadAndIndex(url: string) : Promise<void> {
+    await TAURI_INVOKE("download_and_index", { url });
 }
 }
 
@@ -125,7 +128,8 @@ async indexAll() : Promise<Result<null, null>> {
 /** user-defined types **/
 
 export type Database = { db_path: string }
-export type GlobalConfig = { Database: Database; Thumbnails: Thumbs }
+export type Downloader = { output_path: string; gdl_config_path: string }
+export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
@@ -166,7 +170,7 @@ type __EventObj__<T> = {
 	once: (
 		cb: TAURI_API_EVENT.EventCallback<T>,
 	) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
-	emit: T extends null
+	emit: null extends T
 		? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
 		: (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };

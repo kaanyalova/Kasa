@@ -1,6 +1,10 @@
 <script lang="ts">
+	import Database from '../../Vector/Database.svelte';
+	import Download from '../../Vector/Download.svelte';
 	import Heart from '../../Vector/Heart.svelte';
 	import Image from '../../Vector/Image.svelte';
+	import LoupePlus from '../../Vector/LoupePlus.svelte';
+	import Trash from '../../Vector/Trash.svelte';
 	import { SettingsCategories } from '../Settings';
 	import SidebarEntry from './SidebarEntry.svelte';
 
@@ -10,6 +14,17 @@
 <div class="sidebarParent">
 	<div class="settingsSidebar">
 		<ul class="sidebarEntryList">
+			<li class="sidebarEntry">
+				<SidebarEntry
+					{selectedCategory}
+					category={SettingsCategories.Database}
+					name="Database"
+					onClick={() => updateSelectedCategory(SettingsCategories.Database)}
+				>
+					<Database height={20} width={20}></Database>
+				</SidebarEntry>
+			</li>
+
 			<li class="sidebarEntry">
 				<SidebarEntry
 					{selectedCategory}
@@ -23,20 +38,38 @@
 					<Image height={20} width={20}></Image>
 				</SidebarEntry>
 			</li>
+
 			<li class="sidebarEntry">
 				<SidebarEntry
 					{selectedCategory}
-					category={SettingsCategories.Database}
-					name="Database"
-					onClick={() => {
-						updateSelectedCategory(SettingsCategories.Database);
-						console.log('update2');
-					}}
+					category={SettingsCategories.Downloaders}
+					name="Gallery DL"
+					onClick={() => updateSelectedCategory(SettingsCategories.Downloaders)}
 				>
-					<Heart height={20} width={20}></Heart>
+					<Download height={18} width={18}></Download>
 				</SidebarEntry>
 			</li>
-			<li class="sidebarEntry">Third</li>
+
+			<li class="sidebarEntry">
+				<SidebarEntry
+					{selectedCategory}
+					category={SettingsCategories.UnreferencedItems}
+					name="Unreferenced"
+					onClick={() => updateSelectedCategory(SettingsCategories.UnreferencedItems)}
+				>
+					<Trash height={20} width={20}></Trash>
+				</SidebarEntry>
+			</li>
+			<li class="sidebarEntry">
+				<SidebarEntry
+					{selectedCategory}
+					category={SettingsCategories.Indexers}
+					name="Indexers"
+					onClick={() => updateSelectedCategory(SettingsCategories.Indexers)}
+				>
+					<LoupePlus height={20} width={20}></LoupePlus>
+				</SidebarEntry>
+			</li>
 			<li class="sidebarEntry">Forth</li>
 		</ul>
 	</div>
@@ -57,11 +90,12 @@
 		width: 200px;
 		height: 100vh;
 		display: flex;
+		z-index: 3;
 	}
 
 	.sidebarEntryList {
 		background-color: var(--background);
-		flex-grow: 100;
+		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
 		border: var(--secondary-alt) solid 1px;
@@ -76,5 +110,6 @@
 	.sidebarParent {
 		display: flex;
 		flex-direction: row;
+		z-index: 3;
 	}
 </style>

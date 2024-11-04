@@ -9,6 +9,7 @@
 
 	function onSettingsButtonClick() {
 		const webView = new WebviewWindow('settings', {
+			title: 'Settings',
 			url: 'settings',
 			decorations: false
 		});

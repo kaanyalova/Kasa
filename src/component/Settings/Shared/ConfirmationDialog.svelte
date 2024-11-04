@@ -12,10 +12,8 @@
 			<div class="text">
 				{#if ConfirmationScreenStore.passUnsafeHTML}
 					{@html ConfirmationScreenStore.text}
-					Unsafe
 				{:else}
 					{ConfirmationScreenStore.text}
-					Safe
 				{/if}
 			</div>
 

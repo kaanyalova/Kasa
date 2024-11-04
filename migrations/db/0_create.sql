@@ -30,7 +30,8 @@ CREATE VIRTUAL TABLE Tag USING fts5 (
 CREATE TABLE Path (
     hash TEXT NOT NULL,
     path TEXT NOT NULL,
-    imported_from TEXT
+    imported_from TEXT,
+    UNIQUE (hash, path)
 );
 
 
@@ -39,7 +40,7 @@ CREATE TABLE HashTagPair (
     tag_name TEXT NOT NULL,
     source TEXT,
     source_type TEXT,
-    UNIQUE(hash, tag_name)
+    UNIQUE (hash, tag_name)
 );
 
 -- wtf tag search goes from 0.7s to 0.003

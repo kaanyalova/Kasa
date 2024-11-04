@@ -36,7 +36,7 @@ pub async fn write_to_db(
     // Write the path info to DB
 
     let mut query_builder: QueryBuilder<Sqlite> =
-        QueryBuilder::new("INSERT INTO Path(hash, path) ");
+        QueryBuilder::new("INSERT OR IGNORE INTO Path(hash, path) ");
     query_builder.push_values(inputs.paths.into_iter(), |mut b, data| {
         b.push_bind(data.hash).push_bind(data.path);
     });

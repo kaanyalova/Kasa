@@ -23,4 +23,7 @@
 		height: 20px;
 		align-items: center;
 	}
+	.button:hover {
+		background-color: color-mix(in srgb, var(--accent) 90%, black 10%);
+	}
 </style>

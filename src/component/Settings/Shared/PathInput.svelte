@@ -90,4 +90,8 @@
 	.bottomRow div:last-child {
 		margin-left: auto;
 	}
+
+	.fileSelectButton:hover {
+		background-color: var(--secondary-alt);
+	}
 </style>

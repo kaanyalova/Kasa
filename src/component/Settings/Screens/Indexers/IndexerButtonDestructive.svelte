@@ -38,7 +38,7 @@
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
-		background-color: var(--accent);
+		background-color: var(--destructive);
 		color: black;
 		padding-top: 4px;
 		padding-bottom: 4px;
@@ -56,6 +56,6 @@
 	}
 
 	.button:hover {
-		background-color: color-mix(in srgb, var(--accent) 90%, black 10%);
+		background-color: color-mix(in srgb, var(--destructive) 90%, black 10%);
 	}
 </style>

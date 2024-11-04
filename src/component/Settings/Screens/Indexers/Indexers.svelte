@@ -10,6 +10,7 @@
 	import { ConfirmationScreenStore } from '../../Shared/ConfirmationDialogStore.svelte';
 	import Database from '../Database.svelte';
 	import IndexerButton from './IndexerButton.svelte';
+	import IndexerButtonDestructive from './IndexerButtonDestructive.svelte';
 	onDestroy(() => {
 		ConfirmationScreenStore.close();
 	});
@@ -18,7 +19,16 @@
 <ConfirmationDialog></ConfirmationDialog>
 <div class="indexers">
 	<div class="leftPanel">
-		<BorderedBox padding={4}>Confirm</BorderedBox>
+		<BorderedBox padding={4}>
+			<ul>
+				<li class="entry">Entry</li>
+				<li class="entry">Entry</li>
+				<li class="entry">Entry</li>
+				<li class="entry">Entry</li>
+				<li class="entry">Entry</li>
+				<li class="entry">Entry</li>
+			</ul>
+		</BorderedBox>
 	</div>
 
 	<div class="rightPanel">
@@ -100,9 +110,7 @@
 
 			<li class="flex">
 				<!--Make this one red, and add a confirmation box on top-->
-				<IndexerButton
-					backgroundColor="var(--destructive)"
-					textColor="white"
+				<IndexerButtonDestructive
 					onClick={() => {
 						ConfirmationScreenStore.newDialog(
 							'Are you sure?',
@@ -126,13 +134,11 @@
 					{/snippet}
 
 					<SearchHardrive width={20} height={20}></SearchHardrive>
-				</IndexerButton>
+				</IndexerButtonDestructive>
 			</li>
 
 			<li class="flex">
-				<IndexerButton
-					backgroundColor="var(--destructive)"
-					textColor="white"
+				<IndexerButtonDestructive
 					onClick={() => {
 						ConfirmationScreenStore.newDialog(
 							'Are you sure?',
@@ -152,7 +158,7 @@
 						</div>
 					{/snippet}
 					<SearchHardrive width={20} height={20}></SearchHardrive>
-				</IndexerButton>
+				</IndexerButtonDestructive>
 			</li>
 
 			<li></li>
@@ -175,5 +181,16 @@
 	.leftPanel {
 		display: flex;
 		flex-grow: 1;
+	}
+
+	.entry {
+		display: flex;
+		flex-grow: 1;
+		background: var(--background);
+		padding: 4px;
+	}
+
+	.entry:nth-child(2n) {
+		background: var(--secondary-alt);
 	}
 </style>

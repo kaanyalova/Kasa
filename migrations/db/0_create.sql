@@ -1,6 +1,6 @@
 -- For what these tables are for see kasa_core/db/schema.rs
 
-CREATE TABLE Media (
+CREATE TABLE IF NOT EXISTS Media (
     hash TEXT NOT NULL UNIQUE,
     thumb_path TEXT,
     media_type TEXT,
@@ -13,7 +13,7 @@ CREATE TABLE Media (
 );
 
 
-CREATE TABLE Image (
+CREATE TABLE IF NOT EXISTS Image (
     hash NOT NULL,
     -- format TEXT NOT NULL,
     resolution_x INT NOT NULL,
@@ -22,12 +22,12 @@ CREATE TABLE Image (
 
 
 
-CREATE VIRTUAL TABLE Tag USING fts5 (
+CREATE VIRTUAL TABLE IF NOT EXISTS Tag USING fts5 (
     name
 );
 
 
-CREATE TABLE Path (
+CREATE TABLE IF NOT EXISTS Path (
     hash TEXT NOT NULL,
     path TEXT NOT NULL,
     imported_from TEXT,
@@ -35,7 +35,7 @@ CREATE TABLE Path (
 );
 
 
-CREATE TABLE HashTagPair (
+CREATE TABLE IF NOT EXISTS HashTagPair (
     hash TEXT NOT NULL,
     tag_name TEXT NOT NULL,
     source TEXT,
@@ -44,15 +44,15 @@ CREATE TABLE HashTagPair (
 );
 
 -- wtf tag search goes from 0.7s to 0.003
-CREATE INDEX idx_hash_tag_pair__tag_name ON HashTagPair(tag_name);
+CREATE INDEX IF NOT EXISTS idx_hash_tag_pair__tag_name ON HashTagPair(tag_name);
 
-CREATE TABLE RawTagsField (
+CREATE TABLE IF NOT EXISTS RawTagsField (
     hash TEXT NOT NULL UNIQUE,
     _text TEXT
 );
 
 
-CREATE TABLE TagDetail (
+CREATE TABLE IF NOT EXISTS TagDetail (
     name TEXT NOT NULL,
     delete_on_no_references_left BOOLEAN NOT NULL DEFAULT true,
     color TEXT,
@@ -61,16 +61,16 @@ CREATE TABLE TagDetail (
 );
 
 
-CREATE TABLE TagGroup (
+CREATE TABLE IF NOT EXISTS TagGroup (
     name TEXT NOT NULL,
     color TEXT
 ); 
 
-CREATE TABLE IndexSource (
+CREATE TABLE IF NOT EXISTS IndexSource (
     path TEXT NOT NULL
 );
 
 
-CREATE TABLE VirtualIndexSource (
+CREATE TABLE IF NOT EXISTS VirtualIndexSource (
     path TEXT NOT NULL
 );

@@ -1,7 +1,7 @@
 use crate::db::schema::MediaType;
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types
-pub const SUPPORTED_FORMATS: [&str; 23] = [
+pub const SUPPORTED_FORMATS: [&str; 24] = [
     "image/avif", //some files may cause problesms see fox.profile0.8bpc.yuv420.odd-width.odd-height.avif
     "image/bmp",
     "image/vnd.ms-dds",
@@ -24,7 +24,8 @@ pub const SUPPORTED_FORMATS: [&str; 23] = [
     "video/webm",
     "video/3gpp",
     "video/3g2",
-    "video/x-matroska", // TODOS
+    "video/x-matroska", // TODOS,
+    "video/quicktime",
 ];
 
 pub const SUPPORTED_FORMATS_IMAGE: [&str; 14] = [
@@ -45,7 +46,7 @@ pub const SUPPORTED_FORMATS_IMAGE: [&str; 14] = [
     // TODOS
 ];
 
-pub const SUPPORTED_FORMATS_VIDEO: [&str; 9] = [
+pub const SUPPORTED_FORMATS_VIDEO: [&str; 10] = [
     "video/x-msvideo", // avi
     "video/mp4",
     "video/mpeg",
@@ -55,6 +56,7 @@ pub const SUPPORTED_FORMATS_VIDEO: [&str; 9] = [
     "video/3gpp",
     "video/3g2",
     "video/x-matroska",
+    "video/quicktime",
 ];
 
 pub fn get_type(mime: &str) -> MediaType {

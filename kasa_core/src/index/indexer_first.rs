@@ -38,7 +38,7 @@ pub fn index_first_batch(chunk: Chunk) -> Vec<FirstPass> {
             //}
         })
         .filter(|f| {
-            // filter the unsupported formats out
+            // filter the unsupported formats out, TODO add a log here if it doesn't match
             let mime = mime_guess::from_path(&f.path)
                 .first_or_octet_stream()
                 .to_string();

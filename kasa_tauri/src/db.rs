@@ -24,7 +24,7 @@ pub struct MediaCache {
     pub media: Mutex<Option<Vec<Media>>>,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()> {
     let pool = SqlitePoolOptions::new()
@@ -39,7 +39,7 @@ pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()>
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<TagQueryOutput> {
     println!("querying tags!");
@@ -55,7 +55,7 @@ pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 
 pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
@@ -67,7 +67,7 @@ pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
     db_connection_guard.as_ref().is_some() && thumbs_connection_guard.as_ref().is_some()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 /// Mounts the dbs into db_store, runs any pending migrations
 pub async fn connect_dbs(handle: AppHandle) {
@@ -132,7 +132,7 @@ pub async fn query_all(
 }
 */
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_layout_from_cache(
     handle: AppHandle,
@@ -150,7 +150,7 @@ pub async fn get_layout_from_cache(
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn query_all(
     handle: AppHandle,
@@ -180,7 +180,7 @@ pub async fn query_all(
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
     let connection_state = handle.state::<DbStore>();

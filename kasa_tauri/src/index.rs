@@ -1,12 +1,15 @@
-use kasa_core::index::index_sources::{
-    add_index_source_impl, get_index_paths_impl, index_all_impl, remove_index_source_impl,
+use kasa_core::index::{
+    index_sources::{
+        add_index_source_impl, get_index_paths_impl, index_all_impl, remove_index_source_impl,
+    },
+    indexer::index,
 };
 use sqlx::{pool::PoolOptions, Pool, Sqlite};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::DbStore;
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn add_index_source(handle: AppHandle, path: String) {
     let connection_state = handle.state::<DbStore>();
@@ -17,7 +20,7 @@ pub async fn add_index_source(handle: AppHandle, path: String) {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn remove_index_source(handle: AppHandle, path: String) {
     let connection_state = handle.state::<DbStore>();
@@ -29,7 +32,7 @@ pub async fn remove_index_source(handle: AppHandle, path: String) {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
     let h = handle.clone();
@@ -43,11 +46,14 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
         let p: Pool<Sqlite> = PoolOptions::new().connect("").await.unwrap();
         index_all_impl(&p, &p).await;
         //index_all_impl(db, thumbs_db).await;
+
+        handle.emit("media_updated", "").unwrap()
     }
+
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_index_paths(handle: AppHandle) -> Vec<String> {
     let connection_state = handle.state::<DbStore>();
@@ -58,4 +64,19 @@ pub async fn get_index_paths(handle: AppHandle) -> Vec<String> {
     } else {
         return vec![];
     }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn index_path(handle: AppHandle, path: String) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+
+    if let (Some(db), Some(thumbs)) = (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+    {
+        index(&path, db, thumbs).await;
+    }
+
+    handle.emit("media_updated", "").unwrap()
 }

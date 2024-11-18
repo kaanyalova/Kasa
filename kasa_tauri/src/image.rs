@@ -9,7 +9,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<String>, ()> {
     //let dev_thumbs_path = fs::canonicalize("../__dev_thumbs").unwrap();
@@ -33,7 +33,7 @@ pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<Str
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<String> {
     trace!("getting thumbnail for hash:{}", hash);

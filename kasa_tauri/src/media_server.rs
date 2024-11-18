@@ -18,7 +18,7 @@ pub struct MediaServerStore {
     ptr: Mutex<i64>,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 /// Returns the pointer to close the server
 #[specta::specta]
 pub async fn serve_media(handle: AppHandle, hash: String) {
@@ -82,7 +82,7 @@ pub async fn serve_media(handle: AppHandle, hash: String) {
 }
 
 /// This should be only called once from js side
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn close_server(handle: AppHandle) {
     let state = handle.state::<MediaServerStore>();

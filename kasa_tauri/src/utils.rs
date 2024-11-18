@@ -1,4 +1,4 @@
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 /// gets the provided env var, returns an empty string if the env var doesn't exist or something goes wrong
 pub fn get_env_var(envvar: &str) -> String {

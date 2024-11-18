@@ -5,7 +5,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
     let connection_state = handle.state::<DbStore>();
@@ -19,7 +19,7 @@ pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<MediaTag>> {
     let connection_state = handle.state::<DbStore>();
@@ -33,7 +33,7 @@ pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<MediaTag>> 
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn get_media_type(handle: AppHandle, hash: String) -> String {
     let connection_state = handle.state::<DbStore>();

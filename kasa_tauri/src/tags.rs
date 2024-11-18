@@ -3,7 +3,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
     let connection_state = handle.state::<DbStore>();

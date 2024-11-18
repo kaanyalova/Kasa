@@ -3,7 +3,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::{DbStore, MediaCache};
 
-#[tauri::command]
+#[tauri::command(async)]
 #[specta::specta]
 /// `input_raw`: user tags
 /// `width`: viewport width for layout
@@ -22,6 +22,6 @@ pub async fn search(handle: AppHandle, input_raw: String, _width: u64, _gaps: u6
 
         *state.media.lock().await = Some(media);
 
-        handle.emit("media_updated", "").unwrap();
+        handle.emit("cache_updated", "").unwrap();
     }
 }

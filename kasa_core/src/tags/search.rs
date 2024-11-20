@@ -5,7 +5,7 @@ use sqlx::{query_as, Pool, QueryBuilder, Sqlite};
 #[allow(unused)]
 use crate::{
     db::schema::Media,
-    test_util::db_utils::{insert_hash_tag_pair_row, insert_media_row},
+    test_util::db_utils::{_insert_media_row, insert_hash_tag_pair_row},
 };
 
 use super::tags::parse_tags;
@@ -103,7 +103,7 @@ fn test_simple_search(pool: Pool<Sqlite>) {
     };
     let media = var_name;
 
-    insert_media_row(&pool, &media).await;
+    _insert_media_row(&pool, &media).await;
 
     insert_hash_tag_pair_row("123", "never", &pool).await;
     insert_hash_tag_pair_row("123", "gonna", &pool).await;

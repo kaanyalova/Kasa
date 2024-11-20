@@ -135,8 +135,10 @@ pub fn calculate_layout(
 
             // At last image, go back and resize all images to sensible sizes
 
-            // 3.0 seems to work for this value
-            if i + 1 == images_len && row_aspect_ratio < 3.0 {
+            // if the last row gets resized to a width higher than the width of the screen we are fucked
+            // checking `row_aspect_ratio < width / LAST_ROW_HEIGHT` should prevent that and use the regular, non-rescaled row layout instead
+            // if it is the case it should have a high aspect ratio and shouldn't look out of place
+            if i + 1 == images_len && row_aspect_ratio < width / LAST_ROW_HEIGHT as f64 {
                 // min_aspect_ratio ~= 10 in 1080p
                 let mut current_x_last = 0 + gaps;
 
@@ -151,6 +153,8 @@ pub fn calculate_layout(
                     image.width = x as u64;
                     image.height = y as u64;
                 }
+
+                image_row.height = LAST_ROW_HEIGHT + gaps;
 
                 // set the row height to predetermined value
                 //image_row.height = LAST_ROW_HEIGHT;
@@ -188,8 +192,6 @@ pub struct ImagePlacement {
 }
 
 #[test]
-// We definitely don't want the last row to be larger than the width, the `row_aspect_ratio < 3.0` somehow
-// seems to be fixed it, but run this test just in case
 fn test_random_generation() {
     use rand::Rng;
 

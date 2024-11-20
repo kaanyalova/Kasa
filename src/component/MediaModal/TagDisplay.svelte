@@ -67,7 +67,7 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
-	<ul>
+	<ul class="tagsList">
 		{#each tags as tag}
 			<li class="tagsDisplay">{tag.name}</li>
 		{/each}
@@ -75,6 +75,14 @@
 {/if}
 
 <style>
+	.tagsList {
+		padding: 4px;
+		margin: 4px;
+		border: var(--secondary-alt) 1px solid;
+		max-height: 30vh;
+		overflow-y: auto;
+	}
+
 	.tagsEdit {
 		background-color: var(--background);
 		border: var(--secondary-alt) 1px solid;
@@ -84,6 +92,8 @@
 		margin: 4px;
 		padding-left: 4px;
 		padding-right: 4px;
+		max-height: 30vh;
+		overflow-y: auto;
 	}
 
 	.tagsEdit:focus {

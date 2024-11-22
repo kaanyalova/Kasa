@@ -50,7 +50,7 @@
         "resizable": true,
         "title": "Kasa",
         "decorations": false,
-        "maximized": true
+        "maximized": false
       }
     ],
     "security": {

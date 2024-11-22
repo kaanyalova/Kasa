@@ -2,7 +2,7 @@
 	// This should "technically work" but
 
 	import { invoke } from '@tauri-apps/api/core';
-	import { info } from '@tauri-apps/plugin-log';
+	import { error, info, trace } from '@tauri-apps/plugin-log';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import VirtualList, { type VirtualListEvents } from 'svelte-tiny-virtual-list';
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
@@ -24,8 +24,12 @@
 	let window_size_unlisten: UnlistenFn;
 
 	// on cache update run updateLayout();
-	listen('media_updated', async (_) => {
+	listen('cache_updated', async (_) => {
 		await updateLayout();
+	});
+
+	listen('media_updated', async (_) => {
+		await checkDatabase();
 	});
 
 	onMount(async () => {
@@ -43,6 +47,7 @@
 	});
 
 	onDestroy(() => {
+		trace('ondestroy called!');
 		window_size_unlisten();
 	});
 

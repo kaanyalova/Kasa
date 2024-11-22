@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { SidebarButtonProps } from './SidebarButton';
 
-	let { text, children }: SidebarButtonProps = $props();
+	let { text, children, onClick }: SidebarButtonProps = $props();
 </script>
 
-<button class="sidebarButton">
+<button class="sidebarButton" onclick={onClick}>
 	<div class="iconContainer">
 		{@render children()}
 	</div>

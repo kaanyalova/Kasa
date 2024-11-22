@@ -7,8 +7,8 @@ import logging
 import json
 
 
-def download(url: str, path: str) -> str:
-    config.load()
+def download(url: str, path: str, config_dir: str) -> str:
+    config.load(files=[config_dir])
     config.set(("extractor",), "base-directory", path)
     # config.set(("extractor", "reddit"), "client-id", "")
     # config.set(
@@ -16,6 +16,21 @@ def download(url: str, path: str) -> str:
     #    "user-agent",
     #    "Python: <gallery_dl>:v1.0 (by /u/)",
     # )
+
+    # options = json.loads(config_options_json)
+
+    # for option in options:
+    #    print(option)
+    #    key_tuple = tuple(option["keys"])
+    #    if len(key_tuple) < 2:
+    #        # todo check from rust side instead
+    #        raise AssertionError(
+    #            "Gallery dl config options should have at least 2 keys"
+    #        )
+
+    # wtf is point of having an array for categories of keys but using another key for the options
+    # config.set(key_tuple[:-1], key_tuple[-1], option["value"])
+    # print(f"loaded config option, val= {option['value']}")
 
     _job = job.DownloadJob(url)
 
@@ -25,7 +40,7 @@ def download(url: str, path: str) -> str:
     # name
 
     if status != 0:
-        raise (Exception("Gallery-dl did not exit with 0, check the logs."))
+        raise Exception("Gallery-dl did not exit with 0, check the logs.")
 
     url_extractors = list(
         filter(lambda msg: msg[0] == Message.Url, list(_job.extractor))

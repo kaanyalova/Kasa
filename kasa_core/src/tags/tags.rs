@@ -73,7 +73,7 @@ pub async fn insert_tags_with_source_types(
     source: Option<String>,
 ) {
     // This runs a query for every tag, might be possible to optimize this somehow?
-
+    trace!("Inserting gallery_dl tags: {:#?}", &tags);
     // Insert tag pairs into HashTagPair
     // Check if tags exist on Tag and TagFTS
     // If it exists on Tag bump the count by one

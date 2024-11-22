@@ -1,3 +1,4 @@
+use std::env;
 use std::sync::Arc;
 
 use config::get_config;
@@ -12,11 +13,17 @@ use db::query_all;
 use db::query_tags;
 use db::DbStore;
 use db::MediaCache;
+use downloaders::download_and_index;
+use downloaders::ExtractorsStore;
+use downloaders::PythonStore;
 use image::get_thumbnail;
 use image::get_thumbnail_from_db;
+use index::index_path;
 use index::*;
 use linux::get_desktop;
 use log::warn;
+use log::LevelFilter;
+use log::Log;
 use media::get_info;
 use media::get_media_type;
 use media::get_tags;
@@ -27,6 +34,7 @@ use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::update_tags;
+use tauri_plugin_log::LogLevel;
 use tokio::sync::Mutex;
 use utils::get_env_var;
 
@@ -38,18 +46,51 @@ mod linux;
 mod media;
 //mod serve_media;
 mod config;
+mod downloaders;
 mod index;
 mod media_server;
 mod search;
 mod tags;
 mod utils;
+
+const DEFAULT_LOGLEVEL_RELEASE: LevelFilter = LevelFilter::Warn;
+const DEFAULT_LOGLEVEL_DEV: LevelFilter = LevelFilter::Debug;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Its either broken images or bad performance ,amazing
+    // Updating webkitgtk seems to fix the brokenless
+    // for now...
+    //#[cfg(target_os = "linux")]
+    //std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    //std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+
+    // make vscode stop setting the GDK_BACKEND to x11 on wayland
     #[cfg(target_os = "linux")]
-    std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    {
+        if std::env::var("XDG_SESSION_TYPE") == Ok("wayland".to_string()) {
+            std::env::set_var("GDK_BACKEND", "wayland");
+        }
+    }
 
     let dotenv = dotenvy::dotenv();
+
+    #[cfg(debug_assertions)]
+    let default_log_level = DEFAULT_LOGLEVEL_DEV;
+    #[cfg(not(debug_assertions))]
+    let default_log_level = DEFAULT_LOGLEVEL_RELEASE;
+
+    let log_level_env = env::var("KASA_LOG")
+        .unwrap_or("".to_string())
+        .to_lowercase();
+
+    let log_level = match log_level_env.as_ref() {
+        "error" => LevelFilter::Error,
+        "warn" => LevelFilter::Warn,
+        "info" => LevelFilter::Info,
+        "debug" => LevelFilter::Debug,
+        "trace" => LevelFilter::Trace,
+        _ => default_log_level,
+    };
 
     match dotenv {
         Ok(_) => {
@@ -86,7 +127,9 @@ pub fn run() {
             add_index_source,
             remove_index_source,
             get_index_paths,
-            index_all
+            index_all,
+            download_and_index,
+            index_path,
         ]
     });
 
@@ -102,10 +145,11 @@ pub fn run() {
     }
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new().build())
-        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_log::Builder::new().level(log_level).build())
+        //.plugin(tauri_plugin_fs::init())
         //.plugin(tauri_plugin_theme::init(context.config_mut()))
-        .plugin(tauri_plugin_os::init())
+        //.plugin(tauri_plugin_dialog::init())
+        //.plugin(tauri_plugin_os::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);
@@ -114,6 +158,8 @@ pub fn run() {
         .manage(DbStore::default())
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
+        .manage(PythonStore::default())
+        .manage(ExtractorsStore::default())
         .run(context)
         .expect("error while running tauri application");
 }

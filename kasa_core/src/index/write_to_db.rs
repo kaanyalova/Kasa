@@ -1,4 +1,4 @@
-use sqlx::{query as sqlx_query, Pool, QueryBuilder, Sqlite};
+use sqlx::{query as sqlx_query, Execute, Pool, QueryBuilder, Sqlite};
 
 use crate::db::schema::{media_type_to_string, MediaType};
 
@@ -9,6 +9,7 @@ pub async fn write_to_db(
     media_type: MediaType,
     pool: &Pool<Sqlite>,
     _pool_thumbs: &Pool<Sqlite>, // TODO delete this unused
+    path: &str,
 ) {
     // Write the basic Media data to the db
 
@@ -36,12 +37,12 @@ pub async fn write_to_db(
     // Write the path info to DB
 
     let mut query_builder: QueryBuilder<Sqlite> =
-        QueryBuilder::new("INSERT OR IGNORE INTO Path(hash, path) ");
+        QueryBuilder::new("INSERT OR IGNORE INTO Path(hash, path, imported_from) ");
     query_builder.push_values(inputs.paths.into_iter(), |mut b, data| {
-        b.push_bind(data.hash).push_bind(data.path);
+        b.push_bind(data.hash).push_bind(data.path).push_bind(path);
     });
-
     let query = query_builder.build();
+
     query.execute(pool).await.unwrap();
 
     // Write specific file metadata

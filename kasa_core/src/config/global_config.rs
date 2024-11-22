@@ -2,13 +2,24 @@ use std::{
     env,
     fs::{self, create_dir},
     path::PathBuf,
+    str::FromStr,
 };
 
+use anyhow::Result;
 use log::info;
+use rayon::vec;
+use rustpython_vm::PyObject;
+use rustpython_vm::{
+    pyclass, pymodule, PyPayload, PyResult, TryFromBorrowedObject, VirtualMachine,
+};
 use serde::{Deserialize, Serialize};
-use toml_edit::{value, Array, DocumentMut, Value};
+use toml::Value as TomlValue;
+use toml_edit::{de::from_document, value, Array, DocumentMut, Value};
 
 const DEFAULT_CONFIG: &str = r#"
+# Try to avoid using relative paths, they will cause problems, they should never be configured
+# from the GUI anyways
+
 [Database]
 # Path of the currently open database file
 db_path = "./default.kasa"
@@ -26,10 +37,11 @@ thumbnail_format = "png"
 
 
 [Downloader]
-
 # Path that gallery_dl will output the extracted media
 output_path = ""
 
+# Optional: gallery_dl config path 
+# gdl_config_path = "
 "#;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
@@ -57,6 +69,12 @@ pub struct Thumbs {
 #[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
 pub struct Downloader {
     pub output_path: String,
+    // The plan was to have gallery-dl config options inside the config.toml
+    // But toml_edit doesn't support serde types and i don't feel like manually parsing every single possible field
+    // At least with this users might be able to bring their own config files
+
+    // toml doesnt parse with Option<String> for some reason
+    pub gdl_config_path: String,
 }
 
 impl Default for Thumbs {
@@ -64,7 +82,7 @@ impl Default for Thumbs {
         Self {
             resolution: [256, 256],
             thumbnail_format: ThumbnailFormat::PNG,
-            thumbs_db_path: Default::default(),
+            thumbs_db_path: "./thumbs.kasa".to_string(),
         }
     }
 }
@@ -102,12 +120,23 @@ fn get_config_dir() -> PathBuf {
 
 pub fn get_config_impl() -> GlobalConfig {
     let path = get_config_dir().join("config.toml");
-    check_config(&path);
+    find_or_create_config(&path);
 
     let f = fs::read_to_string(path).unwrap();
 
     let config: GlobalConfig = toml::from_str(&f).unwrap();
     config
+}
+
+pub fn get_configurable_tag_extractor_path() -> Result<PathBuf> {
+    let config_dir = get_config_dir();
+    let extractor_dir = config_dir.join("extractors");
+
+    if !&extractor_dir.exists() {
+        std::fs::create_dir(&extractor_dir)?;
+    }
+
+    Ok(extractor_dir)
 }
 
 #[derive(specta::Type, Serialize, Deserialize)]
@@ -119,7 +148,7 @@ pub enum ResolutionKey {
 /// Special function to set thumbnail resolution array keys
 pub fn set_value_resolution(height: u32, width: u32) {
     let path = get_config_dir().join("config.toml");
-    check_config(&path);
+    find_or_create_config(&path);
 
     let f = fs::read_to_string(&path).unwrap();
 
@@ -135,7 +164,7 @@ pub fn set_value_resolution(height: u32, width: u32) {
 pub fn set_value_str(category: &str, key: &str, val: &str) {
     let path = get_config_dir().join("config.toml");
 
-    check_config(&path);
+    find_or_create_config(&path);
 
     let f = fs::read_to_string(&path).unwrap();
 
@@ -148,7 +177,7 @@ pub fn set_value_str(category: &str, key: &str, val: &str) {
 
 /// Checks if the config file exists, creates it if it doesn't
 /// `path` is absolute path to config.toml
-fn check_config(path: &PathBuf) {
+fn find_or_create_config(path: &PathBuf) {
     // create the parent "kasa" directory if it doesn't exist
     let parent = path.parent().unwrap();
 
@@ -191,7 +220,7 @@ fn test_config_creation() {
 
     let config_path = tempdir.join("kDebugasa").join("config.toml");
 
-    check_config(&config_path);
+    find_or_create_config(&config_path);
 
     assert!(tempdir.join("kasa").is_dir());
     assert!(tempdir.join("kasa").join("config.toml").is_file());

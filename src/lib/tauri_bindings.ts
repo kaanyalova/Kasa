@@ -114,6 +114,9 @@ async indexAll() : Promise<Result<null, null>> {
 },
 async downloadAndIndex(url: string) : Promise<void> {
     await TAURI_INVOKE("download_and_index", { url });
+},
+async indexPath(path: string) : Promise<void> {
+    await TAURI_INVOKE("index_path", { path });
 }
 }
 

@@ -1,7 +1,16 @@
 <script>
+	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import Heart from '../Vector/Heart.svelte';
 	import SidebarButton from './SidebarButton.svelte';
 	import './SideBarGlobals.scss';
+
+	function onClickDownload() {
+		const webView = new WebviewWindow('download', {
+			title: 'Download',
+			url: 'downloader',
+			decorations: false
+		});
+	}
 </script>
 
 <div class="operations sidebarContent">
@@ -21,6 +30,12 @@
 		</li>
 		<li>
 			<SidebarButton text="Generate With AI">
+				<Heart height={20} width={20}></Heart>
+			</SidebarButton>
+		</li>
+
+		<li>
+			<SidebarButton text="Download" onClick={onClickDownload}>
 				<Heart height={20} width={20}></Heart>
 			</SidebarButton>
 		</li>

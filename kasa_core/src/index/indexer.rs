@@ -77,7 +77,7 @@ pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) 
         for (_type, group) in first_pass_groups {
             let batch = indexer_second_batch(_type, group);
 
-            write_to_db(batch, _type, &pool, &pool_thumbs).await;
+            write_to_db(batch, _type, &pool, &pool_thumbs, path).await;
         }
     }
 }

@@ -1,11 +1,18 @@
+use std::collections::HashMap;
+
+use clap::builder::Str;
 use kasa_core::{
-    config::global_config::get_config_impl, db::migrations::prepare_dbs,
-    downloaders::gallery_dl::download_and_index,
+    config::global_config::{get_config_impl, get_configurable_tag_extractor_path},
+    db::migrations::prepare_dbs,
+    downloaders::gallery_dl::{download_and_index_impl, PyTrustMe},
 };
-use kasa_python::init_interpreter;
+use kasa_python::{
+    extractors::configurable::{get_extractors_from_path, ExtractorConfig},
+    init_interpreter,
+};
 use sqlx::sqlite::SqlitePoolOptions;
 
-pub async fn gdl(url: &str) {
+pub async fn gdl(url: &str, extractors: HashMap<String, ExtractorConfig>) {
     let config = get_config_impl();
     let interpreter = init_interpreter();
 
@@ -22,12 +29,14 @@ pub async fn gdl(url: &str) {
         .await
         .unwrap();
 
-    download_and_index(
-        interpreter,
+    download_and_index_impl(
+        &PyTrustMe(interpreter),
         url,
         &config.downloader.output_path,
         &pool,
         &pool_thumbs,
+        &|| {},
+        &extractors,
     )
     .await
     .unwrap();

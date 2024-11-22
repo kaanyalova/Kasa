@@ -11,9 +11,38 @@
 	import Database from '../Database.svelte';
 	import IndexerButton from './IndexerButton.svelte';
 	import IndexerButtonDestructive from './IndexerButtonDestructive.svelte';
+	import SearchFolder from '../../../Vector/SearchFolder.svelte';
+	import Trash from '../../../Vector/Trash.svelte';
+	import UserTrash from '../../../Vector/UserTrash.svelte';
+	import { open } from '@tauri-apps/plugin-dialog';
+	import { commands } from '$lib/tauri_bindings';
+	import { error, trace } from '@tauri-apps/plugin-log';
 	onDestroy(() => {
 		ConfirmationScreenStore.close();
 	});
+
+	async function onAddIndex() {
+		// Is this always a directory?
+		const path = await open({
+			multiple: false,
+			directory: true
+		});
+
+		if (typeof path !== undefined) {
+			await commands.addIndexSource(path!!);
+			await commands.indexPath(path!!);
+		} else {
+			error('Invalid directory');
+		}
+	}
+
+	async function onRescanAll() {
+		await commands.indexAll();
+	}
+
+	async function rescanSelected() {
+		// TODO selection
+	}
 </script>
 
 <ConfirmationDialog></ConfirmationDialog>
@@ -65,7 +94,7 @@
 						Re-scan selected
 					{/snippet}
 
-					<SearchHardrive width={20} height={20}></SearchHardrive>
+					<SearchFolder width={20} height={20}></SearchFolder>
 				</IndexerButton>
 			</li>
 
@@ -78,7 +107,7 @@
 					{#snippet text()}
 						Remove selected
 					{/snippet}
-					<SearchHardrive width={20} height={20}></SearchHardrive>
+					<UserTrash width={20} height={20}></UserTrash>
 				</IndexerButton>
 			</li>
 

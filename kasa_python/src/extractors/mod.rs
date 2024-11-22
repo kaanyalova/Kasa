@@ -1,1 +1,1 @@
-pub mod danbooru;
+pub mod configurable;

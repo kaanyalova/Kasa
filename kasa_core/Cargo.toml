@@ -44,23 +44,28 @@ strum = { version = "0.26.3", features = ["derive"] }
 thiserror = "1.0.62"
 tokio = { version = "1.36.0", features = ["full"] }
 toml = "0.8.19"
-toml_edit = "0.22.20"
+toml_edit = { version = "0.22.20", features = ["serde"] }
 #wl-clipboard-rs = "0.9.0"
 xxhash-rust = { version = "0.8.10", features = ["xxh3"] }
 anyhow = "1.0.89"
 async-walkdir = "2.0.0"
 tokio-stream = "0.1.16"
 walkdir = { git = "https://github.com/dbarnett/walkdir/", branch = "lifetimes" }
-kasa_python = { path = "../kasa_python" }
+kasa_python = { workspace = true }
+
+axum = "0.7.5"
+tower-http = { version = "0.5.2", features = ["fs"] }
 
 
 rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
-    "encodings",
+    #"encodings",
     "freeze-stdlib",
-    "rustpython-compiler",
-    "importlib",
+    #"rustpython-compiler",
+    #"importlib",
 
 ] }
+axum-macros = "0.4.2"
 
 [dev-dependencies]
 tempfile = "3.12.0"
+rand = "0.8.5"

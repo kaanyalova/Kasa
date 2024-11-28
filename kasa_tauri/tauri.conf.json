@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/crabnebula-dev/devtools/2f2f97fb7d215295b47e2b004ad76c0cd0100ead/clients/web/src/lib/tauri/config/tauri-conf-schema-v2.json",
   "build": {
     "beforeBuildCommand": "bun run build",
     "beforeDevCommand": "bun run dev",
@@ -50,7 +51,8 @@
         "resizable": true,
         "title": "Kasa",
         "decorations": false,
-        "maximized": false
+        "maximized": false,
+        "url": "index.html"
       }
     ],
     "security": {

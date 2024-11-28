@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next" }
+ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next", features = [
+    "static", # TODO only enable in Android and non-linux systems
+] }
 base64 = "0.22.1"
 chrono = "0.4.38"
 crossbeam-channel = "0.5.12"
@@ -15,7 +17,7 @@ dirs = "5.0.1"
 fast_image_resize = { version = "4.0.0", features = ["image"] }
 human_bytes = { version = "0.4.3", default-features = false } # Don't use SI file size units
 humantime = "2.1.0"
-image = { version = "0.25.1", features = ["avif-native"] }
+image = { version = "0.25.1", features = ["avif"] }
 imagesize = "0.12.0"
 img-parts = "0.3.0"
 indexmap = { version = "2.5.0", features = ["serde"] }
@@ -69,3 +71,10 @@ axum-macros = "0.4.2"
 [dev-dependencies]
 tempfile = "3.12.0"
 rand = "0.8.5"
+
+[build-dependencies]
+num_cpus = "1.16.0"
+os_info = "3.8.2"
+reqwest = { version = "0.12.9", features = ["blocking"] }
+tar = "0.4.43"
+xz = "0.1.0"

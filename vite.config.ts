@@ -4,7 +4,6 @@ import { vite as vidstack } from 'vidstack/plugins';
 
 export default defineConfig({
 	plugins: [sveltekit(), vidstack()],
-
 });
 
 

@@ -19,17 +19,20 @@ rustpython-pylib = { git = "https://github.com/kaanyalova/RustPython.git", branc
 rustpython = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
     "freeze-stdlib",
     "sqlite",
-    "ssl",
+    "ssl-vendor",
 ] }
 
 anyhow = "1.0.91"
 serde_json = "1.0.132"
 serde = { version = "1.0.213", features = ["derive"] }
 thiserror = "1.0.65"
-
+toml = "0.8.19"
+specta = { version = "=2.0.0-rc.20", features = ["derive"] }
+log = "0.4.22"
+#kasa_core = { workspace = true }
 
 [build-dependencies]
 flate2 = "1.0.34"
-reqwest = { version = "0.12.8", features = ["blocking"] }
+reqwest = { version = "0.12.8", features = ["blocking", "rustls-tls"] }
 tar = "0.4.42"
 diffy = "0.4.0"

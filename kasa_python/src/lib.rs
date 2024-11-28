@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use anyhow::{anyhow, Ok, Result};
-use extractors::danbooru::Danbooru;
+use extractors::configurable::{extract_tags, ExtractorConfig};
+use log::trace;
 use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{
     compiler::parser::ast::String,
@@ -10,12 +13,13 @@ use rustpython_vm::{
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
-mod extractors;
+pub mod extractors;
 
 pub fn init_interpreter() -> Interpreter {
-    vm::Interpreter::with_init(Default::default(), |vm| {
+    let intrp = vm::Interpreter::with_init(Default::default(), |vm| {
         vm.add_native_modules(rustpython_stdlib::get_module_inits());
         vm.add_frozen(FROZEN_STDLIB);
+
         vm.add_frozen(py_freeze!(
             dir = "py/dependencies/gallery-dl/gallery_dl-1.27.7"
         ));
@@ -31,13 +35,16 @@ pub fn init_interpreter() -> Interpreter {
             dir = "py/dependencies/urllib3/urllib3-2.2.3/src"
         ));
         vm.add_frozen(py_freeze!(dir = "py/py_src"));
-    })
+    });
+    dbg!("init done");
+    intrp
 }
 
 pub fn gdl_download(
-    interpreter: Interpreter,
+    interpreter: &Interpreter,
     url: &str,
     output_path: &str,
+    gdl_config_path: Option<String>,
 ) -> Result<GalleryDlOutput> {
     interpreter.enter(|vm| {
         let module = vm.import("gdl", 0).map_err(|e| {
@@ -51,8 +58,13 @@ pub fn gdl_download(
             )
         })?;
 
+        dbg!(&gdl_config_path);
+
         let output = func
-            .call((url, output_path), vm)
+            .call(
+                (url, output_path, gdl_config_path.unwrap_or("".to_string())),
+                vm,
+            )
             .map_err(|e| {
                 vm.print_exception(e)
 
@@ -69,6 +81,8 @@ pub fn gdl_download(
         })?;
 
         let gdl_output: GalleryDlOutput = serde_json::from_str(&output)?;
+
+        trace!("Raw gallery_dl output: {:#?}", &gdl_output);
 
         Ok(gdl_output)
     })
@@ -90,29 +104,42 @@ pub struct URLExtractor {
     pub path: String,
     pub url: String,
     #[serde(flatten)]
-    pub meta: Meta,
+    meta: Meta,
 }
 
 impl URLExtractor {
-    pub fn get_tags(&self) -> Vec<ExtractedTag> {
+    pub fn get_tags(
+        &self,
+        extractors: &HashMap<String, ExtractorConfig>,
+    ) -> Result<Vec<ExtractedTag>> {
         match &self.meta {
-            Meta::Danbooru(meta) => meta.tags(),
-            Meta::Other(_) => vec![],
+            Meta::Other(value) => extract_tags(extractors, value),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ExtractedTag {
     pub _type: String,
     pub name: String,
 }
 
+impl ExtractedTag {
+    fn new(_type: &str, name: &str) -> Self {
+        Self {
+            _type: _type.to_string(),
+            name: name.to_string(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+
+struct Configurable;
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "extractor", content = "meta")]
 enum Meta {
-    #[serde(rename = "danbooru")]
-    Danbooru(Danbooru),
     // We don't have any typed structs for the extractor
     #[serde(untagged)]
     Other(Value),

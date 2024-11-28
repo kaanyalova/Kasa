@@ -58,11 +58,12 @@ const DEFAULT_LOGLEVEL_DEV: LevelFilter = LevelFilter::Debug;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Updating webkitgtk seems to fix the brokenless
+    // Updating webkitgtk seems to fix the brokenness
     // for now...
-    //#[cfg(target_os = "linux")]
+    #[cfg(target_os = "linux")]
     //std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-    //std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+    // needed for video player, browser dies otherwise
+    std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
 
     // make vscode stop setting the GDK_BACKEND to x11 on wayland
     #[cfg(target_os = "linux")]
@@ -133,7 +134,7 @@ pub fn run() {
         ]
     });
 
-    #[cfg(debug_assertions)]
+    #[cfg(all(not(target_os = "android"), debug_assertions))]
     {
         builder
             .export(

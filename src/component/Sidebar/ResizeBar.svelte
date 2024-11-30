@@ -58,7 +58,12 @@
 		<div class="bottom"></div>
 	</div>
 
-	<div class="invis"></div>
+	<div
+		class="invis"
+		onmousedown={(e) => mouseDown(e)}
+		onmouseup={(e) => mouseUp(e)}
+		aria-hidden="true"
+	></div>
 </div>
 
 <style lang="scss">
@@ -83,10 +88,13 @@
 	}
 
 	.invis {
-		position: absolute;
-		padding-left: 10px;
+		position: relative;
 		background-color: transparent;
+		right: 5px;
+		padding-left: 10px;
 		height: 100vh;
 		user-select: none;
+		cursor: col-resize;
+		z-index: 999;
 	}
 </style>

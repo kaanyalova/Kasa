@@ -181,4 +181,8 @@
 		position: relative;
 		top: 12px;
 	}
+
+	.list :global(.virtual-list-wrapper) {
+		overflow: hidden; /*Don't show horizontal scroll bar when moving the sidebar*/
+	}
 </style>

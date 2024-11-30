@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next", features = [
-    "static", # TODO only enable in Android and non-linux systems
-] }
+#ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next", features = [
+#    # "static", # TODO only enable in Android and non-linux systems
+#] }
 base64 = "0.22.1"
 chrono = "0.4.38"
 crossbeam-channel = "0.5.12"
@@ -67,6 +67,17 @@ rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch =
 
 ] }
 axum-macros = "0.4.2"
+
+
+[dependencies.ffmpeg]
+git = "https://github.com/zmwangx/rust-ffmpeg"
+package = "ffmpeg-next"
+
+
+[target.'cfg(target_os = "android")'.dependencies.ffmpeg]
+git = "https://github.com/zmwangx/rust-ffmpeg"
+package = "ffmpeg-next"
+features = ["static"]
 
 [dev-dependencies]
 tempfile = "3.12.0"

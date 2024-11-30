@@ -183,6 +183,6 @@
 	}
 
 	.list :global(.virtual-list-wrapper) {
-		overflow: hidden; /*Don't show horizontal scroll bar when moving the sidebar*/
+		overflow-x: hidden; /*Don't show horizontal scroll bar when moving the sidebar*/
 	}
 </style>

@@ -73,7 +73,6 @@
 					/>
 				{:else if data!.mediaType == 'Video'}
 					<!--There is a slight pop-in when videos are first loaded-->
-
 					<media-player
 						autoplay
 						controlsDelay={1000}
@@ -84,7 +83,7 @@
 						<media-provider>
 							<!--
 							Video player refuses video/x-matkroska wtf, but video/webm works for all videos
-							https://stackoverflow.com/questions/17018119/how-to-play-mkv-file-in-browser 
+							https://stackoverflow.com/questions/17018119/how-to-play-mkv-file-in-browser
 							-->
 							<source type="video/webm" src="http://localhost:3169" />
 						</media-provider>
@@ -114,7 +113,7 @@
 		flex-direction: row;
 		display: flex;
 		background: rgba(0, 0, 0, 0.7);
-		z-index: 2;
+		z-index: 3;
 		align-items: center;
 		justify-content: center;
 	}

@@ -60,6 +60,7 @@
 
 	<div
 		class="invis"
+		class:invisMouseDown={isMouseDown}
 		onmousedown={(e) => mouseDown(e)}
 		onmouseup={(e) => mouseUp(e)}
 		aria-hidden="true"
@@ -71,6 +72,8 @@
 		padding-left: var(--resize-bar-padding);
 		height: 32px;
 		background-color: var(--border-on-secondary-alt);
+		z-index: 3;
+		position: relative;
 	}
 
 	.bottom {
@@ -89,12 +92,20 @@
 
 	.invis {
 		position: relative;
-		background-color: transparent;
-		right: 5px;
-		padding-left: 10px;
+		padding-left: 4px;
+		right: 2px;
 		height: 100vh;
 		user-select: none;
 		cursor: col-resize;
-		z-index: 999;
+		z-index: 1;
+		transition: 0.2s;
+		transition-delay: 0s;
+	}
+	.invis:hover {
+		background-color: var(--primary);
+		transition-delay: 0.3s;
+	}
+	.invisMouseDown {
+		background-color: var(--primary);
 	}
 </style>

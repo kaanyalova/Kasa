@@ -53,7 +53,7 @@
 
 <style>
 	.sidebar {
-		height: 100vh;
+		height: calc(100vh - var(--window-border-size) * 2);
 		width: var(--sidebar-width);
 		background-color: var(--background);
 		display: flex;

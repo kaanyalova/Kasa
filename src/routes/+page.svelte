@@ -59,9 +59,9 @@
 	.background {
 		background-color: var(--background);
 		width: calc(
-			100vw - var(--sidebar-width) - var(--resize-bar-padding)
+			100vw - var(--sidebar-width) - var(--resize-bar-padding) - var(--window-border-size) * 2
 		); /* doesn't work with vanilla css*/
-		min-height: 100vh;
+		min-width: 100vh;
 	}
 
 	.backgroundSidebarInactive {
@@ -78,7 +78,7 @@
 	}
 
 	.content_ {
-		height: calc(100vh - 32px);
+		height: calc(100vh - 32px - var(--window-border-size) * 2);
 		width: calc(100vw - var(--sidebar-width) - var(--resize-bar-padding));
 
 		overflow-y: scroll;

@@ -14,8 +14,8 @@
 		background-color: var(--background);
 		display: flex;
 		flex-direction: column;
-		height: 100vh;
-		width: 100vw;
+		height: calc(100vh - var(--window-border-size) * 2);
+		width: calc(100vw - var(--window-border-size) * 2);
 	}
 
 	.titlebarInsides {

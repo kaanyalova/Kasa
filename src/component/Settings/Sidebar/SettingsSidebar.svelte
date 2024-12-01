@@ -88,7 +88,7 @@
 		background-color: var(--background);
 		border-right: 1px solid var(--border);
 		width: 200px;
-		height: 100vh;
+		height: calc(100vh - var(--window-border-size) * 2);
 		display: flex;
 		z-index: 3;
 	}

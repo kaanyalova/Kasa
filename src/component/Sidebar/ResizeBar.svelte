@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { root } from 'postcss';
 	import { sidebarStore } from './SidebarStore.svelte';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		document.addEventListener('mouseup', (e) => {
+			mouseUp(e);
+		});
+	});
 
 	let isMouseDown = $state(false);
 

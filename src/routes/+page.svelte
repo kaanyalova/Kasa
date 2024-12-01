@@ -61,7 +61,6 @@
 		width: calc(
 			var(--page-content-width) - var(--sidebar-width) - var(--resize-bar-padding)
 		); /* doesn't work with vanilla css*/
-		min-width: 100vh;
 	}
 
 	.backgroundSidebarInactive {

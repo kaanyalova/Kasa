@@ -10,6 +10,7 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use super::SlopTag;
 
@@ -258,6 +259,7 @@ fn parse_parenthesis_expr(input: &str) -> IResult<String, (Vec<String>, f64)> {
 
 /// Tries parsing an parenthesis expression, parses a regular value if that fails, tries to parse as much
 /// values as possible, does not return errors
+/// Returns the raw tag strings without any filtering
 pub fn parse_prompt(input: &str) -> Vec<SlopTag> {
     let mut results: Vec<SlopTag> = vec![];
 
@@ -315,6 +317,34 @@ pub fn parse_prompt(input: &str) -> Vec<SlopTag> {
             return results;
         }
     }
+}
+
+/// Converts prompts text to vector of tags, does various types of filtering
+/// - Replaces spaces with underscores
+/// - Trims every tag
+/// - Replaces escaped parenthesis
+pub fn prompt_to_tags(input: &str, max_tag_len: usize) -> Vec<SlopTag> {
+    let inputs = input.replace(r#"\("#, "LBĞ").replace(r#"\)"#, "RBĞ");
+
+    parse_prompt(&inputs)
+        .into_par_iter()
+        .map(|t| {
+            let name = t
+                .name
+                .trim()
+                .to_string()
+                .replace("LBĞ", "(")
+                .replace("RBĞ", ")")
+                .replace(" ", "_");
+
+            SlopTag {
+                name,
+                power: t.power,
+            }
+        })
+        .filter(|t| t.name.to_lowercase() != "break")
+        .filter(|t| t.name.len() < max_tag_len)
+        .collect()
 }
 #[allow(unused)] // but, it is used?? what is going on here
 fn parse_tag(input: &str) -> IResult<&str, (String, f64)> {

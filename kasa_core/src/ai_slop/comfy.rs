@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Debug, path::PathBuf};
+use std::{collections::HashSet, fmt::Debug, path::PathBuf, usize};
 
 use anyhow::Result;
 use indexmap::IndexMap;
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     errors::SlopTagParseError,
-    prompt_parser::parse_prompt,
+    prompt_parser::{parse_prompt, prompt_to_tags},
     supported_formats::{parse_png_meta, SLOP_SUPPORTED_FORMATS},
     SlopTag, SlopTags,
 };
@@ -142,13 +142,13 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
     let mut negative_tags: HashSet<SlopTag> = HashSet::new();
 
     for prompt in positive_prompts {
-        let tags = parse_prompt(&prompt);
+        let tags = prompt_to_tags(&prompt, usize::MAX);
         let tags_hm: HashSet<SlopTag> = HashSet::from_iter(tags.iter().cloned());
         positive_tags.extend(tags_hm);
     }
 
     for prompt in negative_prompts {
-        let tags = parse_prompt(&prompt);
+        let tags = prompt_to_tags(&prompt, usize::MAX);
         let tags_hm: HashSet<SlopTag> = HashSet::from_iter(tags.iter().cloned());
         negative_tags.extend(tags_hm);
     }

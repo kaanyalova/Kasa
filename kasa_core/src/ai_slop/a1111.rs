@@ -10,7 +10,7 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use std::{fs::File, io::BufReader, path::PathBuf};
 
-use super::prompt_parser::parse_prompt;
+use super::prompt_parser::{parse_prompt, prompt_to_tags};
 use super::SlopTag;
 use super::SlopTags;
 use super::{
@@ -121,31 +121,6 @@ pub fn parse_a111_tags_from_meta(params: &str, max_tag_len: usize) -> Result<Slo
     };
 
     Ok(tags)
-}
-
-/// Converts prompts text to vector of tags, does various types of filtering
-fn prompt_to_tags(input: &str, max_tag_len: usize) -> Vec<SlopTag> {
-    let inputs = input.replace(r#"\("#, "LBĞ").replace(r#"\)"#, "RBĞ");
-
-    parse_prompt(&inputs)
-        .into_par_iter()
-        .map(|t| {
-            let name = t
-                .name
-                .trim()
-                .to_string()
-                .replace("LBĞ", "(")
-                .replace("RBĞ", ")")
-                .replace(" ", "_");
-
-            SlopTag {
-                name,
-                power: t.power,
-            }
-        })
-        .filter(|t| t.name.to_lowercase() != "break")
-        .filter(|t| t.name.len() < max_tag_len)
-        .collect()
 }
 
 fn parse_zero_padded_byte(input: &[u8]) -> IResult<&[u8], u8> {

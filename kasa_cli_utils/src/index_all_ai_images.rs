@@ -1,10 +1,22 @@
-use kasa_core::index::postprocess::ai_indexer::get_prompt_tags_from_ids_batch;
+use std::path::PathBuf;
+
+use kasa_core::{
+    config::global_config::get_config_impl,
+    index::postprocess::ai_indexer::get_prompt_tags_from_ids_batch,
+};
 use sqlx::{query_scalar, sqlite::SqlitePoolOptions};
 
-pub async fn index_all_ai_images(db_path: &str, max_tag_len: usize) {
+pub async fn index_all_ai_images(db_path: Option<PathBuf>, max_tag_len: usize) {
+    let config = get_config_impl();
+
     let pool = SqlitePoolOptions::new()
         .max_connections(8)
-        .connect(db_path)
+        .connect(
+            &db_path
+                .unwrap_or((&config.db.db_path).into())
+                .as_os_str()
+                .to_string_lossy(),
+        )
         .await
         .unwrap();
 

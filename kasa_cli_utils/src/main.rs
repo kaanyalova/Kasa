@@ -41,7 +41,7 @@ struct IndexAllAIImagesArgs {
     tag_max_len: u64,
 
     #[arg(long)]
-    db_path: std::path::PathBuf,
+    db_path: Option<std::path::PathBuf>,
 }
 
 #[derive(clap::Args)]
@@ -91,7 +91,7 @@ async fn main() {
         KasaCli::IndexFolder(args) => index_folder(args).await,
         KasaCli::DumpGILayout => dump_random_gi_layout(),
         KasaCli::IndexAllAIImages(args) => {
-            index_all_ai_images(args.db_path.to_str().unwrap(), args.tag_max_len as usize).await
+            index_all_ai_images(args.db_path, args.tag_max_len as usize).await
         }
         KasaCli::GalleryDL(args) => gdl(&args.url, extractors).await,
     }

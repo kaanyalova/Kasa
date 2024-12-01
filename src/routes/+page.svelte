@@ -66,7 +66,7 @@
 
 	.backgroundSidebarInactive {
 		/* The sidebar resizeBarPadding would not be pixel perfect otherwise */
-		width: calc(100vw - var(--sidebar-width)) !important;
+		width: calc(100vw - var(--sidebar-width) - var(--window-border-size) * 2) !important;
 	}
 
 	.contentWrapper {
@@ -79,7 +79,9 @@
 
 	.content_ {
 		height: calc(100vh - 32px - var(--window-border-size) * 2);
-		width: calc(100vw - var(--sidebar-width) - var(--resize-bar-padding));
+		width: calc(
+			100vw - var(--sidebar-width) - var(--resize-bar-padding) - var(--window-border-size) * 2
+		);
 
 		overflow-y: scroll;
 	}

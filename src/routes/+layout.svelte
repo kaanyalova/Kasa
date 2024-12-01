@@ -25,7 +25,8 @@
 	https://v2.tauri.app/reference/javascript/api/namespacewebviewwindow/#startresizedragging
 	
 	Adding rounded corners is also possible here but it requires manually listening for "full-screen" resizes
-	and removing all the rounded corners when it happens.
+	and removing all the rounded corners when it happens. Resizing also does not work as intended just like the 
+	shadows.
 	*/
 	.page-border {
 		position: fixed;
@@ -40,5 +41,7 @@
 	:global(:root) {
 		--window-border-color: var(--border);
 		--window-border-size: 2px;
+		--page-content-height: calc(100vh - var(--window-border-size) * 2);
+		--page-content-width: calc(100vw - var(--window-border-size) * 2);
 	}
 </style>

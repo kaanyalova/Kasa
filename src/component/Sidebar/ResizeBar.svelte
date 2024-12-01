@@ -81,7 +81,7 @@
 		background-color: transparent;
 		user-select: none;
 		background-color: var(--border);
-		height: calc(100vh - 32px - var(--window-border-size) * 2);
+		height: calc(var(--page-content-height) - 32px);
 	}
 
 	.parent {

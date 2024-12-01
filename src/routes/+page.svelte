@@ -59,14 +59,14 @@
 	.background {
 		background-color: var(--background);
 		width: calc(
-			100vw - var(--sidebar-width) - var(--resize-bar-padding) - var(--window-border-size) * 2
+			var(--page-content-width) - var(--sidebar-width) - var(--resize-bar-padding)
 		); /* doesn't work with vanilla css*/
 		min-width: 100vh;
 	}
 
 	.backgroundSidebarInactive {
 		/* The sidebar resizeBarPadding would not be pixel perfect otherwise */
-		width: calc(100vw - var(--sidebar-width) - var(--window-border-size) * 2) !important;
+		width: calc(var(--page-content-width) - var(--sidebar-width)) !important;
 	}
 
 	.contentWrapper {
@@ -78,10 +78,8 @@
 	}
 
 	.content_ {
-		height: calc(100vh - 32px - var(--window-border-size) * 2);
-		width: calc(
-			100vw - var(--sidebar-width) - var(--resize-bar-padding) - var(--window-border-size) * 2
-		);
+		height: calc(var(--page-content-height) - 32px);
+		width: calc(var(--page-content-width) -var(--sidebar-width) - var(--resize-bar-padding));
 
 		overflow-y: scroll;
 	}

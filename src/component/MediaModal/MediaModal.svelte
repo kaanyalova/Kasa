@@ -160,6 +160,13 @@
 
 		*/
 	}
+
+	@media (width < 1250px) {
+		.dialogContents {
+			left: 0 !important;
+		}
+	}
+
 	svg {
 		display: block;
 		margin: auto;

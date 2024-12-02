@@ -17,7 +17,7 @@ dirs = "5.0.1"
 fast_image_resize = { version = "4.0.0", features = ["image"] }
 human_bytes = { version = "0.4.3", default-features = false } # Don't use SI file size units
 humantime = "2.1.0"
-image = { version = "0.25.1", features = ["avif"] }
+image = { version = "0.25.1", features = ["avif-native"] }
 imagesize = "0.12.0"
 img-parts = "0.3.0"
 indexmap = { version = "2.5.0", features = ["serde"] }

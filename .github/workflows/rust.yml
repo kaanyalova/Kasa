@@ -1,41 +1,41 @@
-name: Rust
+name: CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
   pull_request:
-    branches: [ "master" ]
+    branches: ['master']
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-   
-    steps:  
-    - uses: actions/checkout@v4  
-    - uses: Swatinem/rust-cache@v2
-  
-    - name: Setup rust
-      uses: dtolnay/rust-toolchain@stable
+    runs-on: ubuntu-24.04
 
-    - name: Setup bun
-      uses: oven-sh/setup-bun@v2
-  
-    - name: Install tauri dev tools
-      run: cargo install tauri-cli --version "^2.0.0" --locked
-  
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libdav1d-dev dav1d
-          
-    - name: Install bun dependencies
-      run: bun i
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
 
-    - name: Build
-      run: cargo tauri build
-      
-    - name: Run tests
-      run: cargo test --workspace
+      - name: Setup rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install tauri dev tools
+        run: cargo install tauri-cli --version "^2.0.0" --locked
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libdav1d-dev dav1d
+
+      - name: Install bun dependencies
+        run: bun i
+
+      - name: Build
+        run: cargo tauri build
+
+      - name: Run tests
+        run: cargo test --workspace

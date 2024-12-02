@@ -11,8 +11,7 @@
     --border-on-secondary-alt: color-mix(in srgb, var(--primary) 10%, var(--secondary-alt));
 
 
-    /*Not 100% accessible but any darker looks like ass, should only be used with white text on top*/
-    --destructive: #ac4245
+    --destructive: #7E3032
 }
 
 @media (prefers-color-scheme: light) {

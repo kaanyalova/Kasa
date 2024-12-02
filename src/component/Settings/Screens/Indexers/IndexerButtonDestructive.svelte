@@ -39,7 +39,8 @@
 		justify-content: center;
 		align-items: center;
 		background-color: var(--destructive);
-		color: black;
+		color: var(--text);
+		fill: var(--text);
 		padding-top: 4px;
 		padding-bottom: 4px;
 		border-radius: 6px;

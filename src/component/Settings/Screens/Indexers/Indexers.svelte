@@ -174,7 +174,10 @@
 							'This will both delete <strong>all references to files</strong> and <strong>all the stored metadata</strong>',
 							() => {
 								console.log('Nuke data');
-							}
+							},
+							undefined,
+							undefined,
+							true
 						);
 					}}
 				>

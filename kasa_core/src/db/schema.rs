@@ -23,6 +23,8 @@ pub struct Media {
 
     //pub imported_from: String,
     pub has_file_ref: bool,
+
+    pub hide: bool,
 }
 
 // Possible values of `media_type`
@@ -103,4 +105,15 @@ pub struct TagDetail {
 pub struct TagGroup {
     name: String,
     color: Option<String>,
+}
+
+pub struct MediaGroup {
+    group_id: i64,
+    group_name: Option<String>,
+    show_as_collection: bool,
+}
+
+pub struct MediaGroupEntry {
+    group_id: i64,
+    hash: String,
 }

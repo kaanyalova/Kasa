@@ -74,7 +74,7 @@ pub struct Downloader {
     // At least with this users might be able to bring their own config files
 
     // toml doesnt parse with Option<String> for some reason
-    pub gdl_config_path: String,
+    pub gdl_config_path: Option<String>,
 }
 
 impl Default for Thumbs {
@@ -218,7 +218,7 @@ fn default_config_parse() {
 fn test_config_creation() {
     let tempdir = tempfile::tempdir().unwrap().into_path();
 
-    let config_path = tempdir.join("kDebugasa").join("config.toml");
+    let config_path = tempdir.join("kasa").join("config.toml");
 
     find_or_create_config(&config_path);
 

@@ -40,7 +40,7 @@ pub async fn download_and_index_impl<'py, F: Fn() + Send + Sync>(
         &interpreter.0,
         url,
         output_path,
-        Some(config.downloader.gdl_config_path),
+        config.downloader.gdl_config_path,
     )?;
 
     for extractor in downloader_output.url_extractors {

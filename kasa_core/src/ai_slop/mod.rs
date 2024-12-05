@@ -1,4 +1,4 @@
-use std::hash::Hash;
+use std::{cmp::Ordering, hash::Hash};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +22,17 @@ pub struct SlopTag {
 }
 
 impl Eq for SlopTag {}
+impl Ord for SlopTag {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if self.name.as_str() > other.name.as_str() {
+            Ordering::Greater
+        } else if self.name.as_str() == other.name.as_str() {
+            Ordering::Equal
+        } else {
+            Ordering::Less
+        }
+    }
+}
 
 impl Hash for SlopTag {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {

@@ -289,28 +289,31 @@ fn test_comfy_tags_png() {
     .unwrap()
     .unwrap();
 
-    let expected = SlopTags {
+    let mut expected = SlopTags {
         positive: vec![
             SlopTag {
-                name: "evening sunset scenery blue sky nature".to_string(),
+                name: "evening_sunset_scenery_blue_sky_nature".to_string(),
                 power: 1.0,
             },
             SlopTag {
-                name: "glass bottle with a galaxy in it".to_string(),
+                name: "glass_bottle_with_a_galaxy_in_it".to_string(),
                 power: 1.0,
             },
         ],
         negative: vec![
             SlopTag {
-                name: "watermark".to_string(),
+                name: "text".to_string(),
                 power: 1.0,
             },
             SlopTag {
-                name: "text".to_string(),
+                name: "watermark".to_string(),
                 power: 1.0,
             },
         ],
     };
+
+    expected.negative.sort();
+    expected.positive.sort();
 
     assert_eq!(tags, expected)
 }

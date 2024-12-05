@@ -100,6 +100,7 @@ fn test_simple_search(pool: Pool<Sqlite>) {
         mime: "nota/mime".to_string(),
         time_added: 0,
         has_file_ref: true,
+        hide: false,
     };
     let media = var_name;
 
@@ -110,8 +111,6 @@ fn test_simple_search(pool: Pool<Sqlite>) {
     insert_hash_tag_pair_row("123", "give", &pool).await;
     insert_hash_tag_pair_row("123", "you", &pool).await;
     insert_hash_tag_pair_row("123", "up", &pool).await;
-
-    let inp = "never,gonna,give,you,up";
 
     let media_from_db = search_simple_impl("never,gonna,give,you,up", &pool).await;
 

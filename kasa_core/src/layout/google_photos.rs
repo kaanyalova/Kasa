@@ -212,6 +212,7 @@ fn test_random_generation() {
                     mime: "".to_string(),
                     time_added: 0,
                     has_file_ref: false,
+                    hide: false,
                 }
             });
         }

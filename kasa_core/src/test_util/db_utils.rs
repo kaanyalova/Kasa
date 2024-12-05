@@ -5,7 +5,7 @@ use crate::db::schema::{Media, Path};
 pub async fn _insert_media_row(pool: &Pool<Sqlite>, media: &Media) {
     // Too long SQL strings cause rustfmt to die
 
-    let sql = "INSERT INTO Media(hash, thumb_path, media_type, filesize, mime, thumbnail_x, thumbnail_y, time_added) VALUES (?,?,?,?,?,?,?,?)";
+    let sql = "INSERT INTO Media(hash, thumb_path, media_type, filesize, mime, thumbnail_x, thumbnail_y, time_added, has_file_ref, hide) VALUES (?,?,?,?,?,?,?,?,?,?)";
 
     query(&sql)
         .bind(&media.hash)
@@ -16,6 +16,8 @@ pub async fn _insert_media_row(pool: &Pool<Sqlite>, media: &Media) {
         .bind(media.thumbnail_x)
         .bind(media.thumbnail_y)
         .bind(media.time_added)
+        .bind(media.has_file_ref)
+        .bind(media.hide)
         .execute(pool)
         .await
         .unwrap();
@@ -32,6 +34,7 @@ pub async fn insert_media_row(
     thumbnail_y: i64,
     time_added: i64,
     has_file_ref: bool,
+    hide: bool,
 ) {
     let media = &Media {
         hash: hash.to_string(),
@@ -43,6 +46,7 @@ pub async fn insert_media_row(
         mime: mime.to_string(),
         time_added,
         has_file_ref,
+        hide,
     };
     _insert_media_row(pool, media).await;
 }

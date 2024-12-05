@@ -1,7 +1,7 @@
 use std::{collections::HashSet, fmt::Debug, path::PathBuf, usize};
 
 use anyhow::Result;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use log::{error, trace};
 use serde::{Deserialize, Serialize};
 
@@ -138,18 +138,18 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
         }
     }
 
-    let mut positive_tags: HashSet<SlopTag> = HashSet::new();
-    let mut negative_tags: HashSet<SlopTag> = HashSet::new();
+    let mut positive_tags: IndexSet<SlopTag> = IndexSet::new();
+    let mut negative_tags: IndexSet<SlopTag> = IndexSet::new();
 
     for prompt in positive_prompts {
         let tags = prompt_to_tags(&prompt, usize::MAX);
-        let tags_hm: HashSet<SlopTag> = HashSet::from_iter(tags.iter().cloned());
+        let tags_hm: IndexSet<SlopTag> = IndexSet::from_iter(tags.iter().cloned());
         positive_tags.extend(tags_hm);
     }
 
     for prompt in negative_prompts {
         let tags = prompt_to_tags(&prompt, usize::MAX);
-        let tags_hm: HashSet<SlopTag> = HashSet::from_iter(tags.iter().cloned());
+        let tags_hm: IndexSet<SlopTag> = IndexSet::from_iter(tags.iter().cloned());
         negative_tags.extend(tags_hm);
     }
 

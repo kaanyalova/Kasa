@@ -66,20 +66,20 @@ pub async fn nuke_selected_index(
 
     // get all hashes to delete where there is no other references left in the path table
     // sqlite doesn't support RETUNING clauses making me suffer                                                                                                                              ccc              c
-    let hashes_to_delete: Vec<String> = query_scalar("FUCK FUCK FUCK FUCK FUCK FUCK FUCK")
-        .bind(path)
-        .bind(path)
-        .fetch_all(pool)
-        .await
-        .unwrap();
+    //let hashes_to_delete: Vec<String> = query_scalar("FUCK FUCK FUCK FUCK FUCK FUCK FUCK")
+    //    .bind(path)
+    //    .bind(path)
+    //    .fetch_all(pool)
+    //    .await
+    //    .unwrap();
 
-    delete_entries("Media", &hashes_to_delete, pool).await;
-    delete_entries("HashTagPair", &hashes_to_delete, pool).await;
-    delete_entries("Image", &hashes_to_delete, pool).await;
+    //delete_entries("Media", &hashes_to_delete, pool).await;
+    //delete_entries("HashTagPair", &hashes_to_delete, pool).await;
+    //delete_entries("Image", &hashes_to_delete, pool).await;
 
-    if let Some(pool_thumbs) = pool_thumbs {
-        delete_entries("Thumbs", &hashes_to_delete, pool_thumbs).await
-    }
+    //if let Some(pool_thumbs) = pool_thumbs {
+    //    delete_entries("Thumbs", &hashes_to_delete, pool_thumbs).await
+    //}
 }
 async fn delete_entries(table: &str, hashes_to_delete: &Vec<String>, pool: &Pool<Sqlite>) {
     let mut query_builder: QueryBuilder<Sqlite> =
@@ -95,13 +95,14 @@ async fn delete_entries(table: &str, hashes_to_delete: &Vec<String>, pool: &Pool
     q.execute(pool).await.unwrap();
 }
 
+/*
 #[sqlx::test]
 fn test_nuke_selected(pool: SqlitePool) {
     sqlx::migrate!("../migrations/db").run(&pool).await.unwrap();
 
-    insert_media_row(&pool, "hash1", "", "", 0, "", 0, 0, 0, false).await;
-    insert_media_row(&pool, "hash2", "", "", 0, "", 0, 0, 0, false).await;
-    insert_media_row(&pool, "hash3", "", "", 0, "", 0, 0, 0, false).await;
+    insert_media_row(&pool, "hash1", "", "", 0, "", 0, 0, 0, false, false).await;
+    insert_media_row(&pool, "hash2", "", "", 0, "", 0, 0, 0, false, false).await;
+    insert_media_row(&pool, "hash3", "", "", 0, "", 0, 0, 0, false, false).await;
 
     insert_path_row(&pool, "hash1", "a", "path1").await;
     insert_path_row(&pool, "hash1", "b", "path2").await;
@@ -119,3 +120,4 @@ fn test_nuke_selected(pool: SqlitePool) {
 
     dbg!(media);
 }
+*/

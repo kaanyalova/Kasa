@@ -7,7 +7,7 @@ use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{
     compiler::parser::ast::String,
     convert::{ToPyObject, ToPyResult},
-    py_freeze, vm, Interpreter, Py,
+    py_freeze, pymodule, vm, Interpreter, Py,
 };
 
 use serde::{Deserialize, Serialize};
@@ -15,10 +15,31 @@ use serde_json::Value;
 use thiserror::Error;
 pub mod extractors;
 
+const CERT_BYTES: &[u8] = include_bytes!("../cacert.pem");
+
 pub fn init_interpreter() -> Interpreter {
+    // There is no easy way of setting the cert bytes in requests library of python so we have to write it to a file
+    // TODO: Error handling
+    let data_dir = dirs::data_dir().unwrap();
+    let data_dir = data_dir.join("kasa");
+
+    if !data_dir.exists() {
+        std::fs::create_dir_all(&data_dir).unwrap();
+    }
+
+    let cert_path = data_dir.join("cacert.pem");
+
+    if !cert_path.exists() {
+        std::fs::write(cert_path, CERT_BYTES).unwrap();
+    }
+
     let intrp = vm::Interpreter::with_init(Default::default(), |vm| {
         vm.add_native_modules(rustpython_stdlib::get_module_inits());
+
         vm.add_frozen(FROZEN_STDLIB);
+
+        // First, just in case the order matters
+        vm.add_native_module("rust_side", Box::new(rust_side::make_module));
 
         vm.add_frozen(py_freeze!(
             dir = "py/dependencies/gallery-dl/gallery_dl-1.27.7"
@@ -36,7 +57,6 @@ pub fn init_interpreter() -> Interpreter {
         ));
         vm.add_frozen(py_freeze!(dir = "py/py_src"));
     });
-    dbg!("init done");
     intrp
 }
 
@@ -152,4 +172,19 @@ pub enum PyError {
     // This is a better way of handling errors instead of unwrapping errors inside errors, but i can't figure it out
     //#[error("Cannot get python Error")]
     //ErrorError,
+}
+
+#[pymodule]
+mod rust_side {
+
+    use rustpython::vm::{builtins::PyList, convert::ToPyObject, PyObjectRef};
+    #[pyfunction]
+    fn get_cert_path() -> String {
+        let data_dir = dirs::data_dir().unwrap();
+        let data_dir = data_dir.join("kasa");
+
+        let cert_path = data_dir.join("cacert.pem");
+
+        cert_path.to_str().unwrap().to_string()
+    }
 }

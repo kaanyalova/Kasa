@@ -29,6 +29,7 @@ thiserror = "1.0.65"
 toml = "0.8.19"
 specta = { version = "=2.0.0-rc.20", features = ["derive"] }
 log = "0.4.22"
+dirs = "5.0.1"
 #kasa_core = { workspace = true }
 
 [build-dependencies]

@@ -5,8 +5,23 @@
 	import { onMount } from 'svelte';
 	import TagDisplay from './TagDisplay.svelte';
 	import SidebarFooter from './SidebarFooter.svelte';
+	import { TauriEvent } from '@tauri-apps/api/event';
+	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+	import Clipboard from '../Vector/Clipboard.svelte';
+	import VerticalDivider from '../Shared/Dividers/VerticalDivider.svelte';
+	import Tick from '../Vector/Tick.svelte';
 
 	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
+
+	let showCopySuccessButton = $state(false);
+
+	function onClickPath(path: string) {
+		showCopySuccessButton = true;
+		writeText(path);
+		setTimeout(() => {
+			showCopySuccessButton = false;
+		}, 1000);
+	}
 </script>
 
 <div class="sidebar">
@@ -20,9 +35,28 @@
 
 	<div class="sideBarScrollableContents">
 		<div class="header">Known Paths</div>
-		<ul class="details multicolorRows monoFont">
+		<ul class=" details multicolorRows monoFont">
 			{#each data.paths as path}
-				<li class="oneLine">{path}</li>
+				<li>
+					<button
+						class="pathCopyButton"
+						aria-label="Copy the Path"
+						onclick={() => onClickPath(path)}
+					>
+						<div class="pathCopyButtonInsides">
+							<div class="oneLine pathContainer expandOnHover">
+								{path}
+							</div>
+						</div>
+						<div class="copyIconContainer" onclick={() => onClickPath(path)} aria-hidden="true">
+							{#if showCopySuccessButton}
+								<Tick height={15} width={15}></Tick>
+							{:else}
+								<Clipboard height={15} width={15}></Clipboard>
+							{/if}
+						</div>
+					</button>
+				</li>
 			{/each}
 		</ul>
 
@@ -31,7 +65,7 @@
 		<div class="header">Meta</div>
 		<ul class="details multicolorRows">
 			{#each data.meta as meta_entry}
-				<li class="metaEntry">
+				<li class="metaEntry paddedLi">
 					<span class="oneLine">
 						<span class="metaEntryTitle">{meta_entry.name}</span>:
 						<span
@@ -49,8 +83,8 @@
 
 		<div class="header">Import Info</div>
 		<ul class="details">
-			<li>Imported From <span class="redditMoveThisLater">Placeholder</span></li>
-			<li>
+			<li class="paddedLi">Imported From <span class="redditMoveThisLater">Placeholder</span></li>
+			<li class="paddedLi">
 				Link : <a href="https://old.reddit.com/" class="">
 					https://www.youtube.com/watch?v=dQw4w9WgXcQ</a
 				>
@@ -141,6 +175,42 @@
 		white-space: nowrap;
 	}
 
+	/*Somewhat broken in webkit, does not always update when changing stuff on the dev server*/
+	.expandOnHover:hover {
+		white-space: normal;
+		text-overflow: unset;
+		word-break: break-all;
+		text-align: left;
+	}
+
+	.pathContainer {
+		color: var(--text);
+		padding: 4px;
+	}
+	.pathCopyButton {
+		display: flex;
+		flex-grow: 1;
+		fill: var(--text);
+	}
+	.pathCopyButtonInsides {
+		display: flex;
+		align-items: center;
+		/* Does not work */
+		flex-grow: 1;
+		width: calc(300px - 15px - 16px - 8px); /* Sidebar width - Icon width - Padding */
+	}
+
+	.copyIconContainer {
+		background-color: var(--secondary-alt);
+		align-self: stretch;
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+		border-radius: 0px 2px 2px 0px;
+		padding-left: 4px;
+		padding-right: 4px;
+	}
+
 	.details {
 		font-size: small;
 		border: var(--secondary-alt) 1px solid;
@@ -156,10 +226,9 @@
 		font-family: 'UbuntuMono';
 	}
 
-	li {
+	.paddedLi {
 		padding: 2px;
 	}
-
 	.redditMoveThisLater {
 		background-color: #e64f17;
 		padding: 2px;

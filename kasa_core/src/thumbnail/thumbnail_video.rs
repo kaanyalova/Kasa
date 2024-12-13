@@ -168,9 +168,3 @@ pub fn thumbnail_video(
 
     Ok(thumbnail)
 }
-
-#[test]
-fn test_frames() {
-    let thumb = thumbnail_video("/home/kaan/Videolar/ffmpeg_playground/p4/Persona.4.the.Golden.Animation.S01E01.1080p.SHAHID.WEB-DL.JPN.AAC2.0.H.264.MSubs-ToonsHub.mkv", (256,256), &ThumbnailFormat::PNG, 100_000).unwrap();
-    std::fs::write("out.png", thumb.bytes).unwrap();
-}

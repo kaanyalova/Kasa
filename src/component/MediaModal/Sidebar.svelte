@@ -67,7 +67,7 @@
 			{#each data.meta as meta_entry}
 				<li class="metaEntry paddedLi">
 					<span class="oneLine">
-						<span class="metaEntryTitle">{meta_entry.name}</span>:
+						<span class="metaEntryTitle">{meta_entry.name}:</span>
 						<span
 							class:monoFont={meta_entry.isValueMonospaced}
 							class:oneLine={meta_entry.isOneLine}
@@ -167,6 +167,7 @@
 	}
 	.metaEntryTitle {
 		font-weight: bold;
+		padding-right: 4px;
 	}
 
 	.oneLine {

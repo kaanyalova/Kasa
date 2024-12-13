@@ -1,5 +1,4 @@
 <script>
-	import { disableMenu } from '$lib/disableRightClickMenu';
 	import { onMount } from 'svelte';
 	import '../app.css';
 	import '../colors.css';

@@ -65,8 +65,6 @@ pub async fn download_and_index(handle: AppHandle, url: String) {
             let extractors_path = get_configurable_tag_extractor_path().unwrap();
             let extractors = get_extractors_from_path(&extractors_path.to_string_lossy()).unwrap();
 
-            dbg!(&extractors);
-
             download_and_index_impl(
                 py,
                 &url,

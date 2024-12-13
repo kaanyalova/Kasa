@@ -80,11 +80,11 @@
 		background-color: var(--background);
 		font-family: 'UbuntuMono';
 		font-size: small;
+		outline: none;
+		padding: 4px;
 	}
 	.downloadInputBox:focus {
-		outline: none;
 		border: 1px solid var(--accent);
-		padding: 4px;
 	}
 
 	.borderedBox {

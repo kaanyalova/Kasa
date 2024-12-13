@@ -97,7 +97,7 @@ fn test_simple_search(pool: Pool<Sqlite>) {
         thumbnail_x: 123,
         thumbnail_y: 123,
         filesize: 9999,
-        mime: "nota/mime".to_string(),
+        mime: None,
         time_added: 0,
         has_file_ref: true,
         hide: false,

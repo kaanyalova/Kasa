@@ -30,12 +30,15 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
     let mut meta: Vec<MetaEntry> = vec![];
 
     // meta entries for all formats
-    meta.push(MetaEntry {
-        name: "File Type".to_string(),
-        value: media.mime.clone(),
-        is_value_monospaced: true,
-        is_one_line: true,
-    });
+
+    if media.mime.is_some() {
+        meta.push(MetaEntry {
+            name: "File Type".to_string(),
+            value: media.mime.as_ref().unwrap().clone(),
+            is_value_monospaced: true,
+            is_one_line: true,
+        });
+    }
 
     meta.push(MetaEntry {
         name: "File Size".to_string(),
@@ -83,6 +86,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         MediaType::Video => { /* TODO implement video meta */ }
         MediaType::Game => unimplemented!(),
         MediaType::Unknown => unimplemented!(),
+        MediaType::Group => todo!(),
     };
 
     let import = ImportInfo {
@@ -134,10 +138,15 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         mime: {
             // Workaround, mime_guess parses all matroska files as x-matroska
             // we assume they are all video
-            if media.mime == "video/x-matroska" {
-                "video/matroska".to_string()
+
+            if let Some(mime) = media.mime {
+                if mime == "video/x-matroska" {
+                    Some("video/matroska".to_string())
+                } else {
+                    Some(mime)
+                }
             } else {
-                media.mime.to_string()
+                None
             }
         },
         aspect_ratio,
@@ -180,7 +189,7 @@ pub struct MediaInfo {
     pub raw_tags_field: String,
     pub hash: String,
     pub media_type: String,
-    pub mime: String,
+    pub mime: Option<String>,
     pub aspect_ratio: f64,
     pub file_name: String,
 }

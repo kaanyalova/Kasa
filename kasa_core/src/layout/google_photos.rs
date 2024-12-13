@@ -209,7 +209,7 @@ fn test_random_generation() {
                     thumbnail_x: rand_x,
                     thumbnail_y: rand_y,
                     filesize: 100,
-                    mime: "".to_string(),
+                    mime: None,
                     time_added: 0,
                     has_file_ref: false,
                     hide: false,

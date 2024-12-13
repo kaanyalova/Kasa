@@ -15,6 +15,7 @@ pub fn get_thumbnail_size(media_type: MediaType, path: &str) -> (u32, u32) {
         } // TODO ignore errors
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
+        MediaType::Group => todo!(),
     };
     // TODO make this configurable, make sure it matches the actual thumbnail sizes in dev
     calculate_aspect_ratio(src_x, src_y, 256, 256)

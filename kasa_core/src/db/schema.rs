@@ -18,7 +18,7 @@ pub struct Media {
     pub thumbnail_y: i64,
 
     pub filesize: i64,
-    pub mime: String,
+    pub mime: Option<String>,
     pub time_added: i64,
 
     //pub imported_from: String,
@@ -33,6 +33,7 @@ pub enum MediaType {
     Image,
     Video,
     Game,
+    Group,
     Unknown,
 }
 
@@ -43,6 +44,7 @@ pub fn media_type_to_string(i: &MediaType) -> String {
         MediaType::Video => "Video",
         MediaType::Game => "Game",
         MediaType::Unknown => "Unknown",
+        MediaType::Group => "Group",
     };
     output.to_string()
 }
@@ -108,12 +110,11 @@ pub struct TagGroup {
 }
 
 pub struct MediaGroup {
-    group_id: i64,
+    group_hash: String,
     group_name: Option<String>,
-    show_as_collection: bool,
 }
 
 pub struct MediaGroupEntry {
-    group_id: i64,
+    group_hash: String,
     hash: String,
 }

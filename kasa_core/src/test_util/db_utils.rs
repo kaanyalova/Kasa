@@ -43,7 +43,7 @@ pub async fn insert_media_row(
         thumbnail_x,
         thumbnail_y,
         filesize,
-        mime: mime.to_string(),
+        mime: Some(mime.to_string()),
         time_added,
         has_file_ref,
         hide,

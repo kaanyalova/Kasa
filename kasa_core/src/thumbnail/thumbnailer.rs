@@ -6,10 +6,14 @@ use sqlx::{query, query_scalar, Pool, Sqlite};
 
 use crate::{
     supported_formats,
+    thumbnail::thumbnail_group::thumbnail_group,
     thumbnail::{thumbnail_image::thumbnail_image_single, thumbnail_video::thumbnail_video},
 };
 
-use super::thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat};
+use super::{
+    thumbnail_group::GroupThumbnailStyle,
+    thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat},
+};
 
 /// Returns the relative path of the thumbnail inside the thumbnails directory
 pub async fn get_thumbnail_from_file_impl(
@@ -130,7 +134,20 @@ pub async fn get_thumbnail_from_db_impl(
         }
         crate::db::schema::MediaType::Unknown => {
             // Unknown media should not get indexed.
+
             unreachable!("Unknown mime type {}, you somehow managed to index a format that wasn't on the supported formats list.", mime)
+        }
+        crate::db::schema::MediaType::Group => {
+            let hashes: Vec<String> =
+                query_scalar("SELECT hash FROM MediaGroupEntry WHERE group_hash = ?")
+                    .bind(hash.to_string())
+                    .fetch_all(pool)
+                    .await
+                    .unwrap();
+
+            
+
+            thumbnail_group(hashes, Default::default()).unwrap()
         }
     };
 

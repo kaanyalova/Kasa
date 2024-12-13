@@ -42,4 +42,4 @@ test_output.txt
 bfg-*.jar
 *.kasa-wal
 *.kasa-shm
-
+overlay_images

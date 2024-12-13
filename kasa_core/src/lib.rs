@@ -2,6 +2,7 @@ pub mod ai_slop;
 pub mod config;
 pub mod db;
 pub mod downloaders;
+pub mod groups;
 pub mod index;
 pub mod layout;
 pub mod linux;

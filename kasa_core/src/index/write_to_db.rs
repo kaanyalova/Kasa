@@ -67,6 +67,7 @@ pub async fn write_to_db(
         MediaType::Video => { /* TODO implement video meta */ }
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
+        MediaType::Group => todo!(),
     }
 
     // Mark any unreferenced files

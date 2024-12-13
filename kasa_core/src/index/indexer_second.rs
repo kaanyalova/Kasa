@@ -30,6 +30,7 @@ pub fn indexer_second_batch(
         }
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
+        MediaType::Group => todo!(),
     };
 
     let (generic_media_data, paths): (Vec<GenericMediaData>, Vec<PathData>) = first_passes
@@ -62,7 +63,6 @@ pub fn indexer_second_batch(
         generic_media_data,
         paths,
     };
-
 
     out
 }

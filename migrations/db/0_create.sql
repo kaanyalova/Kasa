@@ -5,11 +5,13 @@ CREATE TABLE IF NOT EXISTS Media (
     thumb_path TEXT,
     media_type TEXT,
     filesize NUMBER,
-    mime TEXT NOT NULL,
+    mime TEXT,
     thumbnail_x INT ,
     thumbnail_y INT,
     time_added INT,
-    has_file_ref BOOLEAN
+    has_file_ref BOOLEAN,
+    is_in_group BOOLEAN,
+    hide BOOLEAN
 );
 
 
@@ -73,4 +75,15 @@ CREATE TABLE IF NOT EXISTS IndexSource (
 
 CREATE TABLE IF NOT EXISTS VirtualIndexSource (
     path TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS MediaGroup (
+    group_hash INT PRIMARY KEY,
+    group_name TEXT
+);
+
+
+CREATE TABLE IF NOT EXISTS MediaGroupEntry (
+    group_hash INT NOT NULL,
+    hash INT NOT NULL
 );

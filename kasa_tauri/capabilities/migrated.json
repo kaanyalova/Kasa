@@ -15,6 +15,20 @@
     "core:resources:default",
     "core:menu:default",
     "core:tray:default",
-    "log:default"
+    "log:default",
+    "clipboard-manager:allow-write-text",
+    "fs:read-files",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "/"
+        },
+        {
+          "path": "/**"
+        }
+      ]
+    },
+    "clipboard-manager:allow-write-image"
   ]
 }

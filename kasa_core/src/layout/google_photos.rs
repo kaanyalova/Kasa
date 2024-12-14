@@ -101,7 +101,7 @@ pub fn calculate_layout(
 
             for i in &current_row_temp {
                 let aspect_ratio: f64 = i.thumbnail_x as f64 / i.thumbnail_y as f64;
-                let mut width = (row_height * aspect_ratio) as u64 - gaps;
+                let mut width = ((row_height * aspect_ratio) as u64).wrapping_sub(gaps); // wtf, panics on debug mode
 
                 // will overflow with super small images otherwise
                 if width <= gaps {
@@ -118,7 +118,7 @@ pub fn calculate_layout(
                     hash: i.hash.to_string(),
                 };
 
-                current_x += width + gaps;
+                current_x += width.wrapping_add(gaps);
 
                 current_y += gaps; // todo remove from last image
 

@@ -13,12 +13,13 @@
 	import { commands, type TagQueryOutput } from '$lib/tauri_bindings';
 	import { comma } from 'postcss/lib/list';
 	import { handleSelect } from './HandleSelect';
+	import { SearchStore } from './SearchStore.svelte';
 
 	let entriesToShow: Array<TagQueryOutput> = $state([]);
-	let searchContents = $state('');
+	//let searchContents = $state('');
 	let shouldShow = $state(false);
 	let shouldActuallyShow = $derived(
-		shouldShow && entriesToShow.length > 0 && searchContents.length > 0
+		shouldShow && entriesToShow.length > 0 && SearchStore.searchContents.length > 0
 	);
 	// TODO derive from (dropdownLen > 0 || shouldShow) so it doesn't look "selected" when there is no entries
 	//  -1 means user hasn't selected any entry with keyboard yet
@@ -33,7 +34,7 @@
 	});
 
 	function handleSearch() {
-		if (searchContents.length > 0) {
+		if (SearchStore.searchContents.length > 0) {
 			clearTimeout(cooldown);
 			cooldown = setTimeout(getDropdownEntriesFromDB, 200);
 		} else {
@@ -42,11 +43,16 @@
 	}
 
 	async function getDropdownEntriesFromDB() {
-		const searchContentsSplit = searchContents.split(',');
+		const searchContentsSplit = SearchStore.searchContents.split(',');
 		const lastEntry = searchContentsSplit[searchContentsSplit.length - 1].trim();
 
 		info(`${lastEntry} le`);
 
+		// If the last entry is empty, don't show anything
+		if (lastEntry.length === 0) {
+			entriesToShow = [];
+			return;
+		}
 		const entries: Array<TagQueryOutput> = await commands.queryTags(lastEntry, 10);
 
 		if (entries.length > 0) {
@@ -57,7 +63,7 @@
 	}
 
 	function onSearch() {
-		commands.search(searchContents, 0, 0);
+		commands.search(SearchStore.searchContents, 0, 0);
 	}
 </script>
 
@@ -74,10 +80,10 @@
 		class="searchBar"
 		placeholder="Search"
 		class:selected={shouldActuallyShow}
-		bind:value={searchContents}
+		bind:value={SearchStore.searchContents}
 		oninput={() => handleSearch()}
 		onfocus={() => {
-			if (searchContents !== '') {
+			if (SearchStore.searchContents !== '') {
 				shouldShow = true;
 			}
 		}}
@@ -108,9 +114,9 @@
 				case 'Enter':
 					if (keyboardSelectedIndex >= 0) {
 						console.log(`selected with keyboard ,index: ${keyboardSelectedIndex}`);
-						searchContents = handleSelect(
+						SearchStore.searchContents = handleSelect(
 							entriesToShow[keyboardSelectedIndex].name,
-							searchContents
+							SearchStore.searchContents
 						);
 
 						shouldShow = false;
@@ -126,7 +132,11 @@
 	/>
 
 	{#if shouldActuallyShow}
-		<SearchDropDown {entriesToShow} {keyboardSelectedIndex} {searchContents}></SearchDropDown>
+		<SearchDropDown
+			{entriesToShow}
+			{keyboardSelectedIndex}
+			searchContents={SearchStore.searchContents}
+		></SearchDropDown>
 	{/if}
 </div>
 

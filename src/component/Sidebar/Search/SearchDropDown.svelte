@@ -6,6 +6,7 @@
 	import { info } from '@tauri-apps/plugin-log';
 	import { handleSelect } from './HandleSelect';
 	import SearchDropDownEntry from './SearchDropDownEntry.svelte';
+	import { SearchStore } from './SearchStore.svelte';
 	// TODO adding tags
 
 	// keyboardSelectedIndex is undefined if it is not selected
@@ -28,7 +29,7 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 				<button
 					onmousedown={() => {
 						console.log(`selected with mouse, index:  ${index}`);
-						searchContents = handleSelect(entry.name, searchContents);
+						SearchStore.searchContents = handleSelect(entry.name, searchContents);
 					}}
 					class:selected={index === keyboardSelectedIndex}
 				>

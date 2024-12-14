@@ -33,7 +33,7 @@
 		keyboardSelectedIndex = -1;
 	});
 
-	function handleSearch() {
+	function handleTagSearch() {
 		if (SearchStore.searchContents.length > 0) {
 			clearTimeout(cooldown);
 			cooldown = setTimeout(getDropdownEntriesFromDB, 200);
@@ -81,7 +81,7 @@
 		placeholder="Search"
 		class:selected={shouldActuallyShow}
 		bind:value={SearchStore.searchContents}
-		oninput={() => handleSearch()}
+		oninput={() => handleTagSearch()}
 		onfocus={() => {
 			if (SearchStore.searchContents !== '') {
 				shouldShow = true;

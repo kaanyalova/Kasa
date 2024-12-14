@@ -38,6 +38,7 @@ rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 image = { workspace = true }
+opener = "0.7.2"
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
 # If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.

@@ -37,6 +37,8 @@ use tags::update_tags;
 use tauri_plugin_log::LogLevel;
 use tokio::sync::Mutex;
 use utils::get_env_var;
+use utils::image_path_to_rgba_bytes;
+use utils::open_with_system_default_app;
 
 use tauri_specta::{collect_commands, Builder};
 
@@ -131,6 +133,8 @@ pub fn run() {
             index_all,
             download_and_index,
             index_path,
+            image_path_to_rgba_bytes,
+            open_with_system_default_app
         ]
     });
 
@@ -146,8 +150,10 @@ pub fn run() {
     }
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_log::Builder::new().level(log_level).build())
-        //.plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_fs::init())
         //.plugin(tauri_plugin_theme::init(context.config_mut()))
         //.plugin(tauri_plugin_dialog::init())
         //.plugin(tauri_plugin_os::init())

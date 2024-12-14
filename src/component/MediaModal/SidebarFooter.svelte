@@ -1,17 +1,46 @@
 <script lang="ts">
-	import { writeImage } from '@tauri-apps/plugin-clipboard-manager';
+	import { readImage, writeImage, writeText } from '@tauri-apps/plugin-clipboard-manager';
 	import ArrowUpRightFromSquare from '../Vector/ArrowUpRightFromSquare.svelte';
 	import Clipboard from '../Vector/Clipboard.svelte';
-	import { writeFile } from '@tauri-apps/plugin-fs';
+	import { readFile, writeFile } from '@tauri-apps/plugin-fs';
+	import Tick from '../Vector/Tick.svelte';
+	import { commands } from '$lib/tauri_bindings';
 
 	let { data }: SidebarFooterProps = $props();
 
-	function onCopyButtonClicked() {}
+	let showCopySuccessButton = $state(false);
+
+	async function onCopyButtonClicked() {
+		if (data.mediaType === 'Image') {
+			// TODO: Copy the actual image data
+			// https://github.com/tauri-apps/plugins-workspace/issues/2208
+
+			//const rawImage = await commands.imagePathToRgbaBytes(data.paths[0]);
+			//await writeImage(rawImage);
+
+			showCopySuccessButton = true;
+			setTimeout(() => {
+				showCopySuccessButton = false;
+			}, 1000);
+		} else {
+			await writeText(data.paths[0]);
+		}
+	}
+
+	async function onOpenExternallyButtonClicked() {
+		await commands.openWithSystemDefaultApp(data.paths[0]);
+	}
 </script>
 
 <div class="sidebarFooter">
-	<button title="Copy {data.mediaType}"> <Clipboard height={20} width={20}></Clipboard></button>
-	<button title="Open Externally">
+	<button title="Copy {data.mediaType}" onclick={() => onCopyButtonClicked()}>
+		{#if showCopySuccessButton}
+			<Tick height={20} width={20}></Tick>
+		{:else}
+			<Clipboard height={20} width={20}></Clipboard>
+		{/if}
+	</button>
+	<button title="Open Externally" onclick={() => onOpenExternallyButtonClicked()}>
 		<ArrowUpRightFromSquare height={20} width={20}></ArrowUpRightFromSquare></button
 	>
 	<button title="Action"> Act </button>

@@ -117,6 +117,12 @@ async downloadAndIndex(url: string) : Promise<void> {
 },
 async indexPath(path: string) : Promise<void> {
     await TAURI_INVOKE("index_path", { path });
+},
+async imagePathToRgbaBytes(path: string) : Promise<number[]> {
+    return await TAURI_INVOKE("image_path_to_rgba_bytes", { path });
+},
+async openWithSystemDefaultApp(path: string) : Promise<void> {
+    await TAURI_INVOKE("open_with_system_default_app", { path });
 }
 }
 
@@ -131,12 +137,12 @@ async indexPath(path: string) : Promise<void> {
 /** user-defined types **/
 
 export type Database = { db_path: string }
-export type Downloader = { output_path: string; gdl_config_path: string }
+export type Downloader = { output_path: string; gdl_config_path: string | null }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string; mime: string; aspectRatio: number; fileName: string }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
 export type MediaTag = { name: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 /**

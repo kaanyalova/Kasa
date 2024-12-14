@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = { workspace = true, features = ["html_reports"] }
 kasa_core = { path = "../kasa_core" }
-rand = "0.8.5"
+rand = { workspace = true }
 
 [[bench]]
 name = "google_images_layout"

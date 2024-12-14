@@ -9,64 +9,55 @@ edition = "2021"
 #ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next", features = [
 #    # "static", # TODO only enable in Android and non-linux systems
 #] }
-base64 = "0.22.1"
-chrono = "0.4.38"
-crossbeam-channel = "0.5.12"
-csv = "1.3.0"
-dirs = "5.0.1"
-fast_image_resize = { version = "4.0.0", features = ["image"] }
-human_bytes = { version = "0.4.3", default-features = false } # Don't use SI file size units
-humantime = "2.1.0"
-image = { version = "0.25.1", features = ["avif-native"] }
-imagesize = "0.12.0"
-img-parts = "0.3.0"
-indexmap = { version = "2.5.0", features = ["serde"] }
-itertools = "0.13.0"
-kamadak-exif = "0.5.5"
-log = "0.4.22"
-memchr = "2.7.4"
-mime_guess = "2.0.4"
-nom = "7.1.3"
-pest = "2.7.11"
-rayon = "1.9.0"
-regex = "1.10.5"
-serde = { version = "1.0.203", features = ["derive"] }
-serde_json = "1.0.127"
-specta = { version = "=2.0.0-rc.20", features = ["derive"] }
-sqlx = { version = "0.8.2", features = [
+base64 = { workspace = true }
+chrono = { workspace = true }
+crossbeam-channel = { workspace = true }
+csv = { workspace = true }
+dirs = { workspace = true }
+fast_image_resize = { workspace = true, features = ["image"] }
+human_bytes = { workspace = true } # Don't use SI file size units
+humantime = { workspace = true }
+imagesize = { workspace = true }
+img-parts = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
+itertools = { workspace = true }
+kamadak-exif = { workspace = true }
+log = { workspace = true }
+memchr = { workspace = true }
+mime_guess = { workspace = true }
+nom = { workspace = true }
+pest = { workspace = true }
+rayon = { workspace = true }
+regex = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
+sqlx = { workspace = true, features = [
     "runtime-tokio",
     "sqlite",
-    #"derive",
     "json",
     "macros",
-    "migrate", # for testing, no way of adding features for dev-dependencies though 
-    # https://github.com/rust-lang/cargo/issues/2911
+    "migrate",
 ] }
-strum = { version = "0.26.3", features = ["derive"] }
-thiserror = "1.0.62"
-tokio = { version = "1.36.0", features = ["full"] }
-toml = "0.8.19"
-toml_edit = { version = "0.22.20", features = ["serde"] }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+toml = { workspace = true }
+toml_edit = { workspace = true, features = ["serde"] }
 #wl-clipboard-rs = "0.9.0"
-xxhash-rust = { version = "0.8.10", features = ["xxh3"] }
-anyhow = "1.0.89"
-async-walkdir = "2.0.0"
-tokio-stream = "0.1.16"
-walkdir = { git = "https://github.com/dbarnett/walkdir/", branch = "lifetimes" }
+xxhash-rust = { workspace = true, features = ["xxh3"] }
+anyhow = { workspace = true }
+async-walkdir = { workspace = true }
+tokio-stream = { workspace = true }
+walkdir = { workspace = true }
 kasa_python = { workspace = true }
+image = { workspace = true }
+axum = { workspace = true }
+tower-http = { workspace = true, features = ["fs"] }
 
-axum = "0.7.5"
-tower-http = { version = "0.5.2", features = ["fs"] }
 
-
-rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
-    #"encodings",
-    "freeze-stdlib",
-    #"rustpython-compiler",
-    #"importlib",
-
-] }
-axum-macros = "0.4.2"
+rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
+axum-macros = { workspace = true }
 
 
 [dependencies.ffmpeg]
@@ -80,12 +71,12 @@ package = "ffmpeg-next"
 features = ["static"]
 
 [dev-dependencies]
-tempfile = "3.12.0"
-rand = "0.8.5"
+tempfile = { workspace = true }
+rand = { workspace = true }
 
 [build-dependencies]
-num_cpus = "1.16.0"
-os_info = "3.8.2"
-reqwest = { version = "0.12.9", features = ["blocking"] }
-tar = "0.4.43"
-xz = "0.1.0"
+num_cpus = { workspace = true }
+os_info = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"] }
+tar = { workspace = true }
+xz = { workspace = true }

@@ -5,35 +5,23 @@ edition = "2021"
 
 
 [dependencies]
-rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
-    "encodings",
-    "freeze-stdlib",
-    "rustpython-compiler",
-    "importlib",
+rustpython-vm = { workspace = true, features = ["encodings", "freeze-stdlib", "rustpython-compiler", "importlib"] }
+rustpython-stdlib = { workspace = true }
+rustpython-pylib = { workspace = true, features = [] }
+rustpython = { workspace = true, features = ["freeze-stdlib", "sqlite", "ssl-vendor"] }
 
-] }
-rustpython-stdlib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa" }
-rustpython-pylib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
-    #"freeze-stdlib",
-] }
-rustpython = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
-    "freeze-stdlib",
-    "sqlite",
-    "ssl-vendor",
-] }
-
-anyhow = "1.0.91"
-serde_json = "1.0.132"
-serde = { version = "1.0.213", features = ["derive"] }
-thiserror = "1.0.65"
-toml = "0.8.19"
-specta = { version = "=2.0.0-rc.20", features = ["derive"] }
-log = "0.4.22"
-dirs = "5.0.1"
+anyhow = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+toml = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
+log = { workspace = true }
+dirs = { workspace = true }
 #kasa_core = { workspace = true }
 
 [build-dependencies]
-flate2 = "1.0.34"
-reqwest = { version = "0.12.8", features = ["blocking", "rustls-tls"] }
-tar = "0.4.42"
-diffy = "0.4.0"
+flate2 = { workspace = true }
+reqwest = { workspace = true, features = ["blocking", "rustls-tls"] }
+tar = { workspace = true }
+diffy = { workspace = true }

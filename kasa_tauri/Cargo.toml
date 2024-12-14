@@ -12,36 +12,32 @@ rust-version = "1.60"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc", features = [] }
+tauri-build = { workspace = true, features = [] }
 
 [dependencies]
-serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "2.1.1", features = ["protocol-asset", "devtools"] }
-tauri-plugin-fs = "2.0.3"
-tauri-plugin-log = "2.0.1"
-tokio = { version = "1.38.0", features = ["full"] }
-axum = "0.7.5"
-tower-http = { version = "0.5.2", features = ["fs"] }
-sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
+serde_json = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tauri = { workspace = true, features = ["protocol-asset", "devtools"] }
+tauri-plugin-fs = { workspace = true }
+tauri-plugin-log = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+axum = { workspace = true }
+tower-http = { workspace = true, features = ["fs"] }
+sqlx = { workspace = true, features = ["sqlite", "runtime-tokio"] }
 kasa_core = { path = "../kasa_core" }
 kasa_python = { path = "../kasa_python" }
 #tauri-plugin-theme = "0.4.1"
-tauri-plugin-os = "2.0.1"
-log = "0.4.22"
-dotenvy = "0.15.7"
-dirs = "5.0.1"
-specta = { version = "=2.0.0-rc.20" }
-specta-typescript = "0.0.7"
-tauri-specta = { version = "=2.0.0-rc.20", features = ["derive", "typescript"] }
-rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
-    #"encodings",
-    "freeze-stdlib",
-    #"rustpython-compiler",
-    #"importlib",
-
-] }
-tauri-plugin-dialog = "2.0.0-alpha.2"
+tauri-plugin-os = { workspace = true }
+log = { workspace = true }
+dotenvy = { workspace = true }
+dirs = { workspace = true }
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
+tauri-plugin-dialog = { workspace = true }
+tauri-plugin-clipboard-manager = { workspace = true }
+image = { workspace = true }
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
 # If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.

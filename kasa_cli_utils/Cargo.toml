@@ -4,15 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.7", features = ["derive"] }
-serde = { version = "1.0.203", features = ["derive"] }
-serde_json = "1.0.117"
-serde_with = "3.8.1"
-sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
-tokio = { version = "1.38.0", features = ["full"] }
+clap = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_with = { workspace = true }
+sqlx = { workspace = true, features = ["sqlite", "runtime-tokio"] }
+tokio = { workspace = true, features = ["full"] }
 kasa_core = { path = "../kasa_core" }
 kasa_python = { path = "../kasa_python" }
-rand = "0.8.5"
-dotenvy = "0.15.7"
-log = "0.4.22"
-env_logger = "0.11.5"
+rand = { workspace = true }
+dotenvy = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }

@@ -118,7 +118,7 @@
 							entriesToShow[keyboardSelectedIndex].name,
 							SearchStore.searchContents
 						);
-
+						keyboardSelectedIndex = -1;
 						shouldShow = false;
 					} else {
 						// no index selected user should want to search stuff

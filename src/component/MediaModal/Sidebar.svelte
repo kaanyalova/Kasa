@@ -13,13 +13,13 @@
 
 	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
 
-	let showCopySuccessButton = $state(false);
+	let showCopySuccessButton = $state(-1);
 
-	function onClickPath(path: string) {
-		showCopySuccessButton = true;
+	function onClickPath(path: string, i: number) {
+		showCopySuccessButton = i;
 		writeText(path);
 		setTimeout(() => {
-			showCopySuccessButton = false;
+			showCopySuccessButton = -1;
 		}, 1000);
 	}
 </script>
@@ -36,20 +36,25 @@
 	<div class="sideBarScrollableContents">
 		<div class="header">Known Paths</div>
 		<ul class=" details multicolorRows monoFont">
-			{#each data.paths as path}
+			{#each data.paths as path, i}
 				<li>
 					<button
 						class="pathCopyButton"
 						aria-label="Copy the Path"
-						onclick={() => onClickPath(path)}
+						onclick={() => onClickPath(path, i)}
 					>
 						<div class="pathCopyButtonInsides">
 							<div class="oneLine pathContainer expandOnHover">
 								{path}
 							</div>
 						</div>
-						<div class="copyIconContainer" onclick={() => onClickPath(path)} aria-hidden="true">
-							{#if showCopySuccessButton}
+						<div
+							class="copyIconContainer"
+							class:copyIconContainer2N={(i + 1) % 2 === 0}
+							onclick={() => onClickPath(path, i)}
+							aria-hidden="true"
+						>
+							{#if showCopySuccessButton === i}
 								<Tick height={15} width={15}></Tick>
 							{:else}
 								<Clipboard height={15} width={15}></Clipboard>
@@ -210,6 +215,10 @@
 		border-radius: 0px 2px 2px 0px;
 		padding-left: 4px;
 		padding-right: 4px;
+	}
+
+	.copyIconContainer2N {
+		background-color: var(--background);
 	}
 
 	.details {

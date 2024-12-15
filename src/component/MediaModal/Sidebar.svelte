@@ -10,6 +10,8 @@
 	import Clipboard from '../Vector/Clipboard.svelte';
 	import VerticalDivider from '../Shared/Dividers/VerticalDivider.svelte';
 	import Tick from '../Vector/Tick.svelte';
+	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
+	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 
 	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
 
@@ -148,7 +150,8 @@
 	}
 
 	.header {
-		padding-left: 2px;
+		padding-left: 4px;
+		padding-right: 4px;
 	}
 
 	.separator {

@@ -126,7 +126,7 @@
 {/if}
 
 <div class="titleRow">
-	Tags
+	<div class="title">Tags</div>
 
 	<button
 		class="titleButton"
@@ -297,5 +297,10 @@
 		height: 50px;
 		width: 200px;
 		background-color: red;
+	}
+
+	.title {
+		padding-left: 4px;
+		padding-right: 4px;
 	}
 </style>

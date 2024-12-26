@@ -322,7 +322,9 @@
 	}
 
 	.entryText {
-		width: calc(100vw - 435px);
+		width: calc(
+			100vw - 435px
+		); /* TODO The list moves slightly when it goes form empty -> non-empty */
 		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;

@@ -5,6 +5,7 @@
 	import { info } from '@tauri-apps/plugin-log';
 	import { commands } from '$lib/tauri_bindings';
 	import VideoReel from '../Vector/VideoReel.svelte';
+	import Swf from '../Vector/Swf.svelte';
 
 	let { hash, width, height, offset_x, offset_y, isSelected }: ImageProps = $props();
 
@@ -74,7 +75,6 @@
 		<div class="loader"></div>
 	</div>
 {:then thumbnail}
-		
 	<img
 		onclick={onClick}
 		src={thumbnail}
@@ -88,20 +88,18 @@
 		role="figure"
 	/>
 
-
 	{#if mediaType === 'Video'}
-	<div class="mediaTypeIcon" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
-		<VideoReel height={32} width={32}></VideoReel>
-	</div>
-
+		<div class="mediaTypeIcon" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
+			<VideoReel height={32} width={32}></VideoReel>
+		</div>
+	{:else if mediaType === 'Flash'}
+		<div class="mediaTypeIcon" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
+			<Swf height={32} width={32}></Swf>
+		</div>
 	{/if}
-
-	
 {/await}
 
 <style>
-
-
 	.mediaTypeIcon {
 		position: absolute;
 		padding: 8px;
@@ -109,9 +107,8 @@
 		top: 8px;
 		fill: var(--text);
 		background-color: color-mix(in srgb, black 60%, transparent 40%);
-
 	}
-	
+
 	img {
 		position: absolute;
 		cursor: pointer;

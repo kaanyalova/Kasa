@@ -10,7 +10,10 @@ use crate::{
     thumbnail::{thumbnail_image::thumbnail_image_single, thumbnail_video::thumbnail_video},
 };
 
-use super::thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat};
+use super::{
+    thumbnail_flash::thumbnail_flash,
+    thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat},
+};
 
 /// Returns the relative path of the thumbnail inside the thumbnails directory
 pub async fn get_thumbnail_from_file_impl(
@@ -142,9 +145,12 @@ pub async fn get_thumbnail_from_db_impl(
                     .await
                     .unwrap();
 
-            
-
             thumbnail_group(hashes, Default::default()).unwrap()
+        }
+        crate::db::schema::MediaType::Flash => {
+            thumbnail_flash(&path, (256, 256), &ThumbnailFormat::PNG)
+                .await
+                .unwrap()
         }
     };
 

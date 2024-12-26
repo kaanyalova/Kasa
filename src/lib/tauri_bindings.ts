@@ -135,6 +135,9 @@ async nukeSelectedIndex(path: string) : Promise<void> {
 },
 async cleanupUnreferencedFiles() : Promise<void> {
     await TAURI_INVOKE("cleanup_unreferenced_files");
+},
+async getSwfResolution(path: string) : Promise<[number, number]> {
+    return await TAURI_INVOKE("get_swf_resolution", { path });
 }
 }
 

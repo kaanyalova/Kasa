@@ -28,6 +28,7 @@ use log::warn;
 use log::LevelFilter;
 use media::get_info;
 use media::get_media_type;
+use media::get_swf_resolution;
 use media::get_tags;
 use media_server::close_server;
 use media_server::serve_media;
@@ -40,6 +41,7 @@ use tauri_specta::{collect_commands, Builder};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
+
 mod db;
 mod image;
 mod linux;
@@ -138,6 +140,7 @@ pub fn run() {
             nuke_all_indexes,
             nuke_selected_index,
             cleanup_unreferenced_files,
+            get_swf_resolution
         ]
     });
 

@@ -33,6 +33,7 @@ pub enum MediaType {
     Video,
     Game,
     Group,
+    Flash,
     Unknown,
 }
 
@@ -44,6 +45,7 @@ pub fn media_type_to_string(i: &MediaType) -> String {
         MediaType::Game => "Game",
         MediaType::Unknown => "Unknown",
         MediaType::Group => "Group",
+        MediaType::Flash => "Flash",
     };
     output.to_string()
 }

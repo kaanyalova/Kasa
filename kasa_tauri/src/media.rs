@@ -1,8 +1,7 @@
-
-use kasa_core::media::{get_info_impl, get_media_type_impl, get_tags_impl, MediaInfo, MediaTag};
-use tauri::{AppHandle, Manager};
-
 use crate::db::DbStore;
+use kasa_core::media::{get_info_impl, get_media_type_impl, get_tags_impl, MediaInfo, MediaTag};
+use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
+use tauri::{AppHandle, Manager};
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -43,4 +42,10 @@ pub async fn get_media_type(handle: AppHandle, hash: String) -> String {
     } else {
         "".to_string()
     }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_swf_resolution(path: String) -> (u32, u32) {
+    get_flash_resolution_impl(&path).unwrap()
 }

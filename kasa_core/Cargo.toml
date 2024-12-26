@@ -54,10 +54,17 @@ kasa_python = { workspace = true }
 image = { workspace = true }
 axum = { workspace = true }
 tower-http = { workspace = true, features = ["fs"] }
-
-
 rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 axum-macros = { workspace = true }
+
+
+ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
+    "deterministic",
+    "default_font",
+], optional = true }
+ruffle_render_wgpu = { git = "https://github.com/ruffle-rs/ruffle", features = [
+    "clap",
+], optional = true }
 
 
 [dependencies.ffmpeg]
@@ -80,3 +87,8 @@ os_info = { workspace = true }
 reqwest = { workspace = true, features = ["blocking"] }
 tar = { workspace = true }
 xz = { workspace = true }
+
+
+[features]
+default = ["swf_thumbnailer"]
+swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]

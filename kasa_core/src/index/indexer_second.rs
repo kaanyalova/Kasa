@@ -31,6 +31,7 @@ pub fn indexer_second_batch(
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),
+        MediaType::Flash => vec![], // TODO flash meta
     };
 
     let (generic_media_data, paths): (Vec<GenericMediaData>, Vec<PathData>) = first_passes

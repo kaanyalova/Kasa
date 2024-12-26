@@ -18,6 +18,9 @@
 
 	let groupModeSelectedIdx = $state(0);
 
+	let flashResolutionX = $state(0);
+	let flashResolutionY = $state(0);
+
 	function updateTagsTextBoxContents(text: string) {
 		tagsTextBoxContents = text;
 	}
@@ -41,6 +44,7 @@
 
 		if (mediaType == 'Group') {
 		}
+
 		//await commands.serveMedia(imageHash);
 	});
 
@@ -55,6 +59,19 @@
 		commands.closeServer();
 		MediaModalStatusStore.close();
 	}
+
+	async function getFlashResolution(data: MediaInfo) {
+		if (data.mediaType === 'Flash') {
+			const path = data.paths[0];
+			const [resolutionX, resolutionY] = await commands.getSwfResolution(path);
+			flashResolutionX = resolutionX;
+			flashResolutionY = resolutionY;
+		}
+	}
+
+	$effect(() => {
+		console.log(flashResolutionX, flashResolutionY);
+	});
 </script>
 
 <svelte:window
@@ -108,6 +125,21 @@
 					-->
 				{:else if data!.mediaType === 'Group'}
 					<!--TODO-->
+				{:else if data!.mediaType === 'Flash'}
+					{#await getFlashResolution(data) then}
+						<script src="ruffle/ruffle.js"></script>
+
+						<div class="overflow-hidden">
+							<object aria-label="User provided flash content">
+								<!-- TODO Make the scaling configurable-->
+								<embed
+									src={convertFileSrc(data!.paths[0])}
+									width={flashResolutionX * 2}
+									height={flashResolutionY * 2}
+								/>
+							</object>
+						</div>
+					{/await}
 				{/if}
 			</div>
 

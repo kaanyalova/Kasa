@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    str::FromStr,
-};
+use std::{path::PathBuf, str::FromStr};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 use human_bytes::human_bytes;
@@ -86,7 +83,8 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         MediaType::Video => { /* TODO implement video meta */ }
         MediaType::Game => unimplemented!(),
         MediaType::Unknown => unimplemented!(),
-        MediaType::Group => todo!(),
+        MediaType::Group => unimplemented!(),
+        MediaType::Flash => { /* TODO implement flash meta */ }
     };
 
     let import = ImportInfo {

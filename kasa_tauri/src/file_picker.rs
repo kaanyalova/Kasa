@@ -3,6 +3,8 @@ use ashpd::desktop::file_chooser::OpenFileRequest;
 #[tauri::command]
 #[specta::specta]
 pub async fn new_linux_file_picker_dialog() -> Vec<String> {
+    // This adds a few megabytes to the binary just for a proper file picker, tauri devs are refusing to upgrade their stuff
+    // to gtk4
     #[cfg(target_os = "linux")]
     {
         let response = OpenFileRequest::default()

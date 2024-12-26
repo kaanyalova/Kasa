@@ -68,6 +68,7 @@ pub async fn write_to_db(
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),
+        MediaType::Flash => { /*TODO implement Flash meta */ }
     }
 
     // Mark any unreferenced files

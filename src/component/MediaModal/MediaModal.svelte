@@ -2,7 +2,7 @@
 	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 	import '../../fonts.css';
 	import { info } from '@tauri-apps/plugin-log';
-	import clickOutside from '$lib/clickOutside';
+	import { clickOutsideModal } from '$lib/clickOutside';
 	import Sidebar from './Sidebar.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';
@@ -15,6 +15,8 @@
 
 	let isOpen = $state(true);
 	let tagsTextBoxContents = $state('');
+
+	let groupModeSelectedIdx = $state(0);
 
 	function updateTagsTextBoxContents(text: string) {
 		tagsTextBoxContents = text;
@@ -35,6 +37,9 @@
 
 		if (mediaType === 'Video') {
 			await commands.serveMedia(imageHash);
+		}
+
+		if (mediaType == 'Group') {
 		}
 		//await commands.serveMedia(imageHash);
 	});
@@ -59,19 +64,19 @@
 	{#await getData() then data}
 		<div
 			class="dialogContents"
-			use:clickOutside={async () => {
+			use:clickOutsideModal={async () => {
 				await onClose();
 			}}
 		>
 			<div class="imageWrapper">
 				<!-- svelte-ignore a11y_img_redundant_alt -->
-				{#if data!.mediaType == 'Image'}
+				{#if data!.mediaType === 'Image'}
 					<img
 						src={convertFileSrc(data!.paths[0])}
 						alt="An image provided by user"
 						style="aspect-ratio: {data!.aspectRatio};"
 					/>
-				{:else if data!.mediaType == 'Video'}
+				{:else if data!.mediaType === 'Video'}
 					<!--There is a slight pop-in when videos are first loaded-->
 					<media-player
 						autoplay
@@ -93,6 +98,8 @@
 					<!--
 					<video src="http://localhost:3169" controls></video>
 					-->
+				{:else if data!.mediaType === 'Group'}
+					<!--TODO-->
 				{/if}
 			</div>
 
@@ -137,8 +144,8 @@
 		width: 60vw;
 		max-height: 80vh;
 		*
-		/*  
-		Alternative ,images take up minimum horizontal space 
+		/*
+		Alternative ,images take up minimum horizontal space
 		*/
 		height: 80vh;
 		max-width: 60vw;
@@ -154,7 +161,7 @@
 		border-radius: 0px 10px 10px 0px;
 
 		/*
-		box-shadow:  TODO looks bad 
+		box-shadow:  TODO looks bad
 			rgba(60, 60, 60, 0.25) 0px 14px 28px,
 			rgba(60, 60, 60, 0.22) 0px 10px 10px;
 

@@ -5,4 +5,5 @@ type TagDropDownProps = {
     left: number,
     selectedIndex: number,
     tags: Array<TagQueryOutput>
+    onTagClick: (index: number) => void
 }

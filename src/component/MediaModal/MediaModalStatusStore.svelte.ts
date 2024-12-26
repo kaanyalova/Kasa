@@ -1,3 +1,4 @@
+import { commands } from "$lib/tauri_bindings";
 import { get } from "svelte/store";
 
 
@@ -8,6 +9,9 @@ function createMediaModalStatusStore() {
     let selectedHash = $state("");
     let isOpen = $state(false);
     let tagsEditModeActive = $state(false);
+
+    let isInGroupMode = $state(false);
+    let groupSelectedIdx = $state(0); 
 
     return {
         get isOpen() { return isOpen },

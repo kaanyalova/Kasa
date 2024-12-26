@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use clap::builder::Str;
 use kasa_core::{
-    config::global_config::{get_config_impl, get_configurable_tag_extractor_path},
+    config::global_config::get_config_impl,
     db::migrations::prepare_dbs,
     downloaders::gallery_dl::{download_and_index_impl, PyTrustMe},
 };
 use kasa_python::{
-    extractors::configurable::{get_extractors_from_path, ExtractorConfig},
+    extractors::configurable::ExtractorConfig,
     init_interpreter,
 };
 use sqlx::sqlite::SqlitePoolOptions;

@@ -2,19 +2,12 @@ use std::{
     env,
     fs::{self, create_dir},
     path::PathBuf,
-    str::FromStr,
 };
 
 use anyhow::Result;
 use log::info;
-use rayon::vec;
-use rustpython_vm::PyObject;
-use rustpython_vm::{
-    pyclass, pymodule, PyPayload, PyResult, TryFromBorrowedObject, VirtualMachine,
-};
 use serde::{Deserialize, Serialize};
-use toml::Value as TomlValue;
-use toml_edit::{de::from_document, value, Array, DocumentMut, Value};
+use toml_edit::{value, Array, DocumentMut, Value};
 
 const DEFAULT_CONFIG: &str = r#"
 # Try to avoid using relative paths, they will cause problems, they should never be configured

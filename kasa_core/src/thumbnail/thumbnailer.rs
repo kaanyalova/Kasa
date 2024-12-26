@@ -10,10 +10,7 @@ use crate::{
     thumbnail::{thumbnail_image::thumbnail_image_single, thumbnail_video::thumbnail_video},
 };
 
-use super::{
-    thumbnail_group::GroupThumbnailStyle,
-    thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat},
-};
+use super::thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat};
 
 /// Returns the relative path of the thumbnail inside the thumbnails directory
 pub async fn get_thumbnail_from_file_impl(

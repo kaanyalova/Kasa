@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::{borrow::BorrowMut, sync::Arc};
 
 use kasa_core::config::global_config::get_configurable_tag_extractor_path;
 use kasa_core::downloaders::gallery_dl::PyTrustMe;
@@ -7,12 +6,9 @@ use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
 use kasa_python::extractors::configurable::{get_extractors_from_path, ExtractorConfig};
-use kasa_python::{gdl_download, init_interpreter};
+use kasa_python::init_interpreter;
 use log::trace;
-use rustpython_vm::Interpreter;
-use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager};
-use tauri_plugin_fs::init;
 use tokio::sync::Mutex;
 
 use crate::db::DbStore;

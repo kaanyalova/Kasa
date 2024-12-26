@@ -6,11 +6,10 @@ use nom::{
     multi::many0,
     IResult,
 };
-use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use std::{fs::File, io::BufReader, path::PathBuf};
 
-use super::prompt_parser::{parse_prompt, prompt_to_tags};
+use super::prompt_parser::prompt_to_tags;
 use super::SlopTag;
 use super::SlopTags;
 use super::{

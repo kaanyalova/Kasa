@@ -1,6 +1,4 @@
-use std::path::Path;
 
-use tauri::path;
 
 #[tauri::command(async)]
 #[specta::specta]

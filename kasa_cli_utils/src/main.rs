@@ -6,7 +6,7 @@ mod nuke_db_versioning;
 mod populate_tags;
 mod thumbnail;
 
-use clap::{builder::Str, Parser};
+use clap::Parser;
 use dump_random_gi_layout::dump_random_gi_layout;
 use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;

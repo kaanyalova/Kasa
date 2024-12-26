@@ -1,5 +1,4 @@
 use std::env;
-use std::sync::Arc;
 
 use config::get_config;
 use config::set_config_resolution_value;
@@ -27,7 +26,6 @@ use index::*;
 use linux::get_desktop;
 use log::warn;
 use log::LevelFilter;
-use log::Log;
 use media::get_info;
 use media::get_media_type;
 use media::get_tags;
@@ -38,9 +36,7 @@ use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::update_tags;
-use tauri_plugin_log::LogLevel;
 use tauri_specta::{collect_commands, Builder};
-use tokio::sync::Mutex;
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;

@@ -1,4 +1,4 @@
-use sqlx::{query as sqlx_query, Execute, Pool, QueryBuilder, Sqlite};
+use sqlx::{query as sqlx_query, Pool, QueryBuilder, Sqlite};
 
 use crate::db::schema::{media_type_to_string, MediaType};
 

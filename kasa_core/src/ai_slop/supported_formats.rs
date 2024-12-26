@@ -1,9 +1,6 @@
 use anyhow::{Ok, Result};
-use indexmap::{IndexMap, IndexSet};
-use std::{
-    collections::{HashMap, HashSet},
-    path::PathBuf,
-};
+use indexmap::IndexMap;
+use std::path::PathBuf;
 
 use image::EncodableLayout;
 use img_parts::png::Png;

@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use kasa_python::ExtractedTag;
 use log::trace;
-use pest::pratt_parser::Op;
 use sqlx::{query, query_scalar, Pool, Sqlite};
 
 // Utilities to keep `Tag` and `TagFTS` tables in sync

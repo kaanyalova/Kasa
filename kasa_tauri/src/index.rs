@@ -1,4 +1,3 @@
-use ashpd::zvariant::Str;
 use kasa_core::index::{
     index_sources::{
         add_index_source_impl, cleanup_unreferenced_files_impl, get_index_paths_impl,

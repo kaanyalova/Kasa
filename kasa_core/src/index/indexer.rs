@@ -1,14 +1,10 @@
-use std::collections::HashMap;
 
 use itertools::Itertools;
 use sqlx::{Pool, Sqlite};
-use tokio::task::spawn_blocking;
 
 use crate::{
-    db::schema::MediaType,
     index::{
-        indexer_first::index_first_batch, indexer_second::indexer_second_batch,
-        media_types::FirstPass, write_to_db::write_to_db,
+        indexer_first::index_first_batch, indexer_second::indexer_second_batch, write_to_db::write_to_db,
     },
     supported_formats::get_type,
 };

@@ -1,3 +1,1 @@
-fn index_file_paths() {
-    
-}
+fn index_file_paths() {}

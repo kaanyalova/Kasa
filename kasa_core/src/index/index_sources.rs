@@ -1,11 +1,7 @@
 use sqlx::{
-    pool, query, query_as, query_builder, query_scalar, Pool, QueryBuilder, Sqlite, SqlitePool,
+    query, query_scalar, Pool, QueryBuilder, Sqlite,
 };
 
-use crate::{
-    db::{migrations::prepare_dbs, schema::Media},
-    test_util::db_utils::{_insert_media_row, insert_media_row, insert_path_row},
-};
 
 use super::indexer::index;
 

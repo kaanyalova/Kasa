@@ -267,7 +267,7 @@ pub fn parse_prompt(input: &str) -> Vec<SlopTag> {
     let remaining = input.to_string();
     let remaining = remaining.trim();
     let remaining = remaining.trim_start_matches(',');
-    let mut remaining = remaining.trim().to_string();
+    let remaining = remaining.trim().to_string();
     let mut remaining = remaining.replace("BREAK", ",");
 
     loop {

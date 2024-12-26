@@ -1,8 +1,7 @@
 use crate::{db::schema::MediaType, thumbnail::thumbnail_image::calculate_aspect_ratio};
 use anyhow::Result;
-use ffmpeg::format::{input, Pixel};
+use ffmpeg::format::input;
 use ffmpeg::media::Type;
-use log::trace;
 
 pub fn get_thumbnail_size(media_type: MediaType, path: &str) -> (u32, u32) {
     let (src_x, src_y) = match media_type {

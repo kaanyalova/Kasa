@@ -7,7 +7,7 @@ use kasa_core::{
         db::{query_tags_impl, TagQueryOutput},
         db_info::{get_thumbs_db_info_impl, ThumbsDBInfo},
         migrations::prepare_dbs,
-        schema::{Media, Tag},
+        schema::Media,
     },
     layout::google_photos::{calculate_layout, ImageRow},
 };

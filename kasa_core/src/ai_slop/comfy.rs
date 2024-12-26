@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Debug, path::PathBuf, usize};
+use std::{fmt::Debug, path::PathBuf, usize};
 
 use anyhow::Result;
 use indexmap::{IndexMap, IndexSet};
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     errors::SlopTagParseError,
-    prompt_parser::{parse_prompt, prompt_to_tags},
+    prompt_parser::prompt_to_tags,
     supported_formats::{parse_png_meta, SLOP_SUPPORTED_FORMATS},
     SlopTag, SlopTags,
 };

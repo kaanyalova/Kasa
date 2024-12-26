@@ -1,13 +1,11 @@
 use std::{
     collections::HashMap,
-    fs::{self, FileType},
-    path::PathBuf,
+    fs::{self},
 };
 
 use log::trace;
 
 use anyhow::{Ok, Result};
-use rustpython_vm::stdlib::errno::errors;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use thiserror::Error;

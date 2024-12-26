@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Ok, Result};
+use anyhow::{Ok, Result};
 use extractors::configurable::{extract_tags, ExtractorConfig};
 use log::trace;
 use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{
     compiler::parser::ast::String,
-    convert::{ToPyObject, ToPyResult},
-    py_freeze, pymodule, vm, Interpreter, Py,
+    convert::ToPyObject,
+    py_freeze, pymodule, vm, Interpreter,
 };
 
 use serde::{Deserialize, Serialize};
@@ -180,7 +180,7 @@ pub enum PyError {
 #[pymodule]
 mod rust_side {
 
-    use rustpython::vm::{builtins::PyList, convert::ToPyObject, PyObjectRef};
+    
     #[pyfunction]
     fn get_cert_path() -> String {
         let data_dir = dirs::data_dir().unwrap();

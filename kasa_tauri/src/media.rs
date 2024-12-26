@@ -1,4 +1,3 @@
-use core::hash;
 
 use kasa_core::media::{get_info_impl, get_media_type_impl, get_tags_impl, MediaInfo, MediaTag};
 use tauri::{AppHandle, Manager};

@@ -1,22 +1,16 @@
 use anyhow::Result;
-use exif::Rational;
 use fast_image_resize::images::Image;
-use fast_image_resize::{IntoImageView, PixelType, Resizer};
-use ffmpeg::ffi::av_rescale;
+use fast_image_resize::{IntoImageView, Resizer};
 use ffmpeg::format::{input, Pixel};
 use ffmpeg::media::Type;
 use ffmpeg::software::scaling::{context::Context, flag::Flags};
 use ffmpeg::util::frame::video::Video;
-use ffmpeg::Rescale;
 use image::codecs::avif::AvifEncoder;
 use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 use image::{DynamicImage, ImageBuffer, ImageEncoder, Rgb, RgbImage};
-use log::debug;
-use serde::de;
 use std::fs::File;
 use std::io::Write;
-use std::path::Path;
 
 use super::thumbnail_image::{
     calculate_aspect_ratio, Thumbnail, ThumbnailFormat, ThumbnailerError,
@@ -109,7 +103,7 @@ pub fn thumbnail_video(
     timestamp: u64,
 ) -> Result<Thumbnail> {
     let (frame, (width, height)) = extract_frame(path, timestamp as i64)?;
-    let mut buffer = get_buffer(&frame)?;
+    let buffer = get_buffer(&frame)?;
 
     let (target_width, target_height) =
         calculate_aspect_ratio(width, height, resolution.0, resolution.1);

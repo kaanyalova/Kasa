@@ -1,6 +1,6 @@
 use sqlx::{query, Pool, Sqlite};
 
-use crate::db::schema::{Media, Path};
+use crate::db::schema::Media;
 
 pub async fn _insert_media_row(pool: &Pool<Sqlite>, media: &Media) {
     // Too long SQL strings cause rustfmt to die

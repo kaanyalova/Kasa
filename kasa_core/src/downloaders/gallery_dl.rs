@@ -1,19 +1,17 @@
 use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
-use kasa_python::{extractors::configurable::ExtractorConfig, gdl_download, init_interpreter};
+use kasa_python::extractors::configurable::ExtractorConfig;
 use rustpython_vm::Interpreter;
-use serde_json::error;
-use sqlx::{query, query_scalar, Pool, Sqlite};
+use sqlx::{query_scalar, Pool, Sqlite};
 use thiserror::Error;
 
 use crate::{
-    config::global_config::{get_config_impl, get_configurable_tag_extractor_path},
+    config::global_config::get_config_impl,
     index::indexer::index,
     tags::tags::insert_tags_with_source_types,
 };
 
-use tokio::sync::oneshot;
 
 // fuck...
 pub struct PyTrustMe(pub Interpreter);

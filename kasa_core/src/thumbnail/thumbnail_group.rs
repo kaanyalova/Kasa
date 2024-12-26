@@ -1,6 +1,4 @@
-use anyhow::{Ok, Result};
-use fast_image_resize::images::Image;
-use image::{imageops, DynamicImage};
+use anyhow::Result;
 
 use super::thumbnail_image::{thumbnail_image_single, Thumbnail, ThumbnailFormat};
 

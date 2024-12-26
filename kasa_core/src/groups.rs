@@ -1,14 +1,10 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Ok, Result};
-use sqlx::{prelude::FromRow, query, query_as, query_scalar, Pool, QueryBuilder, Sqlite};
+use sqlx::{prelude::FromRow, query, query_as, Pool, QueryBuilder, Sqlite};
 use xxhash_rust::xxh3::xxh3_64;
 
-use crate::{
-    db::schema::{media_type_to_string, MediaType},
-    test_util::db_utils::insert_media_row,
-    xxhash,
-};
+use crate::db::schema::{media_type_to_string, MediaType};
 
 const MAX_BINDS: usize = 32766;
 async fn create_group(
@@ -37,7 +33,7 @@ async fn create_group(
         QueryBuilder::new("INSERT INTO MediaGroupEntry(group_id, hash)");
     let hashes = media_hashes.iter();
 
-    query_builder.push_values(hashes.take(MAX_BINDS / 2), |mut b, entry| {
+    query_builder.push_values(hashes.take(MAX_BINDS / 2), |b, entry| {
         //b.push_bind(&group_id).push_bind(entry);
     });
 

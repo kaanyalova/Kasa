@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -6,7 +5,7 @@ use sqlx::{prelude::FromRow, query_as, Pool, Sqlite};
 
 use crate::index::media_types::FirstPass;
 
-use super::schema::{Tag, TagDetail};
+use super::schema::TagDetail;
 
 #[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type)]
 pub struct TagQueryOutput {

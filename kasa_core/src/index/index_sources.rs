@@ -31,6 +31,15 @@ pub async fn remove_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
         .execute(pool)
         .await
         .unwrap();
+
+    query("DELETE FROM Path WHERE imported_from = ?")
+        .bind(&path)
+        .execute(pool)
+        .await
+        .unwrap();
+
+    // Mark any unreferenced files
+    query("UPDATE Media SET has_file_ref = false WHERE NOT EXISTS (SELECT 1 FROM Path WHERE Path.hash = Media.hash)").execute(pool).await.unwrap();
 }
 
 pub async fn index_all_impl(pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
@@ -53,46 +62,111 @@ pub async fn get_index_paths_impl(pool: &Pool<Sqlite>) -> Vec<String> {
     return paths;
 }
 
-pub async fn nuke_selected_index(
+pub async fn cleanup_unreferenced_files_impl(pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
+    query("DELETE FROM HashTagPair WHERE HashTagPair.hash IN (SELECT Media.hash FROM Media WHERE Media.has_file_ref = false)").execute(pool).await.unwrap();
+    query("DELETE FROM Image WHERE Image.hash IN (SELECT Media.hash FROM Media WHERE Media.has_file_ref = false)").execute(pool).await.unwrap();
+    query("DELETE FROM MediaGroupEntry WHERE MediaGroupEntry.hash IN (SELECT Media.hash FROM Media WHERE Media.has_file_ref = false)").execute(pool).await.unwrap();
+    query("DELETE FROM Media WHERE has_file_ref = false")
+        .execute(pool)
+        .await
+        .unwrap();
+
+    let hashes_to_delete: Vec<String> =
+        query_scalar("SELECT Media.hash FROM Media WHERE Media.has_file_ref = false")
+            .fetch_all(pool)
+            .await
+            .unwrap();
+
+    let mut query_builder: QueryBuilder<Sqlite> =
+        QueryBuilder::new("DELETE FROM Thumbs WHERE hash IN (");
+
+    let mut separated = query_builder.separated(", ");
+    for hash in hashes_to_delete {
+        separated.push_bind(hash);
+    }
+
+    separated.push_unseparated(") ");
+
+    let delete_query = query_builder.build();
+    delete_query.execute(pool_thumbs).await.unwrap();
+}
+
+pub async fn nuke_selected_index_impl(
     pool: &Pool<Sqlite>,
     pool_thumbs: Option<&Pool<Sqlite>>,
     path: &str,
 ) {
+    // delete all the media entries of the selected items
+    query("DELETE FROM Media WHERE Media.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+        .bind(path)
+        .execute(pool)
+        .await
+        .unwrap();
+
+    // delete all the tags from the selected items
+    query("DELETE FROM HashTagPair WHERE HashTagPair.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+        .bind(path)
+        .execute(pool)
+        .await
+        .unwrap();
+
+    // delete all the image data from the selected items
+    query("DELETE FROM Image WHERE Image.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+        .bind(path)
+        .execute(pool)
+        .await
+        .unwrap();
+
+    // delete any group entries
+    query("DELETE FROM MediaGroupEntry WHERE MediaGroupEntry.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+        .bind(path)
+        .execute(pool)
+        .await
+        .unwrap();
+
+    // delete thumbnails if they exist
+    if let Some(pool_thumbs) = pool_thumbs {
+        let hashes_to_delete: Vec<String> =
+            query_scalar("SELECT hash FROM Path WHERE Path.imported_from = ?")
+                .bind(path)
+                .fetch_all(pool)
+                .await
+                .unwrap();
+
+        let mut query_builder: QueryBuilder<Sqlite> =
+            QueryBuilder::new("DELETE FROM Thumbs WHERE hash IN (");
+
+        let mut separated = query_builder.separated(", ");
+        for hash in hashes_to_delete {
+            separated.push_bind(hash);
+        }
+
+        separated.push_unseparated(") ");
+
+        let delete_query = query_builder.build();
+        delete_query.execute(pool_thumbs).await.unwrap();
+    }
+
+    remove_index_source_impl(path, pool).await;
+
+    // This should be the last one
     query("DELETE FROM Path WHERE imported_from = ?")
         .bind(path)
         .execute(pool)
         .await
         .unwrap();
 
-    // get all hashes to delete where there is no other references left in the path table
-    // sqlite doesn't support RETUNING clauses making me suffer                                                                                                                              ccc              c
-    //let hashes_to_delete: Vec<String> = query_scalar("FUCK FUCK FUCK FUCK FUCK FUCK FUCK")
-    //    .bind(path)
-    //    .bind(path)
-    //    .fetch_all(pool)
-    //    .await
-    //    .unwrap();
-
-    //delete_entries("Media", &hashes_to_delete, pool).await;
-    //delete_entries("HashTagPair", &hashes_to_delete, pool).await;
-    //delete_entries("Image", &hashes_to_delete, pool).await;
-
     //if let Some(pool_thumbs) = pool_thumbs {
     //    delete_entries("Thumbs", &hashes_to_delete, pool_thumbs).await
     //}
 }
-async fn delete_entries(table: &str, hashes_to_delete: &Vec<String>, pool: &Pool<Sqlite>) {
-    let mut query_builder: QueryBuilder<Sqlite> =
-        QueryBuilder::new(format!("DELETE FROM {} WHERE hash IN (", table));
-    let mut separated = query_builder.separated(",");
-    for hash in hashes_to_delete {
-        separated.push_bind(hash);
+
+pub async fn nuke_all_indexes_impl(pool: &Pool<Sqlite>, pool_thumbs: Option<&Pool<Sqlite>>) {
+    let paths = get_index_paths_impl(pool).await;
+
+    for path in paths {
+        nuke_selected_index_impl(pool, pool_thumbs, &path).await;
     }
-    separated.push_bind_unseparated(")");
-
-    let q = query_builder.build();
-
-    q.execute(pool).await.unwrap();
 }
 
 /*

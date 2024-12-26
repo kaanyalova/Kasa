@@ -118,3 +118,8 @@ pub struct MediaGroupEntry {
     group_hash: String,
     hash: String,
 }
+
+pub struct MediaSource {
+    hash: String,
+    source: String,
+}

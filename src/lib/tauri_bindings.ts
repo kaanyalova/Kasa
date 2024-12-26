@@ -123,6 +123,18 @@ async imagePathToRgbaBytes(path: string) : Promise<number[]> {
 },
 async openWithSystemDefaultApp(path: string) : Promise<void> {
     await TAURI_INVOKE("open_with_system_default_app", { path });
+},
+async newLinuxFilePickerDialog() : Promise<string[]> {
+    return await TAURI_INVOKE("new_linux_file_picker_dialog");
+},
+async nukeAllIndexes() : Promise<void> {
+    await TAURI_INVOKE("nuke_all_indexes");
+},
+async nukeSelectedIndex(path: string) : Promise<void> {
+    await TAURI_INVOKE("nuke_selected_index", { path });
+},
+async cleanupUnreferencedFiles() : Promise<void> {
+    await TAURI_INVOKE("cleanup_unreferenced_files");
 }
 }
 

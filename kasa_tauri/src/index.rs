@@ -1,6 +1,8 @@
+use ashpd::zvariant::Str;
 use kasa_core::index::{
     index_sources::{
-        add_index_source_impl, get_index_paths_impl, index_all_impl, remove_index_source_impl,
+        add_index_source_impl, cleanup_unreferenced_files_impl, get_index_paths_impl,
+        index_all_impl, nuke_all_indexes_impl, nuke_selected_index_impl, remove_index_source_impl,
     },
     indexer::index,
 };
@@ -76,6 +78,51 @@ pub async fn index_path(handle: AppHandle, path: String) {
     if let (Some(db), Some(thumbs)) = (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
     {
         index(&path, db, thumbs).await;
+    }
+
+    handle.emit("media_updated", "").unwrap()
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn nuke_selected_index(handle: AppHandle, path: String) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+
+    if let (Some(db), Some(thumbs)) = (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+    {
+        nuke_selected_index_impl(db, Some(thumbs), &path).await;
+    }
+
+    handle.emit("media_updated", "").unwrap()
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn nuke_all_indexes(handle: AppHandle) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+
+    if let (Some(db), Some(thumbs)) = (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+    {
+        nuke_all_indexes_impl(db, Some(thumbs)).await;
+    }
+
+    handle.emit("media_updated", "").unwrap()
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn cleanup_unreferenced_files(handle: AppHandle) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+
+    if let (Some(db), Some(thumbs)) = (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+    {
+        cleanup_unreferenced_files_impl(db, thumbs).await;
     }
 
     handle.emit("media_updated", "").unwrap()

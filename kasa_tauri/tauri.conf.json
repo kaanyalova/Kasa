@@ -1,77 +1,77 @@
 {
-  "$schema": "https://raw.githubusercontent.com/crabnebula-dev/devtools/2f2f97fb7d215295b47e2b004ad76c0cd0100ead/clients/web/src/lib/tauri/config/tauri-conf-schema-v2.json",
-  "build": {
-    "beforeBuildCommand": "bun run build",
-    "beforeDevCommand": "bun run dev",
-    "frontendDist": "../build",
-    "devUrl": "http://localhost:5173"
-  },
-  "bundle": {
-    "active": true,
-    "category": "DeveloperTool",
-    "copyright": "",
-    "targets": "all",
-    "externalBin": [],
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ],
-    "windows": {
-      "certificateThumbprint": null,
-      "digestAlgorithm": "sha256",
-      "timestampUrl": ""
-    },
-    "longDescription": "",
-    "macOS": {
-      "entitlements": null,
-      "exceptionDomain": "",
-      "frameworks": [],
-      "providerShortName": null,
-      "signingIdentity": null
-    },
-    "resources": [],
-    "shortDescription": "",
-    "linux": {
-      "deb": {
-        "depends": []
-      }
-    }
-  },
-  "productName": "kasa",
-  "version": "0.1.0",
-  "identifier": "com.kaanb.kasa",
-  "plugins": {},
-  "app": {
-    "windows": [
-      {
-        "fullscreen": false,
-        "resizable": true,
-        "title": "Kasa",
-        "decorations": false,
-        "maximized": false,
-        "url": "index.html"
-      }
-    ],
-    "security": {
-      "capabilities": [],
-      "assetProtocol": {
-        "enable": true,
-        "scope": [
-          "$PICTURE/**/*",
-          "$PICTURE/*",
-          "$VIDEO/*",
-          "$VIDEO/**/*",
-          "$HOME/*",
-          "$HOME/**/*",
-          "**",
-          "*",
-          "$CACHE/*",
-          "$CACHE/**"
-        ]
-      }
-    }
-  }
+	"$schema": "https://raw.githubusercontent.com/crabnebula-dev/devtools/2f2f97fb7d215295b47e2b004ad76c0cd0100ead/clients/web/src/lib/tauri/config/tauri-conf-schema-v2.json",
+	"build": {
+		"beforeBuildCommand": "bun run build",
+		"beforeDevCommand": "bun run dev",
+		"frontendDist": "../build",
+		"devUrl": "http://localhost:5173"
+	},
+	"bundle": {
+		"active": true,
+		"category": "DeveloperTool",
+		"copyright": "",
+		"targets": "all",
+		"externalBin": [],
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		],
+		"windows": {
+			"certificateThumbprint": null,
+			"digestAlgorithm": "sha256",
+			"timestampUrl": ""
+		},
+		"longDescription": "",
+		"macOS": {
+			"entitlements": null,
+			"exceptionDomain": "",
+			"frameworks": [],
+			"providerShortName": null,
+			"signingIdentity": null
+		},
+		"resources": [],
+		"shortDescription": "",
+		"linux": {
+			"deb": {
+				"depends": []
+			}
+		}
+	},
+	"productName": "kasa",
+	"version": "0.1.0",
+	"identifier": "com.kaanb.kasa",
+	"plugins": {},
+	"app": {
+		"windows": [
+			{
+				"fullscreen": false,
+				"resizable": true,
+				"title": "Kasa",
+				"decorations": false,
+				"maximized": true,
+				"url": "index.html"
+			}
+		],
+		"security": {
+			"capabilities": [],
+			"assetProtocol": {
+				"enable": true,
+				"scope": [
+					"$PICTURE/**/*",
+					"$PICTURE/*",
+					"$VIDEO/*",
+					"$VIDEO/**/*",
+					"$HOME/*",
+					"$HOME/**/*",
+					"**",
+					"*",
+					"$CACHE/*",
+					"$CACHE/**"
+				]
+			}
+		}
+	}
 }

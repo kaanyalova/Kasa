@@ -16,9 +16,13 @@ use db::MediaCache;
 use downloaders::download_and_index;
 use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
+use file_picker::new_linux_file_picker_dialog;
 use image::get_thumbnail;
 use image::get_thumbnail_from_db;
+use index::cleanup_unreferenced_files;
 use index::index_path;
+use index::nuke_all_indexes;
+use index::nuke_selected_index;
 use index::*;
 use linux::get_desktop;
 use log::warn;
@@ -35,13 +39,11 @@ use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::update_tags;
 use tauri_plugin_log::LogLevel;
+use tauri_specta::{collect_commands, Builder};
 use tokio::sync::Mutex;
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
-
-use tauri_specta::{collect_commands, Builder};
-
 mod db;
 mod image;
 mod linux;
@@ -49,6 +51,7 @@ mod media;
 //mod serve_media;
 mod config;
 mod downloaders;
+mod file_picker;
 mod index;
 mod media_server;
 mod search;
@@ -134,7 +137,11 @@ pub fn run() {
             download_and_index,
             index_path,
             image_path_to_rgba_bytes,
-            open_with_system_default_app
+            open_with_system_default_app,
+            new_linux_file_picker_dialog,
+            nuke_all_indexes,
+            nuke_selected_index,
+            cleanup_unreferenced_files,
         ]
     });
 
@@ -155,8 +162,8 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_fs::init())
         //.plugin(tauri_plugin_theme::init(context.config_mut()))
-        //.plugin(tauri_plugin_dialog::init())
-        //.plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_os::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);

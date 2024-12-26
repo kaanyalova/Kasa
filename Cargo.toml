@@ -11,6 +11,7 @@ members = [
     "kasa_tauri",
     "kasa_bench",
     "kasa_python",
+    "kasa_gtk_experiment",
 ]
 
 [workspace.package]

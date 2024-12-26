@@ -43,3 +43,4 @@ bfg-*.jar
 *.kasa-wal
 *.kasa-shm
 overlay_images
+kasa_gtk_experiment

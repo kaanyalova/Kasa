@@ -16,32 +16,85 @@
 	import UserTrash from '../../../Vector/UserTrash.svelte';
 	import { open } from '@tauri-apps/plugin-dialog';
 	import { commands } from '$lib/tauri_bindings';
-	import { error, trace } from '@tauri-apps/plugin-log';
+	import { error, info, trace } from '@tauri-apps/plugin-log';
+	import { openFilePickerWithMultipleFolderSelection } from '$lib/openFilePicker';
+	import { clickOutside, clickOutsideModal } from '$lib/clickOutside';
+	import Heart from '../../../Vector/Heart.svelte';
+
+	let entriesPromise = $state();
+	let selectedEntries: Array<number> = $state([]);
+	let entries: Array<string> = $state([]);
+	let isCTRLBeingHeld = $state(false);
+
 	onDestroy(() => {
 		ConfirmationScreenStore.close();
 	});
 
 	async function onAddIndex() {
-		// Is this always a directory?
-		const path = await open({
-			multiple: false,
-			directory: true
+		const paths = await openFilePickerWithMultipleFolderSelection();
+
+		paths.forEach((path) => {
+			console.log(`indexing path: ${path}`);
+			commands.addIndexSource(path);
+			commands.indexPath(path);
 		});
 
-		if (typeof path !== undefined) {
-			await commands.addIndexSource(path!!);
-			await commands.indexPath(path!!);
-		} else {
-			error('Invalid directory');
-		}
+		entries = await commands.getIndexPaths();
 	}
 
 	async function onRescanAll() {
 		await commands.indexAll();
 	}
 
-	async function rescanSelected() {
-		// TODO selection
+	async function onRescanSelected() {
+		selectedEntries.forEach(async (entryIdx) => {
+			await commands.indexPath(entries[entryIdx]);
+		});
+	}
+
+	async function onRemoveSelected() {
+		selectedEntries.forEach(async (entryIdx) => {
+			await commands.removeIndexSource(entries[entryIdx]);
+		});
+
+		entries = await commands.getIndexPaths();
+	}
+
+	async function onNukeSelected() {
+		console.log(selectedEntries);
+		selectedEntries.forEach(async (entryIdx) => {
+			console.log(`${entries[entryIdx]}`);
+			await commands.nukeSelectedIndex(entries[entryIdx]);
+		});
+
+		entries = await commands.getIndexPaths();
+	}
+
+	async function onRemoveAll() {
+		entries.forEach(async (entry) => {
+			await commands.removeIndexSource(entry);
+		});
+
+		entries = await commands.getIndexPaths();
+	}
+
+	async function onNukeAll() {
+		await commands.nukeAllIndexes();
+		entries = await commands.getIndexPaths();
+	}
+
+	async function updateSelectedIndexes() {
+		entries = await commands.getIndexPaths();
+	}
+
+	function onEntryClicked(event: MouseEvent, index: number) {
+		if (event.ctrlKey) {
+			if (!selectedEntries.includes(index)) {
+				selectedEntries.push(index);
+			}
+		} else {
+			selectedEntries = [index];
+		}
 	}
 </script>
 
@@ -49,14 +102,21 @@
 <div class="indexers">
 	<div class="leftPanel">
 		<BorderedBox padding={4}>
-			<ul>
-				<li class="entry">Entry</li>
-				<li class="entry">Entry</li>
-				<li class="entry">Entry</li>
-				<li class="entry">Entry</li>
-				<li class="entry">Entry</li>
-				<li class="entry">Entry</li>
-			</ul>
+			<div use:clickOutsideModal={() => (selectedEntries = [])}>
+				{#await updateSelectedIndexes() then}
+					<ul>
+						{#each entries as entry, i}
+							<li class="entry" class:selectedEntry={selectedEntries.includes(i)}>
+								<button onclick={(e) => onEntryClicked(e, i)}>
+									<div class="entryText">
+										{entry}
+									</div>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/await}
+			</div>
 		</BorderedBox>
 	</div>
 
@@ -65,11 +125,11 @@
 			<li class="flex">
 				<!--
 				Does it make sense to make this directly open up the system file picker? Rest of the path pickers support both
-				directly entering the path and the file picker. 
+				directly entering the path and the file picker.
 
 				But the other ones write to the config file instead of the DB so it should be fine?
 				-->
-				<IndexerButton onClick={() => {}}>
+				<IndexerButton onClick={async () => await onAddIndex()}>
 					{#snippet text()}
 						<div>Add index</div>
 					{/snippet}
@@ -78,9 +138,12 @@
 				</IndexerButton>
 			</li>
 
-			<li class="flex"></li>
 			<li class="flex">
-				<IndexerButton onClick={() => {}}>
+				<IndexerButton
+					onClick={async () => {
+						await onRescanAll();
+					}}
+				>
 					{#snippet text()}
 						Re-scan all
 					{/snippet}
@@ -89,7 +152,11 @@
 			</li>
 
 			<li class="flex">
-				<IndexerButton onClick={() => {}}>
+				<IndexerButton
+					onClick={async () => {
+						await onRescanSelected();
+					}}
+				>
 					{#snippet text()}
 						Re-scan selected
 					{/snippet}
@@ -103,7 +170,11 @@
 			and re-indexing is not that hard
 			-->
 			<li class="flex">
-				<IndexerButton onClick={() => {}}>
+				<IndexerButton
+					onClick={async () => {
+						await onRemoveSelected();
+					}}
+				>
 					{#snippet text()}
 						Remove selected
 					{/snippet}
@@ -120,8 +191,8 @@
 						ConfirmationScreenStore.newDialog(
 							'Are you sure?',
 							'This will delete <strong>all the indexers</strong> but the metadata will stay',
-							() => {
-								console.log('Delete all indexes');
+							async () => {
+								await onRemoveAll();
 							},
 							undefined,
 							undefined,
@@ -144,8 +215,8 @@
 						ConfirmationScreenStore.newDialog(
 							'Are you sure?',
 							'This will both delete <strong>the references to files</strong> and <strong>all the stored metadata</strong>',
-							() => {
-								console.log('Exiting');
+							async () => {
+								await onNukeSelected();
 							},
 							undefined,
 							undefined,
@@ -172,8 +243,8 @@
 						ConfirmationScreenStore.newDialog(
 							'Are you sure?',
 							'This will both delete <strong>all references to files</strong> and <strong>all the stored metadata</strong>',
-							() => {
-								console.log('Nuke data');
+							async () => {
+								onNukeAll();
 							},
 							undefined,
 							undefined,
@@ -193,7 +264,27 @@
 				</IndexerButtonDestructive>
 			</li>
 
-			<li></li>
+			<li class="flex">
+				<IndexerButtonDestructive
+					onClick={() => {
+						commands.cleanupUnreferencedFiles();
+					}}
+				>
+					{#snippet text()}
+						<div class="">
+							<ul>
+								<li>
+									Remove <strong>ALL</strong> unindexed
+								</li>
+
+								<li>data</li>
+							</ul>
+						</div>
+					{/snippet}
+
+					<Heart width={20} height={20}></Heart>
+				</IndexerButtonDestructive>
+			</li>
 		</ul>
 	</div>
 </div>
@@ -208,6 +299,7 @@
 		display: flex;
 		flex-grow: 0.01;
 		flex-direction: column;
+		width: 200px;
 	}
 
 	.leftPanel {
@@ -216,13 +308,32 @@
 	}
 
 	.entry {
-		display: flex;
-		flex-grow: 1;
+		flex-shrink: 1;
 		background: var(--background);
 		padding: 4px;
+		min-width: 0px;
+		margin-top: 1px;
+		margin-left: 1px;
+	}
+
+	.selectedEntry {
+		outline: 1px solid var(--accent);
+		/* https://stackoverflow.com/a/12693151 */
+	}
+
+	.entryText {
+		width: calc(100vw - 435px);
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+		text-align: start;
 	}
 
 	.entry:nth-child(2n) {
 		background: var(--secondary-alt);
+	}
+	ul {
+		display: flex;
+		flex-direction: column;
 	}
 </style>

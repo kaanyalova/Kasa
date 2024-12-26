@@ -2,6 +2,7 @@ mod dump_random_gi_layout;
 mod gdl;
 mod index_all_ai_images;
 mod index_folder;
+mod nuke_db_versioning;
 mod populate_tags;
 mod thumbnail;
 
@@ -12,8 +13,8 @@ use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
 use kasa_core::config::global_config::get_configurable_tag_extractor_path;
 use kasa_python::extractors::configurable::get_extractors_from_path;
+use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
-
 //use thumbnail::thumbnail;
 
 #[derive(Parser)] // requires `derive` feature
@@ -24,6 +25,7 @@ enum KasaCli {
     IndexAllAIImages(IndexAllAIImagesArgs), //ThumbnailFolder(ThumbnailArgs),
     #[command(alias = "gdl")]
     GalleryDL(GalleryDlArgs),
+    NukeDBVersioning,
 }
 
 #[derive(clap::Args)]
@@ -94,5 +96,6 @@ async fn main() {
             index_all_ai_images(args.db_path, args.tag_max_len as usize).await
         }
         KasaCli::GalleryDL(args) => gdl(&args.url, extractors).await,
+        KasaCli::NukeDBVersioning => nuke_db_versioning().await,
     }
 }

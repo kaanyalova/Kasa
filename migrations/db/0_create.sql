@@ -87,3 +87,8 @@ CREATE TABLE IF NOT EXISTS MediaGroupEntry (
     group_hash INT NOT NULL,
     hash INT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS MediaSource (
+    hash TEXT NOT NULL,
+    source TEXT NOT NULL
+);

@@ -1,12 +1,6 @@
-use std::{
-    any::Any,
-    fs,
-    io::{BufReader, Cursor},
-    path::Path,
-    vec,
-};
+use std::{io::Cursor, path::Path, vec};
 
-use diffy::{apply, ApplyError, Patch};
+use diffy::{apply, Patch};
 use flate2::bufread::GzDecoder;
 use tar::Archive;
 

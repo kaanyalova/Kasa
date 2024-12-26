@@ -7,6 +7,8 @@ use xxhash_rust::xxh3::xxh3_64;
 use crate::db::schema::{media_type_to_string, MediaType};
 
 const MAX_BINDS: usize = 32766;
+
+#[allow(unused)]
 async fn create_group(
     media_hashes: Vec<String>,
     group_name: Option<String>,
@@ -93,8 +95,10 @@ async fn create_group(
     Ok(hash)
 }
 
+#[allow(unused)]
 async fn get_grouped_info(db: &Pool<Sqlite>) {}
 
+#[allow(unused)]
 async fn remove_group(group_id: &str, db: &Pool<Sqlite>) -> Result<()> {
     query("DELETE FROM MediaGroup WHERE group_id = ?")
         .bind(group_id)

@@ -6,11 +6,9 @@ use nom::{
     multi::many0,
     IResult,
 };
-use rayon::iter::ParallelIterator;
 use std::{fs::File, io::BufReader, path::PathBuf};
 
 use super::prompt_parser::prompt_to_tags;
-use super::SlopTag;
 use super::SlopTags;
 use super::{
     errors::SlopTagParseError,
@@ -139,6 +137,8 @@ pub fn parse_a111_jpeg_usercomment(input: &[u8]) -> IResult<&[u8], String> {
 
 #[test]
 fn a1111_png_meta_parsing() {
+    use super::SlopTag;
+
     #[allow(deprecated)]
     let tags = parse_a1111_tags(
         "src/ai_slop/test_assets/a1111_example.png".into(),

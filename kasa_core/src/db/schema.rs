@@ -108,16 +108,19 @@ pub struct TagGroup {
     color: Option<String>,
 }
 
+#[allow(unused)]
 pub struct MediaGroup {
     group_hash: String,
     group_name: Option<String>,
 }
 
+#[allow(unused)]
 pub struct MediaGroupEntry {
     group_hash: String,
     hash: String,
 }
 
+#[allow(unused)]
 pub struct MediaSource {
     hash: String,
     source: String,

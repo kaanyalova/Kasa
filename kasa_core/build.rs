@@ -1,13 +1,14 @@
-use std::{env::args, io::Cursor, path::PathBuf, process::Command};
-
-use tar::Archive;
-use xz::bufread::XzDecoder;
-
-const FFMPEG_SOURCE_URL: &str = "https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz";
-const ANDROID_VER: &str = "21";
 fn main() {
     #[cfg(target_os = "android")]
     {
+        use std::{env::args, io::Cursor, path::PathBuf, process::Command};
+
+        use tar::Archive;
+        use xz::bufread::XzDecoder;
+
+        const FFMPEG_SOURCE_URL: &str = "https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz";
+        const ANDROID_VER: &str = "21";
+
         let bytes = reqwest::blocking::get(FFMPEG_SOURCE_URL)
             .unwrap()
             .bytes()

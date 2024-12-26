@@ -104,6 +104,9 @@ pub fn gdl_download(
 
         trace!("Raw gallery_dl output: {:#?}", &gdl_output);
 
+        if std::env::var("KASA_GDL_OUTPUT").is_ok() {
+            println!("GalleryDL output: {:#?}", &gdl_output);
+        }
         Ok(gdl_output)
     })
 }

@@ -36,6 +36,8 @@ pub fn extract_tags(
 }
 
 /// Extract the tags from given gallery_dl output given correct extractor toml
+///
+/// TODO: check if gallery_dl returns empty arrays on missing fields on URLExtractor
 fn from_toml_extractor(
     gdl_json: &Value,
     extractor_config: &ExtractorConfig,

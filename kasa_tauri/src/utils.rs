@@ -1,4 +1,4 @@
-
+use serde::{Deserialize, Serialize};
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -11,11 +11,23 @@ pub fn get_env_var(envvar: &str) -> String {
     }
 }
 
+#[derive(specta::Type, Serialize, Deserialize)]
+pub struct RawImage {
+    width: u32,
+    height: u32,
+    bytes: Vec<u8>,
+}
+
 #[tauri::command(async)]
 #[specta::specta]
-pub fn image_path_to_rgba_bytes(path: &str) -> Vec<u8> {
+pub fn image_path_to_rgba_bytes(path: &str) -> RawImage {
     let img = image::open(path).unwrap().to_rgba8();
-    img.into_raw()
+
+    RawImage {
+        width: img.width(),
+        height: img.height(),
+        bytes: img.into_raw(),
+    }
 }
 
 #[tauri::command(async)]

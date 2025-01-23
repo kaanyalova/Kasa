@@ -5,6 +5,7 @@
 	import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 	import Tick from '../Vector/Tick.svelte';
 	import { commands } from '$lib/tauri_bindings';
+	import { Image } from '@tauri-apps/api/image';
 
 	let { data }: SidebarFooterProps = $props();
 
@@ -15,8 +16,9 @@
 			// TODO: Copy the actual image data
 			// https://github.com/tauri-apps/plugins-workspace/issues/2208
 
-			//const rawImage = await commands.imagePathToRgbaBytes(data.paths[0]);
-			//await writeImage(rawImage);
+			const rawImage = await commands.imagePathToRgbaBytes(data.paths[0]);
+			const image = await Image.new(rawImage.bytes, rawImage.width, rawImage.height);
+			await writeImage(image);
 
 			showCopySuccessButton = true;
 			setTimeout(() => {

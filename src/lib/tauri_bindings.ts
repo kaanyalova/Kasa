@@ -19,9 +19,6 @@ async queryTags(tagName: string, count: number) : Promise<TagQueryOutput[]> {
 async queryAll(width: number, imgHeight: number, gaps: number) : Promise<ImageRow[] | null> {
     return await TAURI_INVOKE("query_all", { width, imgHeight, gaps });
 },
-async getDesktop() : Promise<string | null> {
-    return await TAURI_INVOKE("get_desktop");
-},
 async getThumbnail(hash: string) : Promise<Result<string | null, null>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_thumbnail", { hash }) };
@@ -118,7 +115,7 @@ async downloadAndIndex(url: string) : Promise<void> {
 async indexPath(path: string) : Promise<void> {
     await TAURI_INVOKE("index_path", { path });
 },
-async imagePathToRgbaBytes(path: string) : Promise<number[]> {
+async imagePathToRgbaBytes(path: string) : Promise<RawImage> {
     return await TAURI_INVOKE("image_path_to_rgba_bytes", { path });
 },
 async openWithSystemDefaultApp(path: string) : Promise<void> {
@@ -138,6 +135,9 @@ async cleanupUnreferencedFiles() : Promise<void> {
 },
 async getSwfResolution(path: string) : Promise<[number, number]> {
     return await TAURI_INVOKE("get_swf_resolution", { path });
+},
+async getGroupInfo(groupHash: string) : Promise<MediaInfo[]> {
+    return await TAURI_INVOKE("get_group_info", { groupHash });
 }
 }
 
@@ -160,6 +160,7 @@ export type ImportInfo = { importSource: string; importLink: string | null }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
 export type MediaTag = { name: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
+export type RawImage = { width: number; height: number; bytes: number[] }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
  * of virtual tables

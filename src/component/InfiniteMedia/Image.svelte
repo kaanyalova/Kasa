@@ -3,16 +3,25 @@
 	import { onMount } from 'svelte';
 	import { MediaModalStatusStore } from '../MediaModal/MediaModalStatusStore.svelte';
 	import { info } from '@tauri-apps/plugin-log';
+
 	import { commands } from '$lib/tauri_bindings';
 	import VideoReel from '../Vector/VideoReel.svelte';
 	import Swf from '../Vector/Swf.svelte';
+	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
+	import {
+		clickOutside,
+		clickOutsideClass,
+		clickOutsideExcludingTagName,
+		clickOutsideTagName
+	} from '$lib/clickOutside';
 
-	let { hash, width, height, offset_x, offset_y, isSelected }: ImageProps = $props();
+	let { hash, width, height, offset_x, offset_y }: ImageProps = $props();
 
 	let image: string = $state('');
 	let previous_hash = $state(hash);
 	let promise = $state(getThumbnail(hash));
 	let mediaType = $state('');
+	let isSelected = $derived(InfiniteMediaStore.selectedHashes.includes(hash));
 
 	/**
 	 * Returns the base64 encoded image from the db with `data:image/png;base64,` appended
@@ -31,8 +40,17 @@
 		mediaType = await commands.getMediaType(hash);
 	});
 
-	function onClick() {
-		MediaModalStatusStore.open(hash);
+	function onClick(e: MouseEvent) {
+		if (e.ctrlKey) {
+			InfiniteMediaStore.addMedia(hash);
+		} else {
+			MediaModalStatusStore.open(hash);
+		}
+	}
+
+	function onClickOutside(node: Node, onEventFunction: any) {
+		//clickOutsideExcludingTagName(node, onEventFunction, 'IMG');
+		clickOutsideClass(node, onEventFunction, 'virtual-list-wrapper');
 	}
 
 	// the rust side seems to reassign hashes to existing rows, we load images only once in the onMount(), additional
@@ -76,7 +94,10 @@
 	</div>
 {:then thumbnail}
 	<img
-		onclick={onClick}
+		use:onClickOutside={() => {
+			//InfiniteMediaStore.cleanAllMedia();
+		}}
+		onclick={(e) => onClick(e)}
 		src={thumbnail}
 		ondragstart={(e) => {
 			// Disable dragging of images on grid
@@ -86,6 +107,7 @@
 		alt=""
 		style="transform:translate3d({offset_x}px,0px, 0px); height:{height}px; width:{width}px"
 		role="figure"
+		class:selected={isSelected}
 	/>
 
 	{#if mediaType === 'Video'}
@@ -117,6 +139,10 @@
 	img:hover {
 		border: var(--secondary) solid 3px;
 		transition: 100ms;
+	}
+
+	.selected {
+		border: var(--primary) solid 3px !important;
 	}
 
 	.fakeImage {

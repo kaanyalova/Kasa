@@ -2,7 +2,7 @@
 	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 	import '../../fonts.css';
 	import { info } from '@tauri-apps/plugin-log';
-	import { clickOutsideModal } from '$lib/clickOutside';
+	import { clickOutsideModal, clickOutsideTagName } from '$lib/clickOutside';
 	import Sidebar from './Sidebar.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';

@@ -110,12 +110,7 @@
 		try {
 			let _values = await commands.queryAll(tauri_width - sidebarStore.size * 3 - 10, 200, 12);
 
-			if (_values === null) {
-				error('Error while the initial media layout');
-				return;
-			}
-
-			if (await !commands.areDbsMounted()) {
+			if ((await !commands.areDbsMounted()) || _values === null) {
 				/*(_values.length === 0)*/ setTimeout(updateLayout, 500);
 			} else {
 				is_db_mounted = true;

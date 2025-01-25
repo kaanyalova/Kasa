@@ -1,6 +1,9 @@
 use crate::db::DbStore;
+use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{get_info_impl, get_media_type_impl, get_tags_impl, MediaInfo, MediaTag};
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
+use log::error;
+use sqlx::error;
 use tauri::{AppHandle, Manager};
 
 #[tauri::command(async)]
@@ -48,4 +51,24 @@ pub async fn get_media_type(handle: AppHandle, hash: String) -> String {
 #[specta::specta]
 pub async fn get_swf_resolution(path: String) -> (u32, u32) {
     get_flash_resolution_impl(&path).unwrap()
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_group_info(handle: AppHandle, group_hash: String) -> Vec<MediaInfo> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        match get_group_info_impl(pool, &group_hash).await {
+            Ok(info) => info,
+            Err(e) => {
+                error!("Error getting group info: {}", e);
+                vec![]
+            }
+        }
+    } else {
+        error!("No connection to database , could not get group info");
+        vec![]
+    }
 }

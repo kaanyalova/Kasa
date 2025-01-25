@@ -1,10 +1,15 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Ok, Result};
-use sqlx::{prelude::FromRow, query, query_as, Pool, QueryBuilder, Sqlite};
+use ruffle_render_wgpu::wgpu::hal::auxil::db;
+use sqlx::{prelude::FromRow, query, query_as, query_scalar, Pool, QueryBuilder, Sqlite};
 use xxhash_rust::xxh3::xxh3_64;
 
-use crate::db::schema::{media_type_to_string, MediaType};
+use crate::{
+    db::schema::{media_type_to_string, Media, MediaType},
+    media::{get_info_impl, MediaInfo},
+    test_util::{self, db_utils::insert_media_row},
+};
 
 const MAX_BINDS: usize = 32766;
 
@@ -95,6 +100,24 @@ async fn create_group(
     Ok(hash)
 }
 
+pub async fn get_group_info_impl(db: &Pool<Sqlite>, group_id: &str) -> Result<Vec<MediaInfo>> {
+    let mut info = vec![];
+
+    let hashes_of_entries: Vec<String> =
+        query_scalar("SELECT * FROM MediaGroupEntry WHERE group_id = ?")
+            .bind(group_id)
+            .fetch_all(db)
+            .await?;
+
+    for hash in hashes_of_entries {
+        let media_info = get_info_impl(&hash, db).await;
+
+        info.push(media_info);
+    }
+
+    Ok(info)
+}
+
 #[allow(unused)]
 async fn get_grouped_info(db: &Pool<Sqlite>) {}
 
@@ -111,4 +134,60 @@ async fn remove_group(group_id: &str, db: &Pool<Sqlite>) -> Result<()> {
         .await?;
 
     Ok(())
+}
+
+#[sqlx::test]
+async fn test_groups(pool: Pool<Sqlite>) {
+    insert_media_row(
+        &pool,
+        "1",
+        "test.jpg",
+        &media_type_to_string(&MediaType::Image),
+        0,
+        "image/jpeg",
+        0,
+        0,
+        0,
+        true,
+        false,
+    )
+    .await;
+
+    insert_media_row(
+        &pool,
+        "2",
+        "test.jpg",
+        &media_type_to_string(&MediaType::Image),
+        0,
+        "image/jpeg",
+        0,
+        0,
+        0,
+        true,
+        false,
+    )
+    .await;
+
+    insert_media_row(
+        &pool,
+        "3",
+        "test.jpg",
+        &media_type_to_string(&MediaType::Image),
+        0,
+        "image/jpeg",
+        0,
+        0,
+        0,
+        true,
+        false,
+    )
+    .await;
+
+    let group_id = create_group(
+        vec!["1".to_string(), "2".to_string(), "3".to_string()],
+        Some("named".to_string()),
+        false,
+        true,
+        &pool,
+    );
 }

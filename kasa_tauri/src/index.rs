@@ -12,6 +12,8 @@ use crate::db::DbStore;
 
 #[tauri::command(async)]
 #[specta::specta]
+
+/// Adds a single index source from the path, does not index that path without calling index_path()
 pub async fn add_index_source(handle: AppHandle, path: String) {
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;

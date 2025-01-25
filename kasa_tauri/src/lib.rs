@@ -23,9 +23,9 @@ use index::index_path;
 use index::nuke_all_indexes;
 use index::nuke_selected_index;
 use index::*;
-use linux::get_desktop;
 use log::warn;
 use log::LevelFilter;
+use media::get_group_info;
 use media::get_info;
 use media::get_media_type;
 use media::get_swf_resolution;
@@ -44,7 +44,6 @@ use utils::open_with_system_default_app;
 
 mod db;
 mod image;
-mod linux;
 mod media;
 //mod serve_media;
 mod config;
@@ -110,7 +109,6 @@ pub fn run() {
             connect_to_db,
             query_tags,
             query_all,
-            get_desktop,
             get_thumbnail,
             get_info,
             get_layout_from_cache,
@@ -140,7 +138,8 @@ pub fn run() {
             nuke_all_indexes,
             nuke_selected_index,
             cleanup_unreferenced_files,
-            get_swf_resolution
+            get_swf_resolution,
+            get_group_info,
         ]
     });
 

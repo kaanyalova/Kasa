@@ -1,10 +1,7 @@
-use sqlx::{
-    query, query_scalar, Pool, QueryBuilder, Sqlite,
-};
-
+use sqlx::{query, query_scalar, Pool, QueryBuilder, Sqlite};
 
 use super::indexer::index;
-
+/// Adds a single index source from the path, does not index that path without calling index_path()
 pub async fn add_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
     query("INSERT INTO IndexSource(path) VALUES (?)")
         .bind(&path)
@@ -13,14 +10,7 @@ pub async fn add_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
         .unwrap();
 }
 
-pub async fn index_single_source_impl(
-    path: String,
-    pool: &Pool<Sqlite>,
-    pool_thumbs: &Pool<Sqlite>,
-) {
-    index(&path, pool, pool_thumbs).await;
-}
-
+/// Removes files that are imported from the given path and marks any files without paths any references to paths
 pub async fn remove_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
     query("DELETE FROM IndexSource WHERE path = ?")
         .bind(&path)
@@ -38,6 +28,7 @@ pub async fn remove_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
     query("UPDATE Media SET has_file_ref = false WHERE NOT EXISTS (SELECT 1 FROM Path WHERE Path.hash = Media.hash)").execute(pool).await.unwrap();
 }
 
+/// Indexes all paths stored in the db
 pub async fn index_all_impl(pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
     let paths: Vec<String> = query_scalar("SELECT * FROM IndexSource")
         .fetch_all(pool)
@@ -50,6 +41,7 @@ pub async fn index_all_impl(pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
     }
 }
 
+/// Gets all indexed paths stored in the db
 pub async fn get_index_paths_impl(pool: &Pool<Sqlite>) -> Vec<String> {
     let paths: Vec<String> = query_scalar("SELECT * FROM IndexSource")
         .fetch_all(pool)
@@ -58,6 +50,7 @@ pub async fn get_index_paths_impl(pool: &Pool<Sqlite>) -> Vec<String> {
     return paths;
 }
 
+/// Removes all the data of all the media which contain no path references
 pub async fn cleanup_unreferenced_files_impl(pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
     query("DELETE FROM HashTagPair WHERE HashTagPair.hash IN (SELECT Media.hash FROM Media WHERE Media.has_file_ref = false)").execute(pool).await.unwrap();
     query("DELETE FROM Image WHERE Image.hash IN (SELECT Media.hash FROM Media WHERE Media.has_file_ref = false)").execute(pool).await.unwrap();
@@ -87,34 +80,34 @@ pub async fn cleanup_unreferenced_files_impl(pool: &Pool<Sqlite>, pool_thumbs: &
     delete_query.execute(pool_thumbs).await.unwrap();
 }
 
+/// Removes all the data for the media
 pub async fn nuke_selected_index_impl(
     pool: &Pool<Sqlite>,
     pool_thumbs: Option<&Pool<Sqlite>>,
     path: &str,
 ) {
-    // delete all the media entries of the selected items
-    query("DELETE FROM Media WHERE Media.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+    query("DELETE FROM Media WHERE Media.hash IN (SELECT Path.hash FROM Path WHERE imported_from = ? GROUP BY Path.path HAVING COUNT(*) =1)")
         .bind(path)
         .execute(pool)
         .await
         .unwrap();
 
     // delete all the tags from the selected items
-    query("DELETE FROM HashTagPair WHERE HashTagPair.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+    query("DELETE FROM HashTagPair WHERE HashTagPair.hash IN (SELECT Path.hash FROM Path WHERE imported_from = ? GROUP BY Path.path HAVING COUNT(*) =1)")
         .bind(path)
         .execute(pool)
         .await
         .unwrap();
 
     // delete all the image data from the selected items
-    query("DELETE FROM Image WHERE Image.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+    query("DELETE FROM Image WHERE Image.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ? GROUP BY Path.path HAVING COUNT(*) =1)")
         .bind(path)
         .execute(pool)
         .await
         .unwrap();
 
     // delete any group entries
-    query("DELETE FROM MediaGroupEntry WHERE MediaGroupEntry.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ?)")
+    query("DELETE FROM MediaGroupEntry WHERE MediaGroupEntry.hash IN (SELECT Path.hash FROM Path WHERE Path.imported_from = ? GROUP BY Path.path HAVING COUNT(*) =1)")
         .bind(path)
         .execute(pool)
         .await
@@ -123,7 +116,7 @@ pub async fn nuke_selected_index_impl(
     // delete thumbnails if they exist
     if let Some(pool_thumbs) = pool_thumbs {
         let hashes_to_delete: Vec<String> =
-            query_scalar("SELECT hash FROM Path WHERE Path.imported_from = ?")
+            query_scalar("SELECT hash FROM Path WHERE Path.imported_from = ? GROUP BY Path.path HAVING COUNT(*) = 1")
                 .bind(path)
                 .fetch_all(pool)
                 .await

@@ -1,4 +1,4 @@
-use kasa_core::tags::tags::update_tags_impl;
+use kasa_core::tags::tags::{get_tags_as_text_impl, remove_tags, update_tags_impl};
 use tauri::{AppHandle, Manager};
 
 use crate::db::DbStore;
@@ -13,5 +13,31 @@ pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
         update_tags_impl(&raw_input, hash, pool).await;
     } else {
         println!("DB connection wasn't initialized yet!")
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+    if let Some(pool) = connection_guard.as_ref() {
+        remove_tags(tags, pool, Some(hash)).await;
+    } else {
+        println!("DB connection wasn't initialized yet!")
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_tags_as_text(handle: AppHandle, hash: String) -> Option<String> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+    if let Some(pool) = connection_guard.as_ref() {
+        let text = get_tags_as_text_impl(&hash, pool).await;
+        Some(text)
+    } else {
+        println!("DB connection wasn't initialized yet!");
+        None
     }
 }

@@ -141,6 +141,12 @@ async getSwfResolution(path: string) : Promise<[number, number]> {
 },
 async getGroupInfo(groupHash: string) : Promise<MediaInfo[]> {
     return await TAURI_INVOKE("get_group_info", { groupHash });
+},
+async deleteTags(hash: string, tags: string[]) : Promise<void> {
+    await TAURI_INVOKE("delete_tags", { hash, tags });
+},
+async getTagsAsText(hash: string) : Promise<string | null> {
+    return await TAURI_INVOKE("get_tags_as_text", { hash });
 }
 }
 

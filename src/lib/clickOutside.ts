@@ -65,7 +65,7 @@ export function clickOutsideClass(node: Node, onEventFunction: any, _class: stri
 		// Needed so it doesn't exits from video players settings menu
 
 
-		(event.target as HTMLElement).classList.forEach((v) => console.log(`Class: ${v}`))
+		//(event.target as HTMLElement).classList.forEach((v) => console.log(`Class: ${v}`))
 		if (!(event.target as HTMLElement).classList.contains(_class)) {
 			return;
 		}

@@ -1,7 +1,5 @@
 use axum::Router;
-use kasa_core::db::schema::Media;
-use log::{debug, trace};
-use specta::specta;
+use log::trace;
 use sqlx::query_scalar;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::{

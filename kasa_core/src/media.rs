@@ -96,12 +96,17 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
 
     // The user might write invalid syntax to the Tags input box in that case we don't want to remove the user input
     // and replace it with the HashTagPair entries, we probably want to warn the user in the UI though
-    let raw_tags_field_from_db: Option<RawTagsField> =
-        query_as("SELECT * FROM RawTagsField WHERE hash = ? ")
-            .bind(&media.hash)
-            .fetch_optional(pool)
-            .await
-            .unwrap();
+    //let raw_tags_field_from_db: Option<RawTagsField> =
+    //    query_as("SELECT * FROM RawTagsField WHERE hash = ? ")
+    //        .bind(&media.hash)
+    //        .fetch_optional(pool)
+    //        .await
+    //        .unwrap();
+
+    // TODO RawTagsField removal: Remove RawTagsField stuff, text input might be a thing but storing the original input is too much of
+    // an hassle when tags get added/removed using the gui
+
+    let raw_tags_field_from_db: Option<RawTagsField> = None;
 
     let tags_len = tags.len();
 

@@ -9,6 +9,9 @@
 	import { commands, type TagQueryOutput } from '$lib/tauri_bindings';
 	import { getCursorPosition } from '$lib/getCaretPos';
 	import TagDropDown from './TagDropDown.svelte';
+	import Tag from './Tag.svelte';
+	import NewTag from './NewTag.svelte';
+	import { comma } from 'postcss/lib/list';
 	let searchInput: HTMLDivElement;
 	let { initialEditBoxContents, isInEditMode, updateTagsTextBoxContents, data }: TagDisplayProps =
 		$props();
@@ -44,6 +47,15 @@
 				rawInput: tagsTextLocal,
 				hash: data.hash
 			});
+		}
+
+		// on viewMode -> editMode, update the tagText
+		if (editModeState === false) {
+			const tagsAsText = await commands.getTagsAsText(data.hash);
+
+			if (tagsAsText !== null) {
+				tagsTextLocal = tagsAsText;
+			}
 		}
 
 		tags = await invoke('get_tags', {
@@ -104,6 +116,8 @@
 	function updateTagsTextBoxContentsLocal(contents: string) {
 		tagsTextLocal = contents;
 	}
+
+	function deleteTag(tagName: string) {}
 </script>
 
 {#if cursorPosition.top !== null && cursorPosition.left !== null && isTextBoxFocused && shouldShow && entriesToShow.length > 0}
@@ -215,11 +229,17 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
-	<ul class="tagsList">
+	<div class="tagsList">
 		{#each tags as tag}
-			<li class="tagsDisplay">{tag.name}</li>
+			<Tag
+				name={tag.name}
+				onDelete={async (name) => {
+					await commands.deleteTags(data.hash, [name]);
+					tags = tags.filter((t) => t.name !== name); // delete the tag from the array without reloading everything
+				}}
+			></Tag>
 		{/each}
-	</ul>
+	</div>
 {/if}
 
 <style>

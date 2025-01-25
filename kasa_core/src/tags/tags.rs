@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use itertools::Itertools;
 use kasa_python::ExtractedTag;
 use log::trace;
 use sqlx::{query, query_scalar, Pool, Sqlite};
@@ -206,6 +207,7 @@ pub fn parse_tags(input: &str) -> Vec<&str> {
 /// - Implicit tags
 /// - Make sure there to deduplicate the HashTagPairs
 pub async fn update_tags_impl(raw_input: &str, hash: String, pool: &Pool<Sqlite>) {
+    // TODO RawTagsField removal
     query(
         "INSERT INTO RawTagsField(hash, _text) VALUES (? , ?) ON CONFLICT DO UPDATE SET _text = ?",
     )
@@ -250,4 +252,14 @@ pub async fn update_tags_impl(raw_input: &str, hash: String, pool: &Pool<Sqlite>
 
     insert_tags(to_add, pool, Some(hash.clone()), None).await;
     remove_tags(to_remove, pool, Some(hash)).await;
+}
+
+pub async fn get_tags_as_text_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
+    let tags: Vec<String> = query_scalar("SELECT tag_name FROM HashTagPair WHERE hash = ?")
+        .bind(&hash)
+        .fetch_all(pool)
+        .await
+        .unwrap();
+
+    tags.iter().join(", ")
 }

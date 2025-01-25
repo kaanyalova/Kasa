@@ -36,6 +36,8 @@ use media_server::MediaServerStore;
 use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
+use tags::delete_tags;
+use tags::get_tags_as_text;
 use tags::update_tags;
 use tauri_specta::{collect_commands, Builder};
 use utils::get_env_var;
@@ -140,19 +142,21 @@ pub fn run() {
             cleanup_unreferenced_files,
             get_swf_resolution,
             get_group_info,
+            delete_tags,
+            get_tags_as_text,
         ]
     });
 
-    #[cfg(all(not(target_os = "android"), debug_assertions))]
-    {
-        builder
-            .export(
-                // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
-                Typescript::default().bigint(BigIntExportBehavior::Number),
-                "../src/lib/tauri_bindings.ts",
-            )
-            .unwrap();
-    }
+    //#[cfg(all(not(target_os = "android"), debug_assertions))]
+    //{
+    builder
+        .export(
+            // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
+            Typescript::default().bigint(BigIntExportBehavior::Number),
+            "../src/lib/tauri_bindings.ts",
+        )
+        .unwrap();
+    //}
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())

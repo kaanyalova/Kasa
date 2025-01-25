@@ -28,7 +28,7 @@
 	let image_count = $state(0);
 	let db_size = $state('');
 
-	async function onLoad(): Promise<ThumbsDBInfo | null> {
+	async function onLoad() {
 		const info = await commands.getThumbsDbInfo();
 		thumb_height = info!.height;
 		thumb_width = info!.width;
@@ -36,14 +36,6 @@
 		db_path = info!.path;
 		db_size = info!.size;
 		image_count = info!.image_count;
-
-		return info;
-	}
-
-	async function onConfirmThumbnailDatabase() {
-		await commands.setConfigValue('Thumbnails', 'thumbs_db_path', db_path);
-		await commands.connectDbs();
-		await onLoad();
 	}
 
 	$effect(() => {
@@ -73,9 +65,9 @@
 	});
 </script>
 
-{#await promise then info}
+{#await promise}
 	<div class="thumbnails">
-		<Title>Thumnnail Database</Title>
+		<Title>Thumbnail Database</Title>
 		<BorderedBox padding={4}>
 			<PathInput
 				details={`${image_count} Images ${db_size}`}

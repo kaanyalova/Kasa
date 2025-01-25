@@ -11,9 +11,9 @@ export function clickOutsideTagName(node: Node, onEventFunction: any, tagName: s
 		if ((event.target as HTMLElement).tagName !== tagName) {
 			return;
 		}
-		trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)
+		//trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)
 
-		console.log((event.target as HTMLElement).tagName);
+		//console.log((event.target as HTMLElement).tagName);
 
 		if (!path.includes(node)) {
 			onEventFunction();
@@ -69,9 +69,9 @@ export function clickOutsideClass(node: Node, onEventFunction: any, _class: stri
 		if (!(event.target as HTMLElement).classList.contains(_class)) {
 			return;
 		}
-		trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)
+		//trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)
 
-		console.log((event.target as HTMLElement).tagName);
+		//console.log((event.target as HTMLElement).tagName);
 
 		if (!path.includes(node)) {
 			onEventFunction();

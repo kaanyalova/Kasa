@@ -11,7 +11,7 @@
 	import { MediaPlayer } from 'vidstack';
 	import { stat } from '@tauri-apps/plugin-fs';
 
-	let { imageHash }: MediaModalProps = $props();
+	let { imageHash: mediaHash }: MediaModalProps = $props();
 
 	let isOpen = $state(true);
 	let tagsTextBoxContents = $state('');
@@ -27,7 +27,7 @@
 
 	async function getData(): Promise<MediaInfo> {
 		const info: MediaInfo = await invoke('get_info', {
-			hash: imageHash
+			hash: mediaHash
 		});
 
 		return info;
@@ -36,10 +36,10 @@
 	onMount(async () => {
 		// we want to get the media server up as soon as possible, parsing all the meta can take a while so
 		// we have a function that just gets the type
-		const mediaType = await commands.getMediaType(imageHash);
+		const mediaType = await commands.getMediaType(mediaHash);
 
 		if (mediaType === 'Video') {
-			await commands.serveMedia(imageHash);
+			await commands.serveMedia(mediaHash);
 		}
 
 		if (mediaType == 'Group') {
@@ -52,7 +52,7 @@
 		if (MediaModalStatusStore.tagsEditModeActive) {
 			await invoke('update_tags', {
 				rawInput: tagsTextBoxContents,
-				hash: imageHash
+				hash: mediaHash
 			});
 		} else {
 		}

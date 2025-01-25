@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
-	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
+	import { MediaModalStatusStore } from '../MediaModalStatusStore.svelte';
 	import { info, trace } from '@tauri-apps/plugin-log';
-	import Pen from '../Vector/Pen.svelte';
+	import Pen from '../../Vector/Pen.svelte';
 	import { onMount } from 'svelte';
-	import Clipboard from '../Vector/Clipboard.svelte';
-	import { handleSelect } from '../Sidebar/Search/HandleSelect';
+	import Clipboard from '../../Vector/Clipboard.svelte';
+	import { handleSelect } from '../../Sidebar/Search/HandleSelect';
 	import { commands, type TagQueryOutput } from '$lib/tauri_bindings';
 	import { getCursorPosition } from '$lib/getCaretPos';
 	import TagDropDown from './TagDropDown.svelte';

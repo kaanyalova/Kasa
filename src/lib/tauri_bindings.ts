@@ -92,6 +92,9 @@ async closeServer() : Promise<void> {
 async getMediaType(hash: string) : Promise<string> {
     return await TAURI_INVOKE("get_media_type", { hash });
 },
+/**
+ * Adds a single index source from the path, does not index that path without calling index_path()
+ */
 async addIndexSource(path: string) : Promise<void> {
     await TAURI_INVOKE("add_index_source", { path });
 },

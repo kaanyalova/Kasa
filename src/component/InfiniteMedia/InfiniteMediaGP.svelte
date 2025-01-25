@@ -9,7 +9,8 @@
 	import { appWindow } from '../Decoration/utils/window';
 	import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-	import Image from './Image.svelte';
+	import MediaThumbnail from './MediaThumbnail.svelte';
+	import { commands } from '$lib/tauri_bindings';
 
 	let values: Array<ImageRow> = $state([]);
 	let heights: Array<number> = $state([]);
@@ -25,11 +26,21 @@
 
 	// on cache update run updateLayout();
 	listen('cache_updated', async (_) => {
-		await updateLayout();
+		await updateLayoutFromCache();
 	});
 
 	listen('media_updated', async (_) => {
-		await checkDatabase();
+		await updateLayout();
+	});
+
+	// drag and drop support
+	listen('tauri://drag-drop', (event: any) => {
+		// what is the type for the drag and drop event?
+		const paths: Array<string> = event.event.paths;
+
+		paths.forEach((path) => {
+			commands.addIndexSource;
+		});
 	});
 
 	onMount(async () => {
@@ -38,9 +49,6 @@
 		tauri_width = initial_size.width;
 		// https://v2.tauri.app/reference/javascript/api/namespacewindow/#onresized
 		window_size_unlisten = await getCurrentWindow().onResized(({ payload: size }) => {
-			// Rounded because floating window sizes causes it to break
-			//tauri_height = Math.round(size.height);
-			//tauri_width = Math.round(size.width);
 			tauri_height = size.height;
 			tauri_width = size.width;
 		});
@@ -52,18 +60,24 @@
 	});
 
 	async function onResize() {
-		cooldown = setTimeout(updateLayout, 500);
+		cooldown = setTimeout(updateLayoutFromCache, 500);
 	}
 
-	async function updateLayout() {
-		// webkit render bug?
-		//values = [];
+	/**
+	 * Gets the media from the database possibly using cached values, sets the heights for the media and media themselves to
+	 * the received values.
+	 */
+	async function updateLayoutFromCache() {
+		let _values = await commands.getLayoutFromCache(
+			tauri_width - sidebarStore.size * 3 - 20,
+			tauri_height / 2,
+			12
+		);
 
-		const _values: Array<ImageRow> = await invoke('get_layout_from_cache', {
-			width: tauri_width - sidebarStore.size * 3 - 20, // webkit scroll bar is buggy when content is overlapped with it
-			imgHeight: tauri_height / 2,
-			gaps: 12
-		});
+		if (_values === null) {
+			error('Could not get layout from the rust cache');
+			return;
+		}
 
 		const _heights: Array<number> = _values.map((row) => {
 			// first row should have the gaps height
@@ -77,7 +91,7 @@
 
 		heights = _heights;
 		values = _values;
-		info(`calculating sizes w:${tauri_width}`);
+		trace(`calculating sizes w:${tauri_width}`);
 	}
 
 	$effect(async () => {
@@ -88,16 +102,21 @@
 		await onResize();
 	});
 
-	async function checkDatabase() {
+	/**
+	 * Gets the initial layout and media by querying every piece of media, than sets the values and the heights,
+	 * unlike updateLayout() it retries until the database is up and does not use the cached values.
+	 */
+	async function updateLayout() {
 		try {
-			const _values: Array<ImageRow> = await invoke('query_all', {
-				width: tauri_width - sidebarStore.size * 3 - 10,
-				imgHeight: 200,
-				gaps: 12
-			});
+			let _values = await commands.queryAll(tauri_width - sidebarStore.size * 3 - 10, 200, 12);
 
-			if (!(await invoke('are_dbs_mounted'))) {
-				/*(_values.length === 0)*/ setTimeout(checkDatabase, 500);
+			if (_values === null) {
+				error('Error while the initial media layout');
+				return;
+			}
+
+			if (await !commands.areDbsMounted()) {
+				/*(_values.length === 0)*/ setTimeout(updateLayout, 500);
 			} else {
 				is_db_mounted = true;
 				const _heights: Array<number> = _values.map((row) => row.height);
@@ -106,49 +125,18 @@
 				heights = _heights;
 			}
 		} catch (error) {
-			console.error('Error querying database:', error);
 			// If there's an error, try again after a delay
-			setTimeout(checkDatabase, 500);
+			setTimeout(updateLayout, 500);
 		}
 	}
 
 	onMount(() => {
-		checkDatabase();
-		values = values;
+		updateLayout();
 
-		// Optional: Return a cleanup function if needed
-		return () => {
-			// Any cleanup code here
-		};
+		// reload the values
+		values = values;
 	});
 </script>
-
-<!--
-<div
-	onresize={async () => {
-		await onResize();
-	}}
-	class="infiniteMedia"
->
-	{#each values as row}
-		<div class="imageRow">
-			{#each row.images as image}
-				<Image
-					height={image.height}
-					width={image.width}
-					hash={image.hash}
-					offset_y={image.y_relative}
-					offset_x={image.x_relative}
-				></Image>
-			{/each}
-		</div>
-	{/each}
-</div>
-
-
-
-
--->
 
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
 <div class="list">
@@ -162,14 +150,14 @@
 	>
 		<div slot="item" let:index let:style {style}>
 			{#each values[index].images as image}
-				<Image
+				<MediaThumbnail
 					isSelected={false}
 					hash={image.hash}
 					height={image.height}
 					width={image.width}
 					offset_x={image.x_relative}
 					offset_y={image.y_relative}
-				></Image>
+				></MediaThumbnail>
 			{/each}
 		</div>
 	</VirtualList>

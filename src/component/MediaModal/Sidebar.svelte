@@ -3,7 +3,7 @@
 	import X from '../Vector/X.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';
-	import TagDisplay from './TagDisplay.svelte';
+	import TagDisplay from './Tags/TagDisplay.svelte';
 	import SidebarFooter from './SidebarFooter.svelte';
 	import { TauriEvent } from '@tauri-apps/api/event';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';

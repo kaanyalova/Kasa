@@ -249,29 +249,11 @@
 		border: var(--secondary-alt) 1px solid;
 		max-height: 30vh;
 		overflow-y: auto;
+		display: flex;
+		flex-wrap: wrap;
 	}
 
-	.tagsEdit {
-		background-color: var(--background);
-		border: var(--secondary-alt) 1px solid;
-		border-radius: 2px;
-		font-size: small;
-		resize: none;
-		margin: 4px;
-		padding-left: 4px;
-		padding-right: 4px;
-		max-height: 30vh;
-		overflow-y: auto;
-	}
-
-	.tagsEdit:focus {
-		outline: none;
-		border: solid 1px var(--accent);
-	}
-
-	.tagsDisplay {
-		margin: 2px;
-		font-size: small;
+	.tagsEdit {inline
 	}
 
 	.header {

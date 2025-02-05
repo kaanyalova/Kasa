@@ -42,7 +42,7 @@
 				On second click, show the delete icon
 				-->
 				<div class="tagButton trashButton">
-					<TrashGnome height={16} width={16}></TrashGnome>
+					<TrashGnome height={12} width={12}></TrashGnome>
 				</div>
 			{:else}
 				<div class="tagButton xButton">
@@ -55,15 +55,14 @@
 
 <style>
 	.tag {
-		padding: 4px;
+		padding: 2px;
 		padding-right: 6px;
 		padding-left: 6px;
 		border: 1px solid var(--border);
-		display: inline-flex;
-		flex-direction: row;
+		display: flex;
 		margin: 4px;
-		transform: 2s;
-		vertical-align: middle;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.tag:hover {
@@ -75,16 +74,18 @@
 		align-items: center;
 		justify-content: center;
 		display: flex;
-		height: 24px;
-		padding-left: 4px;
+		padding-left: 2px;
+		width: 16px;
+	}
+
+	.name {
+		font-size: small;
+		word-wrap: break-word;
+		max-width: 238px;
 	}
 
 	.xButton {
 		position: relative;
-		top: 1px; /* Text alignment???? */
-	}
-
-	.trashButton {
-		display: flex;
+		top: 1px;
 	}
 </style>

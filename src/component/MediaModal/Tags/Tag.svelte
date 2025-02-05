@@ -1,11 +1,12 @@
 <script lang="ts">
+	import Cross from '../../Vector/Cross.svelte';
 	import CrossFilled from '../../Vector/CrossFilled.svelte';
 	import Trash from '../../Vector/Trash.svelte';
+	import TrashGnome from '../../Vector/TrashGnome.svelte';
 	import TrashWithQuestionMark from '../../Vector/TrashWithQuestionMark.svelte';
 
 	let { name, onDelete }: TagProps = $props();
 
-	let isHovered = $state(false);
 	let clickCount = $state(0);
 	let clickColdown: number = $state(0);
 
@@ -29,21 +30,24 @@
 {#if !_delete}
 	<button
 		class="tag"
-		onmouseenter={() => (isHovered = true)}
-		onmouseleave={() => (isHovered = false)}
-		class:tagHover={isHovered}
 		onclick={() => {
 			onClick();
 		}}
 	>
 		<div class="name">{name}</div>
-		<div class="xButton" class:xButtonHover={isHovered}>
-			{#if isHovered}
-				{#if clickCount === 0}
-					<CrossFilled height={16} width={16}></CrossFilled>
-				{:else if clickCount === 1}
-					<Trash height={16} width={16}></Trash>
-				{/if}
+
+		<div class="tagButton">
+			{#if clickCount === 1}
+				<!--
+				On second click, show the delete icon
+				-->
+				<div class="tagButton trashButton">
+					<TrashGnome height={16} width={16}></TrashGnome>
+				</div>
+			{:else}
+				<div class="tagButton xButton">
+					<Cross height={16} width={16}></Cross>
+				</div>
 			{/if}
 		</div>
 	</button>
@@ -58,18 +62,29 @@
 		display: inline-flex;
 		flex-direction: row;
 		margin: 4px;
+		transform: 2s;
+		vertical-align: middle;
 	}
 
-	.xButtonHover {
+	.tag:hover {
+		background-color: var(--secondary-alt);
+	}
+
+	.tagButton {
 		fill: var(--text);
 		align-items: center;
 		justify-content: center;
 		display: flex;
 		height: 24px;
-		padding-left: 6px;
+		padding-left: 4px;
 	}
 
-	.tagHover {
-		background-color: var(--secondary-alt);
+	.xButton {
+		position: relative;
+		top: 1px; /* Text alignment???? */
+	}
+
+	.trashButton {
+		display: flex;
 	}
 </style>

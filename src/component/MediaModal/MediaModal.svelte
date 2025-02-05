@@ -6,7 +6,7 @@
 	import Sidebar from './Sidebar.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';
-	import { commands } from '$lib/tauri_bindings';
+	import { commands, type MediaInfo } from '$lib/tauri_bindings';
 	import 'vidstack/bundle';
 	import { MediaPlayer } from 'vidstack';
 	import { stat } from '@tauri-apps/plugin-fs';
@@ -26,11 +26,12 @@
 	}
 
 	async function getData(): Promise<MediaInfo> {
-		const info: MediaInfo = await invoke('get_info', {
-			hash: mediaHash
-		});
+		const info = await commands.getInfo(mediaHash);
+		//const info: MediaInfo = await invoke('get_info', {
+		//	hash: mediaHash
+		//});
 
-		return info;
+		return info!!;
 	}
 
 	onMount(async () => {

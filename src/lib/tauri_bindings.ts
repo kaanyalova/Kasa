@@ -166,10 +166,11 @@ export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader:
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
-export type MediaTag = { name: string }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: MediaTag[]; tagsWithSourceTypes: SourceGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
+export type MediaTag = { name: string; sourceCategory: string | null }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type RawImage = { width: number; height: number; bytes: number[] }
+export type SourceGroupedTags = { source_categories: { [key in string]: MediaTag[] }; uncategorized: MediaTag[] }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
  * of virtual tables

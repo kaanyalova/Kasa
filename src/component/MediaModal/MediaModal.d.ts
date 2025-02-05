@@ -1,24 +1,25 @@
 type MediaModalProps = {
-    imageHash: string,
-}
+	imageHash: string;
+};
 
 type SidebarProps = {
-    data: MediaInfo,
-    updateTagsTextBoxContents: Function, // What is the type for state?
-}
+	data: MediaInfo;
+	updateTagsTextBoxContents: Function; // What is the type for state?
+};
 
 type MetaEntry = {
-    name: string,
-    value: string,
-    isValueMonospaced: boolean,
-    isOneLine: boolean,
-}
+	name: string;
+	value: string;
+	isValueMonospaced: boolean;
+	isOneLine: boolean;
+};
 
 type ImportInfo = {
-    importSource: string,
-    importLink: ?string,
-}
+	importSource: string;
+	importLink: ?string;
+};
 
+/*
 type MediaInfo = {
     meta: Array<MetaEntry>,
     import: ImportInfo,
@@ -32,7 +33,7 @@ type MediaInfo = {
     aspectRatio: number,
     fileName: string,
 }
-
+*/
 type MediaTag = {
-    name: string,
-}
+	name: string;
+};

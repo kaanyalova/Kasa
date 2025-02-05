@@ -1,8 +1,10 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{collections::HashMap, path::PathBuf, str::FromStr};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
+use ffmpeg::filter::Source;
 use human_bytes::human_bytes;
 use itertools::Itertools;
+use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{query_as, query_scalar, Pool, Sqlite};
 
@@ -130,6 +132,31 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         .to_string_lossy()
         .to_string();
 
+    // Group the tags according to their `source_category`es
+
+    let mut tags_with_no_source_types = vec![];
+    let mut tags_with_source_types: HashMap<String, Vec<MediaTag>> = HashMap::new();
+
+    tags.iter().for_each(|t| {
+        if let Some(category) = &t.source_category {
+            //tags_with_source_types.insert(category, t.name.clone());
+            let tag_vec = tags_with_source_types.get_mut(category);
+
+            if let Some(tag_vec) = tag_vec {
+                tag_vec.push(t.clone());
+            } else {
+                tags_with_source_types.insert(category.clone(), vec![t.clone()]);
+            }
+        } else {
+            tags_with_no_source_types.push(t.clone());
+        }
+    });
+
+    let source_grouped_types = SourceGroupedTags {
+        source_categories: tags_with_source_types,
+        uncategorized: tags_with_no_source_types,
+    };
+
     MediaInfo {
         tags,
         meta,
@@ -154,6 +181,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         },
         aspect_ratio,
         file_name,
+        tags_with_source_types: source_grouped_types,
     }
 }
 
@@ -168,7 +196,10 @@ pub async fn get_tags_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<MediaTag> {
     // Might need extra info about hashes, this is why we map the has here
     let tags = hash_tag_pairs
         .into_iter()
-        .map(|tag| MediaTag { name: tag.tag_name })
+        .map(|tag| MediaTag {
+            name: tag.tag_name,
+            source_category: tag.source_type,
+        })
         .collect();
 
     tags
@@ -189,6 +220,7 @@ pub struct MediaInfo {
     pub import: ImportInfo,
     pub paths: Vec<String>,
     pub tags: Vec<MediaTag>,
+    pub tags_with_source_types: SourceGroupedTags,
     pub raw_tags_field: String,
     pub hash: String,
     pub media_type: String,
@@ -217,4 +249,11 @@ pub struct ImportInfo {
 #[serde(rename_all = "camelCase")]
 pub struct MediaTag {
     name: String,
+    source_category: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type, Clone)]
+pub struct SourceGroupedTags {
+    source_categories: HashMap<String, Vec<MediaTag>>,
+    uncategorized: Vec<MediaTag>,
 }

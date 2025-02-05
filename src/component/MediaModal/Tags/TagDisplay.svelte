@@ -12,6 +12,7 @@
 	import Tag from './Tag.svelte';
 	import NewTag from './NewTag.svelte';
 	import { comma } from 'postcss/lib/list';
+	import type { CursorPosition, TagDisplayProps } from './TagDisplay';
 	let searchInput: HTMLDivElement;
 	let { initialEditBoxContents, isInEditMode, updateTagsTextBoxContents, data }: TagDisplayProps =
 		$props();
@@ -43,10 +44,8 @@
 		// on editMode -> viewMode, save the tags
 		if (editModeState === true) {
 			info('updating tags');
-			await invoke('update_tags', {
-				rawInput: tagsTextLocal,
-				hash: data.hash
-			});
+
+			commands.updateTags(tagsTextLocal!!, data.hash);
 		}
 
 		// on viewMode -> editMode, update the tagText
@@ -58,9 +57,11 @@
 			}
 		}
 
-		tags = await invoke('get_tags', {
-			hash: data.hash
-		});
+		const newTags = await commands.getTags(data.hash);
+
+		if (newTags !== null) {
+			tags = newTags;
+		}
 
 		MediaModalStatusStore.setTagsEditModeActive(!editModeState);
 	}
@@ -117,7 +118,18 @@
 		tagsTextLocal = contents;
 	}
 
-	function deleteTag(tagName: string) {}
+	async function onDeleteTag(name: string) {
+		console.log(`deleting tag ${name}`);
+
+		await commands.deleteTags(data.hash, [name]);
+		tags = tags.filter((t) => t.name !== name); // delete the tag from the array without reloading everything
+		console.log(tags);
+	}
+
+	const onDeleteTag2 = async (name: string) => {
+		await commands.deleteTags(data.hash, [name]);
+		tags = tags.filter((t) => t.name !== name); // delete the tag from the array without reloading everything
+	};
 </script>
 
 {#if cursorPosition.top !== null && cursorPosition.left !== null && isTextBoxFocused && shouldShow && entriesToShow.length > 0}
@@ -229,8 +241,32 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
+	{#each Object.entries(data.tagsWithSourceTypes.source_categories) as [category, tagsWithCategory]}
+		<h3>{category}</h3>
+		<div class="tagsList">
+			{#each tagsWithCategory as tagWithCategory}
+				{#if tags.some((t) => t.name == tagWithCategory.name)}
+					<Tag name={tagWithCategory.name} onDelete={async (name: string) => onDeleteTag(name)}
+					></Tag>
+				{/if}
+			{/each}
+		</div>
+	{/each}
+
+	<h3>Uncategorized</h3>
+
 	<div class="tagsList">
-		{#each tags as tag}
+		{#each data.tagsWithSourceTypes.uncategorized as uncategorizedTag}
+			<!--Check if the tag exists in the main tag array, only display it if it does-->
+			{#if tags.some((t) => t.name == uncategorizedTag.name)}
+				<Tag name={uncategorizedTag.name} onDelete={async (name: string) => await onDeleteTag(name)}
+				></Tag>
+			{/if}
+		{/each}
+	</div>
+
+	<!--
+			{#each tags as tag}
 			<Tag
 				name={tag.name}
 				onDelete={async (name) => {
@@ -239,7 +275,9 @@
 				}}
 			></Tag>
 		{/each}
-	</div>
+
+		
+		-->
 {/if}
 
 <style>
@@ -323,6 +361,11 @@
 
 	.title {
 		padding-left: 4px;
-		padding-right: 4px;
+		font-weight: bold;
+		font-size: large;
+	}
+
+	h3 {
+		margin: 4px;
 	}
 </style>

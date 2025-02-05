@@ -1,4 +1,4 @@
 type TagProps = {
-    onDelete: (tagName: string) => void,
-    name: string,
-}
+	onDelete: (tagName: string) => void;
+	name: string;
+};

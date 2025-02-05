@@ -147,16 +147,16 @@ pub fn run() {
         ]
     });
 
-    //#[cfg(all(not(target_os = "android"), debug_assertions))]
-    //{
-    builder
-        .export(
-            // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
-            Typescript::default().bigint(BigIntExportBehavior::Number),
-            "../src/lib/tauri_bindings.ts",
-        )
-        .unwrap();
-    //}
+    #[cfg(all(not(target_os = "android"), debug_assertions))]
+    {
+        builder
+            .export(
+                // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
+                Typescript::default().bigint(BigIntExportBehavior::Number),
+                "../src/lib/tauri_bindings.ts",
+            )
+            .unwrap();
+    }
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())

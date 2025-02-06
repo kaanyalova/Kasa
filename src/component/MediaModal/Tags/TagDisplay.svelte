@@ -122,13 +122,13 @@
 		console.log(`deleting tag ${name}`);
 
 		await commands.deleteTags(data.hash, [name]);
-		tags = tags.filter((t) => t.name !== name); // delete the tag from the array without reloading everything
+		tags = tags.filter((t) => t.hash_tag_pair.tag_name !== name); // delete the tag from the array without reloading everything
 		console.log(tags);
 	}
 
 	const onDeleteTag2 = async (name: string) => {
 		await commands.deleteTags(data.hash, [name]);
-		tags = tags.filter((t) => t.name !== name); // delete the tag from the array without reloading everything
+		tags = tags.filter((t) => t.hash_tag_pair.tag_name !== name); // delete the tag from the array without reloading everything
 	};
 </script>
 
@@ -241,29 +241,34 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
-	{#each Object.entries(data.tagsWithSourceTypes.source_categories) as [category, tagsWithCategory]}
+	{#each Object.entries(data.sourceCategoryGroupedTags.source_categories) as [category, tagsWithCategory]}
 		<h3>{category}</h3>
 		<div class="tagsList">
 			{#each tagsWithCategory as tagWithCategory}
-				{#if tags.some((t) => t.name == tagWithCategory.name)}
-					<Tag name={tagWithCategory.name} onDelete={async (name: string) => onDeleteTag(name)}
+				{#if tags.some((t) => t.hash_tag_pair.tag_name == tagWithCategory.tag_name)}
+					<Tag name={tagWithCategory.tag_name} onDelete={async (name: string) => onDeleteTag(name)}
 					></Tag>
 				{/if}
 			{/each}
 		</div>
 	{/each}
 
-	<h3>Uncategorized</h3>
+	<!-- Only show the Uncategorized category if there is elements inside of it -->
+	{#if data.sourceCategoryGroupedTags.uncategorized.length > 0}
+		<h3>Uncategorized</h3>
 
-	<div class="tagsList">
-		{#each data.tagsWithSourceTypes.uncategorized as uncategorizedTag}
-			<!--Check if the tag exists in the main tag array, only display it if it does-->
-			{#if tags.some((t) => t.name == uncategorizedTag.name)}
-				<Tag name={uncategorizedTag.name} onDelete={async (name: string) => await onDeleteTag(name)}
-				></Tag>
-			{/if}
-		{/each}
-	</div>
+		<div class="tagsList">
+			{#each data.sourceCategoryGroupedTags.uncategorized as uncategorizedTag}
+				<!--Check if the tag exists in the main tag array, only display it if it does-->
+				{#if tags.some((t) => t.hash_tag_pair.tag_name == uncategorizedTag.tag_name)}
+					<Tag
+						name={uncategorizedTag.tag_name}
+						onDelete={async (name: string) => await onDeleteTag(name)}
+					></Tag>
+				{/if}
+			{/each}
+		</div>
+	{/if}
 
 	<!--
 			{#each tags as tag}
@@ -285,7 +290,6 @@
 		padding: 4px;
 		margin: 4px;
 		border: var(--secondary-alt) 1px solid;
-		max-height: 30vh;
 		overflow-y: auto;
 		display: flex;
 		flex-wrap: wrap;
@@ -300,7 +304,6 @@
 		margin: 4px;
 		padding-left: 4px;
 		padding-right: 4px;
-		max-height: 30vh;
 		overflow-y: auto;
 	}
 

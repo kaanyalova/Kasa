@@ -65,7 +65,7 @@ pub struct Tag {
 }
 
 /// File-tag pairs
-#[derive(Serialize, Deserialize, FromRow, Debug)]
+#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type)]
 pub struct HashTagPair {
     pub hash: String,
     pub tag_name: String,

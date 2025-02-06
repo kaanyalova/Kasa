@@ -8,7 +8,7 @@ use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{query_as, query_scalar, Pool, Sqlite};
 
-use crate::db::schema::{HashTagPair, Image, Media, MediaType, RawTagsField};
+use crate::db::schema::{HashTagPair, Image, Media, MediaType, RawTagsField, TagDetail};
 
 /// Gets all the info to show to user in the sidebar for a piece of media
 pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
@@ -94,16 +94,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         import_link: Some("https://www.youtube.com/watch?v=dQw4w9WgXcQ".to_string()),
     };
 
-    let tags = get_tags_impl(hash, pool).await;
-
-    // The user might write invalid syntax to the Tags input box in that case we don't want to remove the user input
-    // and replace it with the HashTagPair entries, we probably want to warn the user in the UI though
-    //let raw_tags_field_from_db: Option<RawTagsField> =
-    //    query_as("SELECT * FROM RawTagsField WHERE hash = ? ")
-    //        .bind(&media.hash)
-    //        .fetch_optional(pool)
-    //        .await
-    //        .unwrap();
+    let tags = get_tags_detailed_impl(hash, pool).await;
 
     // TODO RawTagsField removal: Remove RawTagsField stuff, text input might be a thing but storing the original input is too much of
     // an hassle when tags get added/removed using the gui
@@ -117,7 +108,9 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         None => {
             // If the image has auto generated tags we want to generate the raw_tags_field on demand
             if tags_len > 0 {
-                tags.iter().map(|t| t.name.clone()).join(", ")
+                tags.iter()
+                    .map(|t| t.hash_tag_pair.tag_name.clone())
+                    .join(", ")
             } else {
                 "".to_string()
             }
@@ -135,24 +128,24 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
     // Group the tags according to their `source_category`es
 
     let mut tags_with_no_source_types = vec![];
-    let mut tags_with_source_types: HashMap<String, Vec<MediaTag>> = HashMap::new();
+    let mut tags_with_source_types: HashMap<String, Vec<HashTagPair>> = HashMap::new();
 
     tags.iter().for_each(|t| {
-        if let Some(category) = &t.source_category {
+        if let Some(category) = &t.hash_tag_pair.source_type {
             //tags_with_source_types.insert(category, t.name.clone());
             let tag_vec = tags_with_source_types.get_mut(category);
 
             if let Some(tag_vec) = tag_vec {
-                tag_vec.push(t.clone());
+                tag_vec.push(t.hash_tag_pair.clone());
             } else {
-                tags_with_source_types.insert(category.clone(), vec![t.clone()]);
+                tags_with_source_types.insert(category.clone(), vec![t.hash_tag_pair.clone()]);
             }
         } else {
-            tags_with_no_source_types.push(t.clone());
+            tags_with_no_source_types.push(t.hash_tag_pair.clone());
         }
     });
 
-    let source_grouped_types = SourceGroupedTags {
+    let source_grouped_types = SourceCategoryGroupedTags {
         source_categories: tags_with_source_types,
         uncategorized: tags_with_no_source_types,
     };
@@ -181,28 +174,12 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         },
         aspect_ratio,
         file_name,
-        tags_with_source_types: source_grouped_types,
+        source_category_grouped_tags: source_grouped_types,
     }
 }
 
-// Gets tag info about a piece of media
-pub async fn get_tags_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<MediaTag> {
-    let hash_tag_pairs: Vec<HashTagPair> = query_as("SELECT * FROM HashTagPair WHERE hash = ?")
-        .bind(hash)
-        .fetch_all(pool)
-        .await
-        .unwrap();
-
-    // Might need extra info about hashes, this is why we map the has here
-    let tags = hash_tag_pairs
-        .into_iter()
-        .map(|tag| MediaTag {
-            name: tag.tag_name,
-            source_category: tag.source_type,
-        })
-        .collect();
-
-    tags
+pub async fn get_tags_detailed_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<TagsWithDetails> {
+    query_as("SELECT * FROM HashTagPair, TagDetail where HashTagPair.tag_name  = TagDetail.name AND HashTagPair.hash = ?").bind(hash).fetch_all(pool).await.unwrap()
 }
 
 pub async fn get_media_type_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
@@ -219,8 +196,8 @@ pub struct MediaInfo {
     pub meta: Vec<MetaEntry>,
     pub import: ImportInfo,
     pub paths: Vec<String>,
-    pub tags: Vec<MediaTag>,
-    pub tags_with_source_types: SourceGroupedTags,
+    pub tags: Vec<TagsWithDetails>,
+    pub source_category_grouped_tags: SourceCategoryGroupedTags,
     pub raw_tags_field: String,
     pub hash: String,
     pub media_type: String,
@@ -246,14 +223,15 @@ pub struct ImportInfo {
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct MediaTag {
-    name: String,
-    source_category: Option<String>,
+pub struct SourceCategoryGroupedTags {
+    source_categories: HashMap<String, Vec<HashTagPair>>,
+    uncategorized: Vec<HashTagPair>,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type, Clone)]
-pub struct SourceGroupedTags {
-    source_categories: HashMap<String, Vec<MediaTag>>,
-    uncategorized: Vec<MediaTag>,
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, specta::Type)]
+pub struct TagsWithDetails {
+    #[sqlx(flatten)]
+    hash_tag_pair: HashTagPair,
+    #[sqlx(flatten)]
+    details: TagDetail,
 }

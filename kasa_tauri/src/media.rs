@@ -1,9 +1,10 @@
 use crate::db::DbStore;
 use kasa_core::groups::get_group_info_impl;
-use kasa_core::media::{get_info_impl, get_media_type_impl, get_tags_impl, MediaInfo, MediaTag};
+use kasa_core::media::{
+    get_info_impl, get_media_type_impl, get_tags_detailed_impl, MediaInfo, TagsWithDetails,
+};
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;
-use sqlx::error;
 use tauri::{AppHandle, Manager};
 
 #[tauri::command(async)]
@@ -22,12 +23,12 @@ pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
 
 #[tauri::command(async)]
 #[specta::specta]
-pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<MediaTag>> {
+pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<TagsWithDetails>> {
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
 
     if let Some(pool) = connection_guard.as_ref() {
-        let tags = get_tags_impl(&hash, pool).await;
+        let tags = get_tags_detailed_impl(&hash, pool).await;
         Some(tags)
     } else {
         None

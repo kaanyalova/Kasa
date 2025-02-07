@@ -30,6 +30,7 @@
 
 	async function onLoad() {
 		const info = await commands.getThumbsDbInfo();
+
 		thumb_height = info!.height;
 		thumb_width = info!.width;
 		thumb_format = info!.format;
@@ -37,10 +38,6 @@
 		db_size = info!.size;
 		image_count = info!.image_count;
 	}
-
-	$effect(() => {
-		console.log(db_path);
-	});
 
 	// Handle thumbnail resolution changes
 	$effect(() => {
@@ -65,61 +62,59 @@
 	});
 </script>
 
-{#await promise}
-	<div class="thumbnails">
-		<Title>Thumbnail Database</Title>
-		<BorderedBox padding={4}>
-			<PathInput
-				details={`${image_count} Images ${db_size}`}
-				bind:path={db_path}
-				onConfirm={() => console.log('confirm callback')}
-			></PathInput>
-		</BorderedBox>
+<div class="thumbnails">
+	<Title>Thumbnail Database</Title>
+	<BorderedBox padding={4}>
+		<PathInput
+			details={`${image_count} Images ${db_size}`}
+			bind:path={db_path}
+			onConfirm={() => console.log('confirm callback')}
+		></PathInput>
+	</BorderedBox>
 
-		<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
+	<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
 
-		<Title>Thumbnail Format</Title>
+	<Title>Thumbnail Format</Title>
 
-		<BorderedBox padding={4}>
-			<label for="imageFormatSelect">Image Format</label>
+	<BorderedBox padding={4}>
+		<label for="imageFormatSelect">Image Format</label>
 
-			<!--
+		<!--
 			Default <select> does not respect dark theme on webkit, it doesn't work with background-color 
 			either should we blame Gnome devs or Apple devs for this one?
 			-->
-			<div class="selectContainer">
-				<select id="imageFormatSelect" class="imageFormatSelect" bind:value={thumb_format}>
-					<option value="PNG" class="imageFormatSelectOption">PNG</option>
-					<option value="JPEG" class="imageFormatSelectOption">JPEG</option>
-					<option value="AVIF" class="imageFormatSelectOption">AVIF (slow)</option>
-				</select>
+		<div class="selectContainer">
+			<select id="imageFormatSelect" class="imageFormatSelect" bind:value={thumb_format}>
+				<option value="PNG" class="imageFormatSelectOption">PNG</option>
+				<option value="JPEG" class="imageFormatSelectOption">JPEG</option>
+				<option value="AVIF" class="imageFormatSelectOption">AVIF (slow)</option>
+			</select>
 
-				<span class="cursedSelectIcon"> v </span>
-			</div>
+			<span class="cursedSelectIcon"> v </span>
+		</div>
 
-			<HorizontalDivider height={DividerSizes.Small}></HorizontalDivider>
-			Image Resolution
+		<HorizontalDivider height={DividerSizes.Small}></HorizontalDivider>
+		Image Resolution
 
-			<div class="resolutionContainer">
-				<ResolutionInput bind:value={thumb_width} max_size={THUMBNAIL_MAX} label="Width"
-				></ResolutionInput>
+		<div class="resolutionContainer">
+			<ResolutionInput bind:value={thumb_width} max_size={THUMBNAIL_MAX} label="Width"
+			></ResolutionInput>
 
-				<VerticalDivider width={DividerSizes.Small}></VerticalDivider>
+			<VerticalDivider width={DividerSizes.Small}></VerticalDivider>
 
-				<ResolutionInput bind:value={thumb_height} max_size={THUMBNAIL_MAX} label="Height"
-				></ResolutionInput>
-			</div>
+			<ResolutionInput bind:value={thumb_height} max_size={THUMBNAIL_MAX} label="Height"
+			></ResolutionInput>
+		</div>
 
-			<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
-			<div class="bigImageExceptionCheckboxContainer">
-				<input type="checkbox" id="bigImageExceptionCheckbox" class="bigImageExceptionCheckbox" />
-				<label for="bigImageExceptionCheckbox">
-					Generate larger resolution thumbnails for images with high aspect ratio (recommended)
-				</label>
-			</div>
-		</BorderedBox>
-	</div>
-{/await}
+		<HorizontalDivider height={DividerSizes.Normal}></HorizontalDivider>
+		<div class="bigImageExceptionCheckboxContainer">
+			<input type="checkbox" id="bigImageExceptionCheckbox" class="bigImageExceptionCheckbox" />
+			<label for="bigImageExceptionCheckbox">
+				Generate larger resolution thumbnails for images with high aspect ratio (recommended)
+			</label>
+		</div>
+	</BorderedBox>
+</div>
 
 <style>
 	.resolutionInputContainerInner {

@@ -60,9 +60,13 @@ rand = "0.8.5"
 rayon = "1.9.0"
 regex = "1.10.5"
 reqwest = "0.12.9"
-rustpython = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa" }
+rustpython = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
+    "ssl",
+] }
 rustpython-pylib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa" }
-rustpython-stdlib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa" }
+rustpython-stdlib = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa", features = [
+    "ssl",
+] }
 rustpython-vm = { git = "https://github.com/kaanyalova/RustPython.git", branch = "kasa" }
 serde = "1.0.213"
 serde_json = "1.0.132"
@@ -90,3 +94,6 @@ tower-http = "0.5.2"
 walkdir = { git = "https://github.com/dbarnett/walkdir/", branch = "lifetimes" }
 xxhash-rust = "0.8.10"
 xz = "0.1.0"
+
+# Breaking minor version change, does not compile with latest, pinned
+openssl = "=0.10.66"

@@ -5,10 +5,21 @@ edition = "2021"
 
 
 [dependencies]
-rustpython-vm = { workspace = true, features = ["encodings", "freeze-stdlib", "rustpython-compiler", "importlib"] }
+rustpython-vm = { workspace = true, features = [
+    "encodings",
+    "freeze-stdlib",
+    "rustpython-compiler",
+    "importlib",
+] }
 rustpython-stdlib = { workspace = true }
 rustpython-pylib = { workspace = true, features = [] }
-rustpython = { workspace = true, features = ["freeze-stdlib", "sqlite", "ssl-vendor"] }
+rustpython = { workspace = true, features = [
+    "freeze-stdlib",
+    "sqlite",
+    "ssl-vendor",
+] }
+openssl = { workspace = true }
+
 
 anyhow = { workspace = true }
 serde_json = { workspace = true }

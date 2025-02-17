@@ -1,7 +1,7 @@
 use std::io::{BufReader, Cursor};
 
 fn main() {
-    const RUFFLE_PACKAGE_URL: &str = "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2024-12-25/ruffle-nightly-2024_12_25-web-selfhosted.zip";
+    const RUFFLE_PACKAGE_URL: &str = "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2025-02-10/ruffle-nightly-2025_02_10-web-selfhosted.zip";
 
     let bytes = reqwest::blocking::get(RUFFLE_PACKAGE_URL)
         .unwrap()

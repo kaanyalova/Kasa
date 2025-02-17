@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use log::error;
-use ndarray::Order;
 use nom::{
     branch::alt,
     bytes::{

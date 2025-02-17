@@ -11,3 +11,6 @@ pub mod tags;
 mod test_util;
 pub mod thumbnail;
 mod xxhash;
+
+#[cfg(feature = "ai_tagger")]
+pub mod ai_tagger;

@@ -67,19 +67,6 @@
 		}
 		previous_hash = hash;
 	});
-
-	/*
-	$effect(async () => {
-		hash;
-		if (hash === )
-		const _path: string = await invoke('get_thumbnail', { hash: hash });
-		const path = `/home/kaan/Belgeler/0000_Projects/Kasa/__dev_thumbs/${_path}`;
-
-		image = convertFileSrc(path).toString();
-	});
-
-
-*/
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

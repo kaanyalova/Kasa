@@ -36,7 +36,7 @@ async getLayoutFromCache(width: number, imgHeight: number, gaps: number) : Promi
 async updateTags(rawInput: string, hash: string) : Promise<void> {
     await TAURI_INVOKE("update_tags", { rawInput, hash });
 },
-async getTags(hash: string) : Promise<TagsWithDetails[] | null> {
+async getTags(hash: string) : Promise<TagWithDetails[] | null> {
     return await TAURI_INVOKE("get_tags", { hash });
 },
 /**
@@ -147,6 +147,12 @@ async deleteTags(hash: string, tags: string[]) : Promise<void> {
 },
 async getTagsAsText(hash: string) : Promise<string | null> {
     return await TAURI_INVOKE("get_tags_as_text", { hash });
+},
+async nukeDbVersioning() : Promise<void> {
+    await TAURI_INVOKE("nuke_db_versioning");
+},
+async getTagsGroupedBySourceCategories(hash: string) : Promise<SourceCategoryGroupedTags | null> {
+    return await TAURI_INVOKE("get_tags_grouped_by_source_categories", { hash });
 }
 }
 
@@ -174,7 +180,7 @@ source_type: string | null }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagsWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type RawImage = { width: number; height: number; bytes: number[] }
 export type SourceCategoryGroupedTags = { source_categories: { [key in string]: HashTagPair[] }; uncategorized: HashTagPair[] }
@@ -192,7 +198,7 @@ delete_on_no_references_left: boolean; color: string | null; group: string | nul
  */
 override_group_color: boolean }
 export type TagQueryOutput = { name: string; count: number; tag_details: TagDetail }
-export type TagsWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail }
+export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail }
 export type ThumbnailFormat = "png" | "jpeg" | "avif"
 export type Thumbs = { resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
 export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }

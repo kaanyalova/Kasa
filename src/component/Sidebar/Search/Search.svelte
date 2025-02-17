@@ -43,8 +43,12 @@
 	}
 
 	async function getDropdownEntriesFromDB() {
-		const searchContentsSplit = SearchStore.searchContents.split(',');
-		const lastEntry = searchContentsSplit[searchContentsSplit.length - 1].trim();
+		const splitRegex = /,|\||or/gi;
+
+		const searchContentsSplit = SearchStore.searchContents.split(splitRegex);
+		const lastEntry = searchContentsSplit[searchContentsSplit.length - 1]
+			.trim()
+			.replaceAll('-', '');
 
 		info(`${lastEntry} le`);
 

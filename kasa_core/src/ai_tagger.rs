@@ -22,8 +22,6 @@ pub struct TaggerTag {
 }
 
 pub fn prepare_session(model_path: &str) -> Session {
-    std::env::set_var("HSA_OVERRIDE_GFX_VERSION", "10.3.0");
-    std::env::set_var("HIP_VISIBLE_DEVICES", "0");
     let onnx_path = std::env::var("KASA_ONNX_RT_PATH").unwrap();
     ort::init_from(&onnx_path)
         .with_execution_providers([ROCmExecutionProvider::default().build().error_on_failure()])

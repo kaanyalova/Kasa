@@ -1,3 +1,4 @@
+mod ai_tag_images;
 mod dump_random_gi_layout;
 mod gdl;
 mod index_all_ai_images;
@@ -6,6 +7,7 @@ mod nuke_db_versioning;
 mod populate_tags;
 mod thumbnail;
 
+use ai_tag_images::ai_tag_images;
 use clap::Parser;
 use dump_random_gi_layout::dump_random_gi_layout;
 use gdl::gdl;
@@ -20,12 +22,22 @@ use populate_tags::populate_tags;
 #[derive(Parser)] // requires `derive` feature
 enum KasaCli {
     PopulateTags(PopulateTagsArgs),
+    #[command(alias = "index")]
     IndexFolder(IndexFolderArgs),
     DumpGILayout,
+    #[command(alias = "index-ai-all")]
     IndexAllAIImages(IndexAllAIImagesArgs), //ThumbnailFolder(ThumbnailArgs),
     #[command(alias = "gdl")]
     GalleryDL(GalleryDlArgs),
+    #[command(alias = "nuke")]
     NukeDBVersioning,
+    #[command(alias = "tag-ai-all")]
+    /// Needs the following environment variables set
+    ///
+    /// KASA_ONNX_RT_PATH: Path to the libonnxruntime.so or onnxruntime.dll
+    /// KASA_WDV_MODEL_PATH: Path to the WDV Model https://huggingface.co/SmilingWolf
+    /// KASA_WDV_LABEL_PATH: Path to the WDV Model labels
+    AITagImages,
 }
 
 #[derive(clap::Args)]
@@ -97,5 +109,6 @@ async fn main() {
         }
         KasaCli::GalleryDL(args) => gdl(&args.url, extractors).await,
         KasaCli::NukeDBVersioning => nuke_db_versioning().await,
+        KasaCli::AITagImages => ai_tag_images().await,
     }
 }

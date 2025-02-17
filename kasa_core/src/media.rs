@@ -125,30 +125,8 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         .to_string_lossy()
         .to_string();
 
-    // Group the tags according to their `source_category`es
-
-    let mut tags_with_no_source_types = vec![];
-    let mut tags_with_source_types: HashMap<String, Vec<HashTagPair>> = HashMap::new();
-
-    tags.iter().for_each(|t| {
-        if let Some(category) = &t.hash_tag_pair.source_type {
-            //tags_with_source_types.insert(category, t.name.clone());
-            let tag_vec = tags_with_source_types.get_mut(category);
-
-            if let Some(tag_vec) = tag_vec {
-                tag_vec.push(t.hash_tag_pair.clone());
-            } else {
-                tags_with_source_types.insert(category.clone(), vec![t.hash_tag_pair.clone()]);
-            }
-        } else {
-            tags_with_no_source_types.push(t.hash_tag_pair.clone());
-        }
-    });
-
-    let source_grouped_types = SourceCategoryGroupedTags {
-        source_categories: tags_with_source_types,
-        uncategorized: tags_with_no_source_types,
-    };
+    // Group the tags according to their `source_category`s
+    let source_grouped_tags = get_tags_grouped_by_source_categories_from_tags(&tags).await;
 
     MediaInfo {
         tags,
@@ -174,12 +152,47 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         },
         aspect_ratio,
         file_name,
-        source_category_grouped_tags: source_grouped_types,
+        source_category_grouped_tags: source_grouped_tags,
     }
 }
 
-pub async fn get_tags_detailed_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<TagsWithDetails> {
-    query_as("SELECT * FROM HashTagPair, TagDetail where HashTagPair.tag_name  = TagDetail.name AND HashTagPair.hash = ?").bind(hash).fetch_all(pool).await.unwrap()
+pub async fn get_tags_grouped_by_source_categories_from_tags(
+    tags: &Vec<TagWithDetails>,
+) -> SourceCategoryGroupedTags {
+    let mut tags_with_no_source_types = vec![];
+    let mut tags_with_source_types: HashMap<String, Vec<HashTagPair>> = HashMap::new();
+
+    tags.iter().for_each(|t| {
+        if let Some(category) = &t.hash_tag_pair.source_type {
+            //tags_with_source_types.insert(category, t.name.clone());
+            let tag_vec = tags_with_source_types.get_mut(category);
+
+            if let Some(tag_vec) = tag_vec {
+                tag_vec.push(t.hash_tag_pair.clone());
+            } else {
+                tags_with_source_types.insert(category.clone(), vec![t.hash_tag_pair.clone()]);
+            }
+        } else {
+            tags_with_no_source_types.push(t.hash_tag_pair.clone());
+        }
+    });
+
+    SourceCategoryGroupedTags {
+        source_categories: tags_with_source_types,
+        uncategorized: tags_with_no_source_types,
+    }
+}
+
+pub async fn get_tags_grouped_by_source_categories_impl(
+    hash: &str,
+    pool: &Pool<Sqlite>,
+) -> SourceCategoryGroupedTags {
+    let tags = get_tags_detailed_impl(hash, pool).await;
+    get_tags_grouped_by_source_categories_from_tags(&tags).await
+}
+
+pub async fn get_tags_detailed_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<TagWithDetails> {
+    query_as("SELECT * FROM HashTagPair, TagDetail where HashTagPair.tag_name = TagDetail.name AND HashTagPair.hash = ? GROUP BY HashTagPair.tag_name").bind(hash).fetch_all(pool).await.unwrap()
 }
 
 pub async fn get_media_type_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
@@ -196,7 +209,7 @@ pub struct MediaInfo {
     pub meta: Vec<MetaEntry>,
     pub import: ImportInfo,
     pub paths: Vec<String>,
-    pub tags: Vec<TagsWithDetails>,
+    pub tags: Vec<TagWithDetails>,
     pub source_category_grouped_tags: SourceCategoryGroupedTags,
     pub raw_tags_field: String,
     pub hash: String,
@@ -229,7 +242,7 @@ pub struct SourceCategoryGroupedTags {
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, specta::Type)]
-pub struct TagsWithDetails {
+pub struct TagWithDetails {
     #[sqlx(flatten)]
     hash_tag_pair: HashTagPair,
     #[sqlx(flatten)]

@@ -1,7 +1,10 @@
 use crate::db::DbStore;
+use ashpd::zvariant::Str;
 use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{
-    get_info_impl, get_media_type_impl, get_tags_detailed_impl, MediaInfo, TagsWithDetails,
+    get_info_impl, get_media_type_impl, get_tags_detailed_impl,
+    get_tags_grouped_by_source_categories_impl, MediaInfo, SourceCategoryGroupedTags,
+    TagWithDetails,
 };
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;
@@ -23,7 +26,7 @@ pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
 
 #[tauri::command(async)]
 #[specta::specta]
-pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<TagsWithDetails>> {
+pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<TagWithDetails>> {
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
 
@@ -71,5 +74,23 @@ pub async fn get_group_info(handle: AppHandle, group_hash: String) -> Vec<MediaI
     } else {
         error!("No connection to database , could not get group info");
         vec![]
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_tags_grouped_by_source_categories(
+    handle: AppHandle,
+    hash: String,
+) -> Option<SourceCategoryGroupedTags> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        let tags = get_tags_grouped_by_source_categories_impl(&hash, pool).await;
+        Some(tags)
+    } else {
+        error!("No connection to database , could not get group info");
+        None
     }
 }

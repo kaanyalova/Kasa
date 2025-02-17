@@ -17,7 +17,9 @@
 	let { initialEditBoxContents, isInEditMode, updateTagsTextBoxContents, data }: TagDisplayProps =
 		$props();
 	let tagsTextLocal: string | null | undefined = $state();
+
 	let tags = $state(data.tags);
+	let sourceCategoryGroupedTags = $state(data.sourceCategoryGroupedTags);
 
 	let cursorPosition: CursorPosition = $state({ top: null, left: null });
 	let isTextBoxFocused = $state(false);
@@ -58,9 +60,14 @@
 		}
 
 		const newTags = await commands.getTags(data.hash);
+		const newGroupedTags = await commands.getTagsGroupedBySourceCategories(data.hash);
 
 		if (newTags !== null) {
 			tags = newTags;
+		}
+
+		if (newGroupedTags !== null) {
+			sourceCategoryGroupedTags = newGroupedTags;
 		}
 
 		MediaModalStatusStore.setTagsEditModeActive(!editModeState);
@@ -241,7 +248,7 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
-	{#each Object.entries(data.sourceCategoryGroupedTags.source_categories) as [category, tagsWithCategory]}
+	{#each Object.entries(sourceCategoryGroupedTags.source_categories) as [category, tagsWithCategory]}
 		<h3>{category}</h3>
 		<div class="tagsList">
 			{#each tagsWithCategory as tagWithCategory}
@@ -254,11 +261,11 @@
 	{/each}
 
 	<!-- Only show the Uncategorized category if there is elements inside of it -->
-	{#if data.sourceCategoryGroupedTags.uncategorized.length > 0}
+	{#if sourceCategoryGroupedTags.uncategorized.length > 0}
 		<h3>Uncategorized</h3>
 
 		<div class="tagsList">
-			{#each data.sourceCategoryGroupedTags.uncategorized as uncategorizedTag}
+			{#each sourceCategoryGroupedTags.uncategorized as uncategorizedTag}
 				<!--Check if the tag exists in the main tag array, only display it if it does-->
 				{#if tags.some((t) => t.hash_tag_pair.tag_name == uncategorizedTag.tag_name)}
 					<Tag

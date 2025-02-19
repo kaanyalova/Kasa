@@ -11,7 +11,7 @@ use kasa_core::{
     },
     layout::google_photos::{calculate_layout, ImageRow},
 };
-use sqlx::{query_as, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{query, query_as, sqlite::SqlitePoolOptions, Pool, Sqlite};
 use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
@@ -190,6 +190,22 @@ pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
         Some(get_thumbs_db_info_impl(pool).await)
     } else {
         None
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn nuke_db_versioning(handle: AppHandle) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.thumbs_db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        query("DROP TABLE _sqlx_migrations")
+            .execute(pool)
+            .await
+            .unwrap();
+    } else {
+        error!("Cannot connect to the db");
     }
 }
 

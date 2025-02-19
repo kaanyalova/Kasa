@@ -8,6 +8,7 @@ use db::connect_dbs;
 use db::connect_to_db;
 use db::get_layout_from_cache;
 use db::get_thumbs_db_info;
+use db::nuke_db_versioning;
 use db::query_all;
 use db::query_tags;
 use db::DbStore;
@@ -30,6 +31,7 @@ use media::get_info;
 use media::get_media_type;
 use media::get_swf_resolution;
 use media::get_tags;
+use media::get_tags_grouped_by_source_categories;
 use media_server::close_server;
 use media_server::serve_media;
 use media_server::MediaServerStore;
@@ -144,6 +146,8 @@ pub fn run() {
             get_group_info,
             delete_tags,
             get_tags_as_text,
+            nuke_db_versioning,
+            get_tags_grouped_by_source_categories,
         ]
     });
 

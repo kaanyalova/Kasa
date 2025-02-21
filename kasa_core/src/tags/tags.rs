@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use itertools::Itertools;
 use kasa_python::ExtractedTag;
 use log::trace;
-use sqlx::{query, query_scalar, Pool, Sqlite};
+use serde::{Deserialize, Serialize};
+use sqlx::{prelude::FromRow, query, query_as, query_scalar, Pool, Sqlite};
+
+use crate::media::TagWithDetails;
 
 // Utilities to keep `Tag` and `TagFTS` tables in sync
 
@@ -262,4 +265,17 @@ pub async fn get_tags_as_text_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
         .unwrap();
 
     tags.iter().join(", ")
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow, specta::Type)]
+pub struct TagWithCount {
+    pub count: u32,
+    pub tag_name: String,
+}
+
+pub async fn get_list_of_all_tags_with_details_impl(pool: &Pool<Sqlite>) -> Vec<TagWithCount> {
+    query_as("SELECT tag_name, COUNT(tag_name) FROM HashTagPair, TagDetail WHERE HashTagPair.tag_name = TagDetail.name GROUP BY HashTagPair.tag_name")
+        .fetch_all(pool)
+        .await
+        .unwrap()
 }

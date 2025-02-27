@@ -40,6 +40,19 @@
 		}
 	});
 
+	async function refreshTags() {
+		const newTags = await commands.getTags(data.hash);
+		const newGroupedTags = await commands.getTagsGroupedBySourceCategories(data.hash);
+
+		if (newTags !== null) {
+			tags = newTags;
+		}
+
+		if (newGroupedTags !== null) {
+			sourceCategoryGroupedTags = newGroupedTags;
+		}
+	}
+
 	async function toggleEditMode() {
 		const editModeState = MediaModalStatusStore.tagsEditModeActive;
 
@@ -59,16 +72,7 @@
 			}
 		}
 
-		const newTags = await commands.getTags(data.hash);
-		const newGroupedTags = await commands.getTagsGroupedBySourceCategories(data.hash);
-
-		if (newTags !== null) {
-			tags = newTags;
-		}
-
-		if (newGroupedTags !== null) {
-			sourceCategoryGroupedTags = newGroupedTags;
-		}
+		await refreshTags();
 
 		MediaModalStatusStore.setTagsEditModeActive(!editModeState);
 	}
@@ -121,22 +125,10 @@
 		}
 	}
 
-	function updateTagsTextBoxContentsLocal(contents: string) {
-		tagsTextLocal = contents;
-	}
-
 	async function onDeleteTag(name: string) {
-		console.log(`deleting tag ${name}`);
-
 		await commands.deleteTags(data.hash, [name]);
-		tags = tags.filter((t) => t.hash_tag_pair.tag_name !== name); // delete the tag from the array without reloading everything
-		console.log(tags);
+		await refreshTags();
 	}
-
-	const onDeleteTag2 = async (name: string) => {
-		await commands.deleteTags(data.hash, [name]);
-		tags = tags.filter((t) => t.hash_tag_pair.tag_name !== name); // delete the tag from the array without reloading everything
-	};
 </script>
 
 {#if cursorPosition.top !== null && cursorPosition.left !== null && isTextBoxFocused && shouldShow && entriesToShow.length > 0}
@@ -248,14 +240,12 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
-	{#each Object.entries(sourceCategoryGroupedTags.source_categories) as [category, tagsWithCategory]}
+	{#each Object.entries(sourceCategoryGroupedTags.source_categories).sort() as [category, tagsWithCategory]}
 		<h3>{category}</h3>
 		<div class="tagsList">
 			{#each tagsWithCategory as tagWithCategory}
-				{#if tags.some((t) => t.hash_tag_pair.tag_name == tagWithCategory.tag_name)}
-					<Tag name={tagWithCategory.tag_name} onDelete={async (name: string) => onDeleteTag(name)}
-					></Tag>
-				{/if}
+				<Tag name={tagWithCategory.tag_name} onDelete={async (name: string) => onDeleteTag(name)}
+				></Tag>
 			{/each}
 		</div>
 	{/each}
@@ -267,29 +257,13 @@
 		<div class="tagsList">
 			{#each sourceCategoryGroupedTags.uncategorized as uncategorizedTag}
 				<!--Check if the tag exists in the main tag array, only display it if it does-->
-				{#if tags.some((t) => t.hash_tag_pair.tag_name == uncategorizedTag.tag_name)}
-					<Tag
-						name={uncategorizedTag.tag_name}
-						onDelete={async (name: string) => await onDeleteTag(name)}
-					></Tag>
-				{/if}
+				<Tag
+					name={uncategorizedTag.tag_name}
+					onDelete={async (name: string) => await onDeleteTag(name)}
+				></Tag>
 			{/each}
 		</div>
 	{/if}
-
-	<!--
-			{#each tags as tag}
-			<Tag
-				name={tag.name}
-				onDelete={async (name) => {
-					await commands.deleteTags(data.hash, [name]);
-					tags = tags.filter((t) => t.name !== name); // delete the tag from the array without reloading everything
-				}}
-			></Tag>
-		{/each}
-
-		
-		-->
 {/if}
 
 <style>

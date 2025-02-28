@@ -11,7 +11,7 @@ use nom::{
 };
 use regex::Regex;
 use ruffle_render_wgpu::wgpu::hal::auxil::db;
-use sqlx::{migrate, query_as, query_builder, Execute, Pool, QueryBuilder, Sqlite};
+use sqlx::{Execute, Pool, QueryBuilder, Sqlite, migrate, query_as, query_builder};
 
 #[allow(unused)]
 use crate::{
@@ -159,8 +159,8 @@ impl SearchCriteria {
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
         let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             "
-            SELECT m.* FROM HashTagPair htp, Media m 
-            WHERE m.hash = htp.hash 
+            SELECT m.* FROM HashTagPair htp, Media m
+            WHERE m.hash = htp.hash
             ",
         );
 
@@ -223,13 +223,12 @@ impl SearchCriteria {
 
         query_builder.push("GROUP BY m.hash");
 
-        if !self.contains_tags.is_empty() && !self.contains_tags_or_group.is_empty() {
+        if !self.contains_tags.is_empty() {
             query_builder.push(
                 "
-        HAVING COUNT(m.hash) = 
+        HAVING COUNT(m.hash) =
         ",
             );
-
             query_builder.push_bind(self.contains_tags.len() as i64);
         }
 

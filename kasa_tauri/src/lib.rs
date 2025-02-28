@@ -3,6 +3,8 @@ use std::env;
 use config::get_config;
 use config::set_config_resolution_value;
 use config::set_config_value;
+use db::DbStore;
+use db::MediaCache;
 use db::are_dbs_mounted;
 use db::connect_dbs;
 use db::connect_to_db;
@@ -11,11 +13,9 @@ use db::get_thumbs_db_info;
 use db::nuke_db_versioning;
 use db::query_all;
 use db::query_tags;
-use db::DbStore;
-use db::MediaCache;
-use downloaders::download_and_index;
 use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
+use downloaders::download_and_index;
 use file_picker::new_linux_file_picker_dialog;
 use image::get_thumbnail;
 use image::get_thumbnail_from_db;
@@ -24,17 +24,17 @@ use index::index_path;
 use index::nuke_all_indexes;
 use index::nuke_selected_index;
 use index::*;
-use log::warn;
 use log::LevelFilter;
+use log::warn;
 use media::get_group_info;
 use media::get_info;
 use media::get_media_type;
 use media::get_swf_resolution;
 use media::get_tags;
 use media::get_tags_grouped_by_source_categories;
+use media_server::MediaServerStore;
 use media_server::close_server;
 use media_server::serve_media;
-use media_server::MediaServerStore;
 use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
@@ -42,7 +42,7 @@ use tags::delete_tags;
 use tags::get_list_of_all_tags_with_details;
 use tags::get_tags_as_text;
 use tags::update_tags;
-use tauri_specta::{collect_commands, Builder};
+use tauri_specta::{Builder, collect_commands};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
@@ -65,19 +65,19 @@ const DEFAULT_LOGLEVEL_DEV: LevelFilter = LevelFilter::Debug;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Updating webkitgtk seems to fix the brokenness
-    // for now...
-    #[cfg(target_os = "linux")]
-    //std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-    // needed for video player, browser dies otherwise
-    std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-
     // make vscode stop setting the GDK_BACKEND to x11 on wayland
     #[cfg(target_os = "linux")]
-    {
+    unsafe {
+        //std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        // needed for video player, browser dies otherwise
+        // Updating webkitgtk seems to fix the brokenness
+        // for now...
+
         if std::env::var("XDG_SESSION_TYPE") == Ok("wayland".to_string()) {
             std::env::set_var("GDK_BACKEND", "wayland");
         }
+
+        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
     }
 
     let dotenv = dotenvy::dotenv();

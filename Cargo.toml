@@ -1,5 +1,7 @@
 [workspace]
 resolver = "2"
+edition = "2024"
+
 
 # some rust projects there, cargo doesn't like that
 

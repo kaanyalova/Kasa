@@ -25,7 +25,7 @@ export function sampleFromLinearGradient(gradient: Array<[number, Color]>, point
 		const positionInRange = point - startStop[0];
 		const relative = positionInRange / range;
 
-		console.log(`${startColor}, ${endColor}`);
+		//console.log(`${startColor}, ${endColor}`);
 
 		const _gradient = startColor.range(endColor);
 		return _gradient(relative);

@@ -8,6 +8,7 @@
 	import './SideBarGlobals.scss';
 	import ResizeBar from './ResizeBar.svelte';
 	import { sidebarStore } from './SidebarStore.svelte';
+	import TagPicker from './TagPicker/TagPicker.svelte';
 </script>
 
 <div class="sidebarParent">
@@ -25,14 +26,22 @@
 						</div>
 					</li>
 
+					<!--
+						
 					<li>
 						<Categories></Categories>
 					</li>
-					<li>
-						<Operations></Operations>
-					</li>
+					
 					<li>
 						<Collections></Collections>
+					</li>
+					-->
+					<li>
+						<TagPicker></TagPicker>
+					</li>
+
+					<li>
+						<Operations></Operations>
 					</li>
 				</ul>
 				<div class="filler"></div>

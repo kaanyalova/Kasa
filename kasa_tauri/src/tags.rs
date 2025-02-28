@@ -1,6 +1,6 @@
 use kasa_core::tags::tags::{
     get_list_of_all_tags_with_details_impl, get_tags_as_text_impl, remove_tags, update_tags_impl,
-    TagWithCount,
+    AllTagsOrderingCriteria, TagWithCount,
 };
 use tauri::{AppHandle, Manager};
 
@@ -47,11 +47,14 @@ pub async fn get_tags_as_text(handle: AppHandle, hash: String) -> Option<String>
 
 #[tauri::command(async)]
 #[specta::specta]
-pub async fn get_list_of_all_tags_with_details(handle: AppHandle) -> Option<Vec<TagWithCount>> {
+pub async fn get_list_of_all_tags_with_details(
+    handle: AppHandle,
+    ordering_criteria: AllTagsOrderingCriteria,
+) -> Option<Vec<TagWithCount>> {
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
     if let Some(pool) = connection_guard.as_ref() {
-        let tags = get_list_of_all_tags_with_details_impl(pool).await;
+        let tags = get_list_of_all_tags_with_details_impl(pool, ordering_criteria).await;
         Some(tags)
     } else {
         println!("DB connection wasn't initialized yet!");

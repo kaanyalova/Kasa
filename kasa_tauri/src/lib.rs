@@ -39,6 +39,7 @@ use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::delete_tags;
+use tags::get_list_of_all_tags_with_details;
 use tags::get_tags_as_text;
 use tags::update_tags;
 use tauri_specta::{collect_commands, Builder};
@@ -148,6 +149,7 @@ pub fn run() {
             get_tags_as_text,
             nuke_db_versioning,
             get_tags_grouped_by_source_categories,
+            get_list_of_all_tags_with_details
         ]
     });
 

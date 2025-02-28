@@ -4,9 +4,12 @@ use itertools::Itertools;
 use kasa_python::ExtractedTag;
 use log::trace;
 use serde::{Deserialize, Serialize};
-use sqlx::{prelude::FromRow, query, query_as, query_scalar, Pool, Sqlite};
+use sqlx::{
+    prelude::FromRow, query, query_as, query_builder, query_scalar, Execute, Pool, QueryBuilder,
+    Sqlite,
+};
 
-use crate::media::TagWithDetails;
+use crate::{db::schema::TagDetail, media::TagWithDetails};
 
 // Utilities to keep `Tag` and `TagFTS` tables in sync
 
@@ -269,13 +272,42 @@ pub async fn get_tags_as_text_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
 
 #[derive(Debug, Serialize, Deserialize, FromRow, specta::Type)]
 pub struct TagWithCount {
-    pub count: u32,
     pub tag_name: String,
+    pub count: u32,
+    #[sqlx(flatten)]
+    pub details: TagDetail,
 }
 
-pub async fn get_list_of_all_tags_with_details_impl(pool: &Pool<Sqlite>) -> Vec<TagWithCount> {
-    query_as("SELECT tag_name, COUNT(tag_name) FROM HashTagPair, TagDetail WHERE HashTagPair.tag_name = TagDetail.name GROUP BY HashTagPair.tag_name")
+#[derive(Debug, specta::Type, Deserialize, Serialize)]
+pub enum AllTagsOrderingCriteria {
+    Alphabetic,
+    AlphabeticReverse,
+    TagCount,
+    TagCountReverse,
+}
+
+pub async fn get_list_of_all_tags_with_details_impl(
+    pool: &Pool<Sqlite>,
+    ordering_criteria: AllTagsOrderingCriteria,
+) -> Vec<TagWithCount> {
+    let mut  query_builder: QueryBuilder<Sqlite> = QueryBuilder::new("SELECT tag_name, COUNT(tag_name) AS count, TagDetail.* FROM HashTagPair, TagDetail WHERE HashTagPair.tag_name = TagDetail.name GROUP BY HashTagPair.tag_name ");
+
+    match ordering_criteria {
+        AllTagsOrderingCriteria::Alphabetic => query_builder.push("ORDER BY tag_name ASC"),
+        AllTagsOrderingCriteria::AlphabeticReverse => query_builder.push("ORDER BY TAG NAME DESC"),
+        AllTagsOrderingCriteria::TagCount => query_builder.push("ORDER BY count DESC"),
+        AllTagsOrderingCriteria::TagCountReverse => query_builder.push("ORDER BY count ASC"),
+    };
+
+    let tags: Vec<TagWithCount> = query_builder
+        .build_query_as()
         .fetch_all(pool)
         .await
-        .unwrap()
+        .unwrap();
+
+    tags
+    //query_as("SELECT tag_name, COUNT(tag_name) AS count, TagDetail.* FROM HashTagPair, TagDetail WHERE HashTagPair.tag_name = TagDetail.name GROUP BY HashTagPair.tag_name")
+    //    .fetch_all(pool)
+    //    .await
+    //    .unwrap()
 }

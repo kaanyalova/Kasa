@@ -1,0 +1,3 @@
+type TagPickerCheckBoxProps = {
+	tagName: string;
+};

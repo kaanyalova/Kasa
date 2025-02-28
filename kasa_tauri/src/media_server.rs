@@ -1,10 +1,12 @@
+use std::{ops::Deref, sync::Arc};
+
 use axum::Router;
 use log::trace;
 use sqlx::query_scalar;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::{
-    oneshot::{self, Receiver, Sender},
     Mutex,
+    oneshot::{self, Receiver, Sender},
 };
 use tower_http::services::ServeFile;
 
@@ -13,7 +15,7 @@ use crate::db::DbStore;
 #[derive(Debug, Default)]
 pub struct MediaServerStore {
     serve_path: Mutex<Option<String>>,
-    ptr: Mutex<i64>,
+    ptr: Arc<Mutex<Option<Box<Receiver<()>>>>>,
 }
 
 #[tauri::command(async)]
@@ -41,25 +43,16 @@ pub async fn serve_media(handle: AppHandle, hash: String) {
     }
 
     if state.serve_path.lock().await.is_some() {
-        // Safety: should be only dereferenced when there is an active server
-        let kill = unsafe {
-            let kill_ptr = state.ptr.lock().await.clone() as *mut Receiver<()>;
-            let kill_box = Box::from_raw(kill_ptr);
-            *kill_box
-        };
-
-        tokio::spawn(async move {
-            drop(kill);
-        });
+        if let Some(ptr) = state.ptr.lock().await.take() {
+            drop(ptr);
+        }
     }
 
     let (mut kill_rx, kill_tx): (Sender<()>, Receiver<()>) = oneshot::channel();
 
     let boxed = Box::new(kill_tx);
 
-    let raw = Box::into_raw(boxed) as i64;
-
-    *state.ptr.lock().await = raw;
+    *state.ptr.lock().await = Some(boxed);
     *state.serve_path.lock().await = Some(path.clone());
 
     let handle = handle.clone();
@@ -86,17 +79,12 @@ pub async fn close_server(handle: AppHandle) {
     let state = handle.state::<MediaServerStore>();
 
     if state.serve_path.lock().await.is_some() {
-        // Safety: should be only dereferenced when there is an active server
-        let kill = unsafe {
-            let kill_ptr = state.ptr.lock().await.clone() as *mut Receiver<()>;
-            let kill_box = Box::from_raw(kill_ptr);
-            *kill_box
-        };
+        let kill_ptr = state.ptr.lock().await.take().unwrap();
 
         *state.serve_path.lock().await = None;
 
         tokio::spawn(async move {
-            drop(kill);
+            drop(kill_ptr);
         });
     }
 }

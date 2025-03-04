@@ -13,7 +13,6 @@
 	import { commands } from '$lib/tauri_bindings';
 
 	let values: Array<ImageRow> = $state([]);
-	let heights: Array<number> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
 	let tauri_height = $state(0);
 
@@ -63,6 +62,10 @@
 		cooldown = setTimeout(updateLayoutFromCache, 500);
 	}
 
+	function getHeight(index: number): number {
+		return values[index].height;
+	}
+
 	/**
 	 * Gets the media from the database possibly using cached values, sets the heights for the media and media themselves to
 	 * the received values.
@@ -79,17 +82,6 @@
 			return;
 		}
 
-		const _heights: Array<number> = _values.map((row) => {
-			// first row should have the gaps height
-			if (row.index === 0) {
-				return row.height;
-				//return (row.height += 12);
-			} else {
-				return row.height;
-			}
-		});
-
-		heights = _heights;
 		values = _values;
 		trace(`calculating sizes w:${tauri_width}`);
 	}
@@ -117,7 +109,6 @@
 				const _heights: Array<number> = _values.map((row) => row.height);
 
 				values = _values;
-				heights = _heights;
 			}
 		} catch (error) {
 			// If there's an error, try again after a delay
@@ -138,7 +129,7 @@
 	<VirtualList
 		height="100%"
 		width="100%"
-		itemSize={heights}
+		itemSize={getHeight}
 		itemCount={values.length}
 		overscanCount={8}
 		bind:this={virtualList}

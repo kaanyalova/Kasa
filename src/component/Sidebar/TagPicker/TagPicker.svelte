@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import BorderedBox from '../../Shared/BorderedBox.svelte';
 	import { commands } from '$lib/tauri_bindings';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import type { TagWithCount, TagWithDetails } from '$lib/tauri_bindings';
 	import { formatCount, getCountColor } from '$lib/colorUtils';
 	import TagPickerCheckBox from './TagPickerCheckBox.svelte';
+	import VirtualList, { type VirtualListProps } from 'svelte-tiny-virtual-list';
+	import { error } from '@tauri-apps/plugin-log';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
 	let filterInput = $state('');
+	let textWidthCanvas: CanvasRenderingContext2D | null;
+	let virtualList: VirtualList;
 
 	let filteredTags: Array<TagWithCount> = $derived(
 		tags?.filter((tag) => {
-			return tag.tag_name.includes(filterInput);
+			return tag.tag_name.startsWith(filterInput);
 		}) ?? []
 	);
-
-	$effect(() => {
-		console.log(filteredTags);
-	});
 
 	async function loadTags() {
 		tags = await commands.getListOfAllTagsWithDetails('TagCount');
@@ -33,29 +33,73 @@
 		} else {
 			clearInterval(initialLoadInterval);
 		}
-	}, 1000);
+	}, 500);
+
+	// Prepare the canvas for text width calculations
+	onMount(() => {
+		const canvas = document.createElement('canvas');
+		textWidthCanvas = canvas.getContext('2d');
+
+		const body = document.body;
+		const style = window.getComputedStyle(body);
+
+		const fontWeight = style.getPropertyValue('font-weight');
+		const fontSize = style.getPropertyValue('font-size');
+		const fontFamily = style.getPropertyValue('font-family');
+
+		const font = `${fontWeight} ${fontSize} ${fontFamily}`;
+
+		if (textWidthCanvas) {
+			textWidthCanvas.font = font;
+		} else {
+			error('Cannot create canvas for tag picker text width calculations');
+		}
+	});
+
+	onDestroy(() => {
+		const canvas = document.getElementsByTagName('canvas')[0];
+		canvas.remove();
+	});
+
+	function getTextWidth(text: string): number | undefined {
+		return textWidthCanvas?.measureText(text).width;
+	}
+
+	function calculateHeight(index: number): number {
+		// width is 154 px
+		const tag = filteredTags[index].tag_name;
+		const width = getTextWidth(tag);
+		console.log(width);
+		return Math.ceil((width ?? 154) / 154) * 26 + 4;
+		//return 26;
+	}
 </script>
 
 <div class="tagPicker">
 	<div class="tagPickerList">
-		{#await loadTagsPromise() then}
-			{#if tags}
-				{#each filteredTags as tag}
-					<div class="tag">
-						<TagPickerCheckBox tagName={tag.tag_name}></TagPickerCheckBox>
-						<label for="tag-{tag.tag_name}">
-							<div class="tagName">
-								{tag.tag_name}
-							</div>
-						</label>
-
-						<div class="count" style="background-color: {getCountColor(tag.count)}">
-							{formatCount(tag.count)}
+		<VirtualList
+			width="100%"
+			height={500}
+			itemCount={filteredTags.length}
+			itemSize={calculateHeight}
+			bind:this={virtualList}
+			scrollToIndex={/*How does this even work?*/ 0}
+		>
+			<div slot="item" let:index let:style {style}>
+				<div class="tag">
+					<TagPickerCheckBox tagName={filteredTags!![index].tag_name}></TagPickerCheckBox>
+					<label for="tag-{filteredTags!![index].tag_name}">
+						<div class="tagName">
+							{filteredTags!![index].tag_name}
 						</div>
+					</label>
+
+					<div class="count" style="background-color: {getCountColor(filteredTags!![index].count)}">
+						{formatCount(filteredTags!![index].count)}
 					</div>
-				{/each}
-			{/if}
-		{/await}
+				</div>
+			</div>
+		</VirtualList>
 	</div>
 
 	<div class="search">
@@ -109,6 +153,7 @@
 	.tagName {
 		overflow-wrap: break-word;
 		word-break: break-all;
+		margin-right: 8px;
 	}
 
 	.search {

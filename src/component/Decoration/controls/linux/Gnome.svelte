@@ -23,13 +23,13 @@
 	class={cn('mx-[10px] h-auto items-center space-x-[13px]', $$props.class)}
 >
 	<Button
-		on:click={() => minimizeWindow()}
+		on:click={async () => await minimizeWindow()}
 		class="gnomeButton my-1 aspect-square h-6 w-6 cursor-default rounded-full"
 	>
 		<Icons icon="minimizeWin" class="h-[9px] w-[9px]" />
 	</Button>
 	<Button
-		on:click={() => maximizeWindow()}
+		on:click={async () => await maximizeWindow()}
 		class="gnomeButton my-1 aspect-square h-6 w-6 cursor-default rounded-full"
 	>
 		{#if isWindowMaximized}
@@ -39,7 +39,7 @@
 		{/if}
 	</Button>
 	<Button
-		on:click={() => closeWindow()}
+		on:click={async () => await closeWindow()}
 		class="gnomeButton my-1 aspect-square h-6 w-6 cursor-default rounded-full p-0"
 	>
 		<Icons icon="closeWin" class="h-2 w-2" />

@@ -25,7 +25,6 @@ log = { workspace = true }
 memchr = { workspace = true }
 mime_guess = { workspace = true }
 nom = { workspace = true }
-pest = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -60,10 +59,10 @@ axum-macros = { workspace = true }
 ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
     "deterministic",
     "default_font",
-], optional = true }
+], optional = true, rev = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
 ruffle_render_wgpu = { git = "https://github.com/ruffle-rs/ruffle", features = [
     "clap",
-], optional = true }
+], optional = true, branch = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
 
 
 # Dependencies for image tag recognition

@@ -1,13 +1,13 @@
-use anyhow::{anyhow, Result};
-use fast_image_resize::{images::Image, IntoImageView, Resizer};
+use anyhow::{Result, anyhow};
+use fast_image_resize::{IntoImageView, Resizer, images::Image};
 use image::{
-    codecs::{avif::AvifEncoder, jpeg::JpegEncoder, png::PngEncoder},
     DynamicImage, ImageEncoder, RgbaImage,
+    codecs::{avif::AvifEncoder, jpeg::JpegEncoder, png::PngEncoder},
 };
 use std::path::Path;
 
 use super::thumbnail_image::{
-    calculate_aspect_ratio, Thumbnail, ThumbnailFormat, ThumbnailerError,
+    Thumbnail, ThumbnailFormat, ThumbnailerError, calculate_aspect_ratio,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -43,10 +43,10 @@ async fn take_screenshot(
     size: SizeOpt,
     skip_unsupported: bool,
 ) -> Result<(Vec<RgbaImage>, (i32, i32))> {
+    use ruffle_core::PlayerBuilder;
     use ruffle_core::limits::ExecutionLimit;
     use ruffle_core::tag_utils::SwfMovie;
-    use ruffle_core::PlayerBuilder;
-    use ruffle_render_wgpu::backend::{request_adapter_and_device, WgpuRenderBackend};
+    use ruffle_render_wgpu::backend::{WgpuRenderBackend, request_adapter_and_device};
     use ruffle_render_wgpu::clap::PowerPreference;
     use ruffle_render_wgpu::descriptors::Descriptors;
     use ruffle_render_wgpu::target::TextureTarget;
@@ -54,7 +54,7 @@ async fn take_screenshot(
     use std::panic::catch_unwind;
     use std::sync::Arc;
 
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
         ..Default::default()
     });
 
@@ -124,7 +124,7 @@ async fn take_screenshot(
                         i,
                         swf_path,
                         e
-                    ))
+                    ));
                 }
             }
         }

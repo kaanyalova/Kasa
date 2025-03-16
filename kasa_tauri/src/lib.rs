@@ -36,6 +36,7 @@ use media::get_tags_grouped_by_source_categories;
 use media_server::MediaServerStore;
 use media_server::close_server;
 use media_server::serve_media;
+use search::SearchState;
 use search::search;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
@@ -183,6 +184,7 @@ pub fn run() {
         .manage(MediaServerStore::default())
         .manage(PythonStore::default())
         .manage(ExtractorsStore::default())
+        .manage(SearchState::default())
         .run(context)
         .expect("error while running tauri application");
 }

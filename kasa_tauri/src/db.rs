@@ -4,14 +4,14 @@ use tokio::sync::Mutex;
 use kasa_core::{
     config::global_config::get_config_impl,
     db::{
-        db::{query_tags_impl, TagQueryOutput},
-        db_info::{get_thumbs_db_info_impl, ThumbsDBInfo},
+        db::{TagQueryOutput, query_tags_impl},
+        db_info::{ThumbsDBInfo, get_thumbs_db_info_impl},
         migrations::prepare_dbs,
         schema::Media,
     },
-    layout::google_photos::{calculate_layout, ImageRow},
+    layout::google_photos::{ImageRow, calculate_layout},
 };
-use sqlx::{query, query_as, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, query, query_as, sqlite::SqlitePoolOptions};
 use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
@@ -108,30 +108,6 @@ pub async fn connect_dbs(handle: AppHandle) {
     *db_store.thumbs_db.lock().await = Some(pool_thumbs);
 }
 
-/*
-#[tauri::command]
-pub async fn query_all(
-    page: i64,
-    count: i64,
-    handle: AppHandle,
-) -> Result<Option<Vec<TestMedia>>, ()> {
-    let connection_state = h    // WARNING ON DEVELOPMENT this causes different path outputs when using the cli and
-    // the tauri app, tauri seems to have ./kasa_tauri as its base directory while
-    // kasa_cli_utils have ./ as its base dir. Don't use the cli without --db-path
-    // if you have something like ../dev.kasa in your config.toml or it will create
-    // the db at the parent dir of this handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
-    if let Some(pool) = connection_guard.as_ref() {
-        let media = query_all_test_impl(count, page, pool).await;
-
-        dbg!(&media);
-        return Ok(Some(media));
-    } else {
-        Ok(None)
-    }
-}
-*/
-
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_layout_from_cache(
@@ -147,36 +123,6 @@ pub async fn get_layout_from_cache(
     } else {
         info!("No media found on cache!");
         return None;
-    }
-}
-
-#[tauri::command(async)]
-#[specta::specta]
-pub async fn query_all(
-    handle: AppHandle,
-    width: f64,
-    img_height: u64,
-    gaps: u64,
-) -> Option<Vec<ImageRow>> {
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
-
-    if let Some(pool) = connection_guard.as_ref() {
-        let q: Vec<Media> = query_as("SELECT * FROM Media")
-            .fetch_all(pool)
-            .await
-            .unwrap();
-
-        let r = Some(calculate_layout(q.clone(), width, img_height, gaps));
-
-        // Cache the value to MediaCache, to be used for layout calculations
-        let state = handle.state::<MediaCache>();
-        *state.media.lock().await = Some(q);
-
-        return r;
-    } else {
-        println!("db was not initialized yet");
-        None
     }
 }
 
@@ -208,30 +154,3 @@ pub async fn nuke_db_versioning(handle: AppHandle) {
         error!("Cannot connect to the db");
     }
 }
-
-/*
-#[tauri::command]
-#[allow(dead_code)]
-pub async fn query_all_grouped(
-    page: i64,
-    group_count: i64,
-    item_count: i64,
-    handle: AppHandle,
-) -> Result<Option<Vec<Vec<TestMedia>>>, ()> {
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
-    if let Some(pool) = connection_guard.as_ref() {
-        let _media = query_all_test_impl(item_count * group_count, page, pool).await;
-        let media: Vec<Vec<TestMedia>> = _media
-            .chunks(item_count as usize)
-            .map(|s| s.into())
-            .collect();
-
-        dbg!(&media);
-        return Ok(Some(media));
-    } else {
-        Ok(None)
-    }
-}
-
-    */

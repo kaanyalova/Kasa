@@ -11,13 +11,13 @@
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import MediaThumbnail from './MediaThumbnail.svelte';
 	import { commands } from '$lib/tauri_bindings';
+	import { SearchStore } from '../Sidebar/Search/SearchStore.svelte';
 
 	let values: Array<ImageRow> = $state([]);
 	let heights: Array<number> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
 	let tauri_height = $state(0);
 
-	let is_db_mounted = $state(false);
 	let cooldown = $state(0);
 
 	let virtualList: any;
@@ -30,7 +30,7 @@
 	});
 
 	listen('media_updated', async (_) => {
-		await updateLayout();
+		await updateLayoutFromCache();
 	});
 
 	// drag and drop support
@@ -94,43 +94,46 @@
 		trace(`calculating sizes w:${tauri_width}`);
 	}
 
+	/**
+	 * Gets the initial layout and media by querying every piece of media, than sets the values and the heights,
+	 * unlike updateLayout() it retries until the database is up and does not use the cached values.
+	 */
+	async function initializeLayout() {
+		try {
+			if ((await !commands.areDbsMounted()) || values.length === 0) {
+				await commands.search(
+					SearchStore.searchContents,
+					tauri_width - sidebarStore.size * 3 - 20,
+					12
+				);
+				updateLayoutFromCache();
+				setTimeout(initializeLayout, 500);
+			}
+		} catch (error) {
+			// If there's an error, try again after a delay
+			setTimeout(initializeLayout, 500);
+		}
+	}
+
+	onMount(() => {
+		initializeLayout();
+
+		// reload the values
+		values = values;
+	});
+
 	$effect(async () => {
 		tauri_width;
 		tauri_height;
 		sidebarStore.isActive;
 
-		console.log('toggle');
 		await onResize();
 	});
 
 	$effect(async () => {});
 
-	/**
-	 * Gets the initial layout and media by querying every piece of media, than sets the values and the heights,
-	 * unlike updateLayout() it retries until the database is up and does not use the cached values.
-	 */
-	async function updateLayout() {
-		try {
-			let _values = await commands.queryAll(tauri_width - sidebarStore.size * 3 - 10, 200, 12);
-
-			if ((await !commands.areDbsMounted()) || _values === null) {
-				/*(_values.length === 0)*/ setTimeout(updateLayout, 500);
-			} else {
-				is_db_mounted = true;
-				const _heights: Array<number> = _values.map((row) => row.height);
-
-				values = _values;
-				heights = _heights;
-			}
-		} catch (error) {
-			// If there's an error, try again after a delay
-			setTimeout(updateLayout, 500);
-		}
-	}
-
 	onMount(() => {
-		updateLayout();
-
+		initializeLayout();
 		// reload the values
 		values = values;
 	});

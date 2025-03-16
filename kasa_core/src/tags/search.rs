@@ -49,7 +49,7 @@ pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
     excludes_tags: Vec<String>,
-    order_by: Vec<OrderCriteria>,
+    order_by: OrderCriteria,
 }
 
 #[derive(Debug, PartialEq)]
@@ -64,7 +64,7 @@ impl SearchCriteria {
         let mut contains_tags = vec![];
         let mut contains_tags_or_group = vec![];
         let mut excludes_tags = vec![];
-        let mut order_by_criteria = vec![];
+        let mut order_by_criteria: Option<OrderCriteria> = None;
 
         let or_separator_regex = Regex::new(r#"(?i)\|| or "#).unwrap();
 
@@ -120,7 +120,7 @@ impl SearchCriteria {
                     }
                 };
 
-                order_by_criteria.push(ordering_criteria_date_parsed);
+                order_by_criteria = Some(ordering_criteria_date_parsed);
             } else {
                 contains_tags.push(token.to_string());
             }
@@ -131,7 +131,7 @@ impl SearchCriteria {
             contains_tags,
             contains_tags_or_group,
             excludes_tags,
-            order_by: order_by_criteria,
+            order_by: order_by_criteria.unwrap_or(OrderCriteria::OldestFirst),
         }
     }
 
@@ -159,10 +159,16 @@ impl SearchCriteria {
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
         let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             "
-            SELECT m.* FROM HashTagPair htp, Media m
-            WHERE m.hash = htp.hash
+            SELECT m.* FROM HashTagPair htp, Media m WHERE
             ",
         );
+
+        // hacky way of only querying for m.hash = htp.hash without any tags being searched
+        if self.contains_tags.is_empty() && self.contains_tags_or_group.is_empty() {
+            query_builder.push("1 = 1 ");
+        } else {
+            query_builder.push("m.hash = htp.hash ");
+        }
 
         // add the query for basic "includes tag" search parameter
         if !self.contains_tags.is_empty() {
@@ -176,26 +182,24 @@ impl SearchCriteria {
             separated.push_unseparated(") ");
         }
 
-        if !self.contains_tags_or_group.is_empty() {
-            for tag_group in &self.contains_tags_or_group {
-                query_builder.push(
-                    "
+        for tag_group in &self.contains_tags_or_group {
+            query_builder.push(
+                "
             AND m.hash IN (
             SELECT m.hash
             FROM Media m, HashTagPair htp
             WHERE m.hash = htp.hash
             AND (htp.tag_name IN (
             ",
-                );
+            );
 
-                let mut separated = query_builder.separated(", ");
-                for tag in tag_group {
-                    separated.push_bind(tag);
-                }
-                separated.push_unseparated(") ");
-
-                query_builder.push(")) ");
+            let mut separated = query_builder.separated(", ");
+            for tag in tag_group {
+                separated.push_bind(tag);
             }
+            separated.push_unseparated(") ");
+
+            query_builder.push(")) ");
         }
 
         // Exclude tags
@@ -231,6 +235,12 @@ impl SearchCriteria {
             );
             query_builder.push_bind(self.contains_tags.len() as i64);
         }
+
+        match self.order_by {
+            OrderCriteria::NewestFirst => query_builder.push(" ORDER BY m.time_added DESC"),
+            OrderCriteria::OldestFirst => query_builder.push(" ORDER BY m.time_added ASC"),
+            OrderCriteria::None => query_builder.push(" "),
+        };
 
         query_builder
 

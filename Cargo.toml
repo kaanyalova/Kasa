@@ -35,14 +35,12 @@ chrono = "0.4.38"
 clap = "4.5.23"
 criterion = "0.5.1"
 crossbeam-channel = "0.5.12"
-csv = "1.3.0"
 diffy = "0.4.0"
 image = { version = "0.25.1", features = ["avif-native"] }
 dirs = "5.0.1"
 dotenvy = "0.15.7"
 env_logger = "0.11.5"
 fast_image_resize = "4.0.0"
-ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg" }
 flate2 = "1.0.34"
 human_bytes = { version = "0.4.3", default-features = false }
 humantime = "2.1.0"

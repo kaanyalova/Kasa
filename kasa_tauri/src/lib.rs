@@ -17,6 +17,7 @@ use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
 use downloaders::download_and_index;
 use file_picker::new_linux_file_picker_dialog;
+use file_picker::open_file_manager_with_file_selected;
 use image::get_thumbnail;
 use image::get_thumbnail_from_db;
 use index::cleanup_unreferenced_files;
@@ -46,7 +47,6 @@ use tauri_specta::{Builder, collect_commands};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
-
 mod db;
 mod image;
 mod media;
@@ -149,7 +149,8 @@ pub fn run() {
             get_tags_as_text,
             nuke_db_versioning,
             get_tags_grouped_by_source_categories,
-            get_list_of_all_tags_with_details
+            get_list_of_all_tags_with_details,
+            open_file_manager_with_file_selected,
         ]
     });
 

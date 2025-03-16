@@ -6,6 +6,9 @@
 	import Tick from '../Vector/Tick.svelte';
 	import { commands } from '$lib/tauri_bindings';
 	import { Image } from '@tauri-apps/api/image';
+	import FolderOpen from '../Vector/FolderOpen.svelte';
+	import { openFilePickerWithMultipleFolderSelection } from '$lib/openFilePicker';
+	import Heart from '../Vector/Heart.svelte';
 
 	let { data }: SidebarFooterProps = $props();
 
@@ -32,6 +35,10 @@
 	async function onOpenExternallyButtonClicked() {
 		await commands.openWithSystemDefaultApp(data.paths[0]);
 	}
+
+	async function onShowOnFileManagerButtonClicked() {
+		await commands.openFileManagerWithFileSelected(data.paths[0]);
+	}
 </script>
 
 <div class="sidebarFooter">
@@ -45,7 +52,9 @@
 	<button title="Open Externally" onclick={() => onOpenExternallyButtonClicked()}>
 		<ArrowUpRightFromSquare height={20} width={20}></ArrowUpRightFromSquare></button
 	>
-	<button title="Action"> Act </button>
+	<button title="Action" onclick={() => onShowOnFileManagerButtonClicked()}>
+		<FolderOpen height={20} width={20}></FolderOpen>
+	</button>
 	<button title="Action"> Act </button>
 	<button title="Action"> Act </button>
 </div>

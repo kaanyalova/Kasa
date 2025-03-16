@@ -39,9 +39,12 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
+
 image = { workspace = true }
 opener = "0.7.2"
 ashpd = { version = "0.6.8", optional = true }
+zbus = { version = "5.5.0", features = ["bus-impl"] }
+zbus_macros = "5.5.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

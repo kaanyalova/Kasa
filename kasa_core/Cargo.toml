@@ -62,7 +62,7 @@ ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
 ], optional = true, rev = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
 ruffle_render_wgpu = { git = "https://github.com/ruffle-rs/ruffle", features = [
     "clap",
-], optional = true, branch = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
+], optional = true, rev = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
 
 
 # Dependencies for image tag recognition

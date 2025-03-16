@@ -6,7 +6,6 @@
 	import Operations from './Operations.svelte';
 	import Collections from './Collections.svelte';
 	import './SideBarGlobals.scss';
-	import ResizeBar from './ResizeBar.svelte';
 	import { sidebarStore } from './SidebarStore.svelte';
 	import TagPicker from './TagPicker/TagPicker.svelte';
 </script>
@@ -14,19 +13,18 @@
 <div class="sidebarParent">
 	<!---->
 	{#if sidebarStore.isActive}
-		<div>
-			<div class="sidebar" id="sidebar">
-				<ul>
-					<li>
-						<div>
-							<div class="searchContainer">
-								<Search></Search>
-							</div>
-							<div class="invisDraggable" data-tauri-drag-region></div>
+		<div class="sidebar" id="sidebar">
+			<ul>
+				<li>
+					<div>
+						<div class="searchContainer">
+							<Search></Search>
 						</div>
-					</li>
+						<div class="invisDraggable" data-tauri-drag-region></div>
+					</div>
+				</li>
 
-					<!--
+				<!--
 						
 					<li>
 						<Categories></Categories>
@@ -36,22 +34,20 @@
 						<Collections></Collections>
 					</li>
 					-->
-					<li>
-						<TagPicker></TagPicker>
-					</li>
+				<li>
+					<TagPicker></TagPicker>
+				</li>
 
-					<li>
-						<Operations></Operations>
-					</li>
-				</ul>
-				<div class="filler"></div>
-				<ul>
-					<li>
-						<Bottom></Bottom>
-					</li>
-				</ul>
-			</div>
-			<ResizeBar></ResizeBar>
+				<li>
+					<Operations></Operations>
+				</li>
+			</ul>
+			<div class="filler"></div>
+			<ul>
+				<li>
+					<Bottom></Bottom>
+				</li>
+			</ul>
 		</div>
 	{/if}
 
@@ -69,6 +65,7 @@
 		flex-direction: column;
 		float: left;
 		user-select: none;
+		border-right: 1px solid var(--border);
 	}
 
 	.content {
@@ -94,7 +91,6 @@
 	.sidebarParent {
 		display: flex;
 		flex-direction: row;
-		transition: 1s;
 	}
 
 	.csd {
@@ -116,5 +112,6 @@
 	.searchContainer {
 		z-index: 3;
 		position: relative;
+		border-right: 1px solid var(--border-on-secondary-alt);
 	}
 </style>

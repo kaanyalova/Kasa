@@ -60,7 +60,7 @@
 	});
 
 	async function onResize() {
-		cooldown = setTimeout(updateLayoutFromCache, 500);
+		cooldown = setTimeout(updateLayoutFromCache, 100);
 	}
 
 	/**
@@ -97,10 +97,13 @@
 	$effect(async () => {
 		tauri_width;
 		tauri_height;
-		sidebarStore.size;
+		sidebarStore.isActive;
 
+		console.log('toggle');
 		await onResize();
 	});
+
+	$effect(async () => {});
 
 	/**
 	 * Gets the initial layout and media by querying every piece of media, than sets the values and the heights,

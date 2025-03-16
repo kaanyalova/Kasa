@@ -57,28 +57,27 @@
 	});
 
 	onDestroy(() => {
-		const canvas = document.getElementsByTagName('canvas')[0];
-		canvas.remove();
+		//const canvas = document.getElementsByTagName('canvas')[0];
+		//canvas.remove();
 	});
 
 	function getTextWidth(text: string): number | undefined {
 		return textWidthCanvas?.measureText(text).width;
 	}
 
+	const TEXT_MAX_HEIGHT = 150;
+
 	function calculateHeight(index: number): number {
-		// width is 154 px
 		const tag = filteredTags[index].tag_name;
 		const width = getTextWidth(tag);
 		console.log(width);
-		return Math.ceil((width ?? 154) / 154) * 26 + 4;
-		//return 26;
+		return Math.ceil((width ?? TEXT_MAX_HEIGHT) / TEXT_MAX_HEIGHT) * 26 + 4;
 	}
 </script>
 
 <div class="tagPicker">
 	<div class="tagPickerList">
 		<VirtualList
-			width="100%"
 			height={500}
 			itemCount={filteredTags.length}
 			itemSize={calculateHeight}
@@ -123,7 +122,6 @@
 		flex-grow: 1;
 		margin: 8px;
 		padding: 4px;
-		padding-right: 18px;
 		flex-direction: column;
 		color: var(--text);
 		height: 500px;
@@ -132,6 +130,10 @@
 		width: 274px;
 		user-select: none;
 		-webkit-user-select: none;
+	}
+
+	.tagPickerList :global(.virtual-list-wrapper) {
+		padding-right: 18px;
 	}
 
 	.count {

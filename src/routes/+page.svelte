@@ -40,7 +40,7 @@
 </script>
 
 <Sidebar>
-	<div class="background" class:backgroundSidebarInactive={!sidebarStore.isActive}>
+	<div class="background">
 		<WindowTitlebar platform="gnome">
 			<MainPageTitlebarInsides></MainPageTitlebarInsides>
 		</WindowTitlebar>
@@ -59,13 +59,8 @@
 	.background {
 		background-color: var(--background);
 		width: calc(
-			var(--page-content-width) - var(--sidebar-width) - var(--resize-bar-padding)
+			var(--page-content-width) - var(--sidebar-width)
 		); /* doesn't work with vanilla css*/
-	}
-
-	.backgroundSidebarInactive {
-		/* The sidebar resizeBarPadding would not be pixel perfect otherwise */
-		width: calc(var(--page-content-width) - var(--sidebar-width)) !important;
 	}
 
 	.contentWrapper {
@@ -78,7 +73,7 @@
 
 	.content_ {
 		height: calc(var(--page-content-height) - 32px);
-		width: calc(var(--page-content-width) -var(--sidebar-width) - var(--resize-bar-padding));
+		width: calc(var(--page-content-width) -var(--sidebar-width));
 
 		overflow-y: scroll;
 	}

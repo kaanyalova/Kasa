@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{db::schema::Media, thumbnail::thumbnail_image::calculate_aspect_ratio};
-
+use log::error;
 const LAST_ROW_HEIGHT: u64 = 250;
 
 /// A layout similar to google images
@@ -158,7 +158,12 @@ pub fn calculate_layout(
                 // set the row height to predetermined value
                 //image_row.height = LAST_ROW_HEIGHT;
 
-                assert!(width as u64 >= current_x_last, "Width of the images are larger than the width of screen, something went wrong with last row layout. The assertion that (width = {} >= current_x_last = {}) failed", width, current_x_last);
+                if width as u64 >= current_x_last {
+                    error!(
+                        "Width of the images are larger than the width of screen, something went wrong with last row layout. The assertion that (width = {} >= current_x_last = {}) failed",
+                        width, current_x_last
+                    );
+                }
             }
 
             rows.push(image_row);

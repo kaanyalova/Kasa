@@ -44,7 +44,7 @@ pub fn parse() {
 /// Placeholder search until I implement proper search parsing
 /// Only supports searching for Media that have the tags
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
@@ -52,8 +52,9 @@ pub struct SearchCriteria {
     order_by: OrderCriteria,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 enum OrderCriteria {
+    #[default]
     NewestFirst,
     OldestFirst,
     None,
@@ -159,16 +160,15 @@ impl SearchCriteria {
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
         let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             "
-            SELECT m.* FROM HashTagPair htp, Media m WHERE
+            SELECT m.* FROM HashTagPair htp, Media m
             ",
         );
 
+        query_builder.push("WHERE m.hash = htp.hash ");
         // hacky way of only querying for m.hash = htp.hash without any tags being searched
-        if self.contains_tags.is_empty() && self.contains_tags_or_group.is_empty() {
-            query_builder.push("1 = 1 ");
-        } else {
-            query_builder.push("m.hash = htp.hash ");
-        }
+        //if !self.contains_tags.is_empty() && !self.contains_tags_or_group.is_empty() {
+        //
+        //}
 
         // add the query for basic "includes tag" search parameter
         if !self.contains_tags.is_empty() {
@@ -262,6 +262,15 @@ impl SearchCriteria {
             }
         }
         */
+    }
+
+    pub fn merge(&mut self, other: &Self) {
+        self.contains_tags.append(&mut other.contains_tags.clone());
+        self.contains_tags_or_group
+            .append(&mut other.contains_tags_or_group.clone());
+        self.excludes_tags.append(&mut other.excludes_tags.clone());
+
+        // ordering is not merged as it is a single value and should always prioritize the searchbar value
     }
 }
 

@@ -11,11 +11,9 @@ edition = "2024"
 #] }
 base64 = { workspace = true }
 chrono = { workspace = true }
-crossbeam-channel = { workspace = true }
 dirs = { workspace = true }
 fast_image_resize = { workspace = true, features = ["image"] }
 human_bytes = { workspace = true } # Don't use SI file size units
-humantime = { workspace = true }
 imagesize = { workspace = true }
 img-parts = { workspace = true }
 indexmap = { workspace = true, features = ["serde"] }
@@ -45,13 +43,10 @@ toml_edit = { workspace = true, features = ["serde"] }
 #wl-clipboard-rs = "0.9.0"
 xxhash-rust = { workspace = true, features = ["xxh3"] }
 anyhow = { workspace = true }
-async-walkdir = { workspace = true }
-tokio-stream = { workspace = true }
 walkdir = { workspace = true }
 kasa_python = { workspace = true }
 image = { workspace = true }
 axum = { workspace = true }
-tower-http = { workspace = true, features = ["fs"] }
 rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 axum-macros = { workspace = true }
 

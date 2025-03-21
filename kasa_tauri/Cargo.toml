@@ -32,11 +32,9 @@ kasa_python = { path = "../kasa_python" }
 tauri-plugin-os = { workspace = true }
 log = { workspace = true }
 dotenvy = { workspace = true }
-dirs = { workspace = true }
 specta = { workspace = true }
 specta-typescript = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
-rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 

@@ -526,17 +526,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-walkdir"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37672978ae0febce7516ae0a85b53e6185159a9a28787391eb63fc44ec36037d"
-dependencies = [
- "async-fs 2.1.2",
- "futures-lite 2.6.0",
- "thiserror 2.0.12",
-]
-
-[[package]]
 name = "atk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3465,12 +3454,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91f255a4535024abf7640cb288260811fc14794f62b063652ed349f9a6c2348e"
 
 [[package]]
-name = "humantime"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
-
-[[package]]
 name = "hyper"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4107,15 +4090,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kamadak-exif"
-version = "0.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef4fc70d0ab7e5b6bafa30216a6b48705ea964cdfc29c050f2412295eba58077"
-dependencies = [
- "mutate_once",
-]
-
-[[package]]
 name = "kasa_bench"
 version = "0.1.0"
 dependencies = [
@@ -4133,11 +4107,8 @@ dependencies = [
  "env_logger 0.11.7",
  "kasa_core",
  "kasa_python",
- "log",
  "rand 0.8.5",
- "serde",
  "serde_json",
- "serde_with",
  "sqlx",
  "tokio",
 ]
@@ -4147,24 +4118,20 @@ name = "kasa_core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-walkdir",
  "axum",
  "axum-macros",
  "base64 0.22.1",
  "chrono",
- "crossbeam-channel",
  "csv",
  "dirs 5.0.1",
  "fast_image_resize",
  "ffmpeg-next",
  "human_bytes",
- "humantime",
  "image",
  "imagesize",
  "img-parts",
  "indexmap 2.8.0",
  "itertools 0.13.0",
- "kamadak-exif",
  "kasa_python",
  "log",
  "memchr",
@@ -4190,10 +4157,8 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "tokio",
- "tokio-stream",
  "toml",
  "toml_edit 0.22.24",
- "tower-http",
  "walkdir 2.5.0 (git+https://github.com/dbarnett/walkdir/?branch=lifetimes)",
  "xxhash-rust",
  "xz",
@@ -4228,7 +4193,6 @@ version = "0.1.0"
 dependencies = [
  "ashpd 0.6.8",
  "axum",
- "dirs 5.0.1",
  "dotenvy",
  "image",
  "kasa_core",
@@ -4236,7 +4200,6 @@ dependencies = [
  "log",
  "opener",
  "reqwest",
- "rustpython-vm",
  "serde",
  "serde_json",
  "specta",
@@ -4902,12 +4865,6 @@ dependencies = [
  "thiserror 2.0.12",
  "windows-sys 0.59.0",
 ]
-
-[[package]]
-name = "mutate_once"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16cf681a23b4d0a43fc35024c176437f9dcd818db34e0f42ab456a0ee5ad497b"
 
 [[package]]
 name = "naga"

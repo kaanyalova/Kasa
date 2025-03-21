@@ -1,12 +1,11 @@
 use std::{collections::HashMap, path::PathBuf, str::FromStr};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
-use ffmpeg::filter::Source;
 use human_bytes::human_bytes;
 use itertools::Itertools;
 use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
-use sqlx::{query_as, query_scalar, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, query_as, query_scalar};
 
 use crate::db::schema::{HashTagPair, Image, Media, MediaType, RawTagsField, TagDetail};
 
@@ -138,7 +137,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         media_type: media.media_type.to_string(),
         mime: {
             // Workaround, mime_guess parses all matroska files as x-matroska
-            // we assume they are all video
+            // we assume they are all video sdf
 
             if let Some(mime) = media.mime {
                 if mime == "video/x-matroska" {
@@ -157,7 +156,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
 }
 
 pub async fn get_tags_grouped_by_source_categories_from_tags(
-    tags: &Vec<TagWithDetails>,
+    tags: &[TagWithDetails],
 ) -> SourceCategoryGroupedTags {
     let mut tags_with_no_source_types = vec![];
     let mut tags_with_source_types: HashMap<String, Vec<HashTagPair>> = HashMap::new();

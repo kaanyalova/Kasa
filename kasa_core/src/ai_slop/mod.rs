@@ -14,7 +14,7 @@ pub struct SlopTags {
     pub negative: Vec<SlopTag>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, PartialOrd)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 /// Only hashed by `name`
 pub struct SlopTag {
     pub name: String,
@@ -24,13 +24,13 @@ pub struct SlopTag {
 impl Eq for SlopTag {}
 impl Ord for SlopTag {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self.name.as_str() > other.name.as_str() {
-            Ordering::Greater
-        } else if self.name.as_str() == other.name.as_str() {
-            Ordering::Equal
-        } else {
-            Ordering::Less
-        }
+        self.name.as_str().cmp(other.name.as_str())
+    }
+}
+
+impl PartialOrd for SlopTag {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 

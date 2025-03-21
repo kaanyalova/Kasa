@@ -7,7 +7,7 @@ use std::{
 use anyhow::Result;
 use log::info;
 use serde::{Deserialize, Serialize};
-use toml_edit::{value, Array, DocumentMut, Value};
+use toml_edit::{Array, DocumentMut, Value, value};
 
 const DEFAULT_CONFIG: &str = r#"
 # Try to avoid using relative paths, they will cause problems, they should never be configured
@@ -150,7 +150,7 @@ pub fn set_value_resolution(height: u32, width: u32) {
     let vals = [width as i64, height as i64];
     toml["Thumbnails"]["resolution"] = value(Value::Array(Array::from_iter(vals)));
 
-    fs::write(path, &toml.to_string()).unwrap();
+    fs::write(path, toml.to_string()).unwrap();
 }
 
 /// Sets a string value for given category and key
@@ -165,7 +165,7 @@ pub fn set_value_str(category: &str, key: &str, val: &str) {
 
     toml[category][key] = value(val);
 
-    fs::write(path, &toml.to_string()).unwrap();
+    fs::write(path, toml.to_string()).unwrap();
 }
 
 /// Checks if the config file exists, creates it if it doesn't
@@ -184,7 +184,7 @@ fn find_or_create_config(path: &PathBuf) {
 
     if !path.exists() {
         info!("Config file doesn't exist, creating at {}", path.display());
-        fs::write(&path, DEFAULT_CONFIG).unwrap()
+        fs::write(path, DEFAULT_CONFIG).unwrap()
     }
 }
 

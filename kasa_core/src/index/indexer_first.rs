@@ -16,7 +16,7 @@ pub fn index_first_batch(chunk: Chunk) -> Vec<FirstPass> {
         .filter_map(|chunk| {
             //if let Ok(f) = chunk {
             if chunk.file_type().is_file() {
-                let hash = streaming_xxhash(&chunk.path());
+                let hash = streaming_xxhash(chunk.path());
                 let path = chunk.path();
 
                 let _media = FirstPass {

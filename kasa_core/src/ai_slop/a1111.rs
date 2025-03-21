@@ -2,17 +2,17 @@ use anyhow::Result;
 use core::str;
 use exif::{In, Tag};
 use nom::{
+    IResult,
     bytes::complete::{tag, take},
     multi::many0,
-    IResult,
 };
 use std::{fs::File, io::BufReader, path::PathBuf};
 
-use super::prompt_parser::prompt_to_tags;
 use super::SlopTags;
+use super::prompt_parser::prompt_to_tags;
 use super::{
     errors::SlopTagParseError,
-    supported_formats::{parse_png_meta, SLOP_SUPPORTED_FORMATS},
+    supported_formats::{SLOP_SUPPORTED_FORMATS, parse_png_meta},
 };
 
 /// Parses tags from A1111 generated images
@@ -42,7 +42,7 @@ fn parse_a1111_tags(path: PathBuf, max_tag_len: usize) -> Result<SlopTags> {
                 None => return Err(SlopTagParseError::A1111ParametersNotFound.into()),
             };
 
-            return Ok(parse_a111_tags_from_meta(&params, max_tag_len)?);
+            Ok(parse_a111_tags_from_meta(params, max_tag_len)?)
         }
 
         // rest of the image formats that use exif data

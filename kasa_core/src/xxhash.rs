@@ -28,6 +28,5 @@ pub fn streaming_xxhash(path: &Path) -> u128 {
         }
     }
 
-    let hash = hasher.digest128();
-    hash
+    hasher.digest128()
 }

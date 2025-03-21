@@ -253,10 +253,7 @@ pub fn calculate_aspect_ratio(
         dest_max_x as f64 / src_x as f64,
         dest_max_y as f64 / src_y as f64,
     );
-    (
-        (src_x as f64 * ratio as f64) as u32,
-        (src_y as f64 * ratio as f64) as u32,
-    )
+    ((src_x as f64 * ratio) as u32, (src_y as f64 * ratio) as u32)
 }
 
 #[derive(Debug, Serialize, Deserialize, EnumString, Display)]

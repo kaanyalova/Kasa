@@ -1,13 +1,11 @@
 use std::collections::HashMap;
 
 use anyhow::{Ok, Result};
-use extractors::configurable::{extract_tags, ExtractorConfig};
+use extractors::configurable::{ExtractorConfig, extract_tags};
 use log::trace;
 use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{
-    compiler::parser::ast::String,
-    convert::ToPyObject,
-    py_freeze, pymodule, vm, Interpreter,
+    Interpreter, compiler::parser::ast::String, convert::ToPyObject, py_freeze, pymodule, vm,
 };
 
 use serde::{Deserialize, Serialize};
@@ -33,7 +31,7 @@ pub fn init_interpreter() -> Interpreter {
         std::fs::write(cert_path, CERT_BYTES).unwrap();
     }
 
-    let intrp = vm::Interpreter::with_init(Default::default(), |vm| {
+    vm::Interpreter::with_init(Default::default(), |vm| {
         vm.add_native_modules(rustpython_stdlib::get_module_inits());
 
         vm.add_frozen(FROZEN_STDLIB);
@@ -56,8 +54,7 @@ pub fn init_interpreter() -> Interpreter {
             dir = "py/dependencies/urllib3/urllib3-2.2.3/src"
         ));
         vm.add_frozen(py_freeze!(dir = "py/py_src"));
-    });
-    intrp
+    })
 }
 
 pub fn gdl_download(
@@ -148,7 +145,7 @@ pub struct ExtractedTag {
 }
 
 impl ExtractedTag {
-    fn new(_type: &str, name: &str) -> Self {
+    pub fn new(_type: &str, name: &str) -> Self {
         Self {
             _type: _type.to_string(),
             name: name.to_string(),
@@ -180,7 +177,6 @@ pub enum PyError {
 #[pymodule]
 mod rust_side {
 
-    
     #[pyfunction]
     fn get_cert_path() -> String {
         let data_dir = dirs::data_dir().unwrap();

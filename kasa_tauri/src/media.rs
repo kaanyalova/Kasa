@@ -1,10 +1,8 @@
 use crate::db::DbStore;
-use ashpd::zvariant::Str;
 use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{
-    get_info_impl, get_media_type_impl, get_tags_detailed_impl,
-    get_tags_grouped_by_source_categories_impl, MediaInfo, SourceCategoryGroupedTags,
-    TagWithDetails,
+    MediaInfo, SourceCategoryGroupedTags, TagWithDetails, get_info_impl, get_media_type_impl,
+    get_tags_detailed_impl, get_tags_grouped_by_source_categories_impl,
 };
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;

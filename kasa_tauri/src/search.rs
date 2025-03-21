@@ -1,7 +1,4 @@
-use kasa_core::{
-    db::schema::Media,
-    tags::search::{SearchCriteria, search_simple_impl},
-};
+use kasa_core::{db::schema::Media, tags::search::SearchCriteria};
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::Mutex;
 
@@ -16,7 +13,7 @@ use crate::db::{DbStore, MediaCache};
 /// `input_raw`: user tags
 /// `width`: viewport width for layout
 /// `gaps`: gaps between images  
-pub async fn search(handle: AppHandle, input_raw: String, _width: u64, _gaps: u64) {
+pub async fn search(handle: AppHandle, input_raw: String) {
     // TODO remove width and gaps
     //
     let connection_state = handle.state::<DbStore>();
@@ -45,6 +42,8 @@ pub async fn search(handle: AppHandle, input_raw: String, _width: u64, _gaps: u6
 }
 
 /// Called when the search store con
+#[tauri::command(async)]
+#[specta::specta]
 pub async fn set_search_store(handle: AppHandle, search_criteria: SearchCriteria) {
     let search_state = handle.state::<SearchState>();
     let mut search_guard = search_state.0.lock().await;

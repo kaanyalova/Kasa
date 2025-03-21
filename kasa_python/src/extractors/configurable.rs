@@ -1,13 +1,14 @@
 use std::{
     collections::HashMap,
     fs::{self},
+    str::FromStr,
 };
 
 use log::trace;
 
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::Value;
 use thiserror::Error;
 
 use crate::ExtractedTag;
@@ -92,7 +93,7 @@ fn from_toml_extractor(
             // split the tags using space
             // might want to make this configurable?
             else {
-                _str.split(" ").into_iter().for_each(|t| {
+                _str.split(" ").for_each(|t| {
                     tags.push(ExtractedTag {
                         _type: extractor.category.clone(),
                         name: t.to_owned(),
@@ -130,16 +131,18 @@ impl ExtractorConfig {
         let extractor_config: ExtractorConfig = toml::from_str(&contents)?;
         Ok(extractor_config)
     }
+}
+impl FromStr for ExtractorConfig {
+    type Err = anyhow::Error;
 
-    fn from_str(str: &str) -> Result<Self> {
-        let extractor_config: ExtractorConfig = toml::from_str(&str)?;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let extractor_config: ExtractorConfig = toml::from_str(s)?;
         Ok(extractor_config)
     }
 }
 
 pub fn get_extractors_from_path(path: &str) -> Result<HashMap<String, ExtractorConfig>> {
     let extractors = std::fs::read_dir(path)?
-        .into_iter()
         .filter_map(|p| p.ok())
         .filter(|f| f.file_type().is_ok())
         .filter(|f| f.file_type().unwrap().is_file())
@@ -167,6 +170,7 @@ enum Key {
 
 #[test]
 fn test_config() {
+    use serde_json::json;
     let json = json!({
             "one": {
             "two": ["tag1", "tag2"],
@@ -200,7 +204,7 @@ fn test_config() {
     is_split = false
     "#;
 
-    let extractor_config = ExtractorConfig::from_str(&toml).unwrap();
+    let extractor_config = ExtractorConfig::from_str(toml).unwrap();
 
     let tags = from_toml_extractor(&json, &extractor_config).unwrap();
 

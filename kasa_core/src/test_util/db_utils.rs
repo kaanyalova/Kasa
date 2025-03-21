@@ -1,4 +1,4 @@
-use sqlx::{query, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, query};
 
 use crate::db::schema::Media;
 
@@ -7,7 +7,7 @@ pub async fn _insert_media_row(pool: &Pool<Sqlite>, media: &Media) {
 
     let sql = "INSERT INTO Media(hash, thumb_path, media_type, filesize, mime, thumbnail_x, thumbnail_y, time_added, has_file_ref, hide) VALUES (?,?,?,?,?,?,?,?,?,?)";
 
-    query(&sql)
+    query(sql)
         .bind(&media.hash)
         .bind(&media.thumb_path)
         .bind(&media.media_type)
@@ -23,6 +23,8 @@ pub async fn _insert_media_row(pool: &Pool<Sqlite>, media: &Media) {
         .unwrap();
 }
 
+#[allow(clippy::too_many_arguments)]
+#[cfg(test)]
 pub async fn insert_media_row(
     pool: &Pool<Sqlite>,
     hash: &str,
@@ -60,6 +62,8 @@ pub async fn insert_hash_tag_pair_row(hash: &str, tag_name: &str, pool: &Pool<Sq
         .unwrap();
 }
 
+#[cfg(test)]
+#[allow(dead_code)]
 pub async fn insert_path_row(pool: &Pool<Sqlite>, hash: &str, path: &str, imported_from: &str) {
     query("INSERT INTO Path(hash, path, imported_from) VALUES (?,?,?)")
         .bind(hash)

@@ -11,7 +11,6 @@ use db::connect_to_db;
 use db::get_layout_from_cache;
 use db::get_thumbs_db_info;
 use db::nuke_db_versioning;
-use db::query_all;
 use db::query_tags;
 use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
@@ -38,6 +37,7 @@ use media_server::close_server;
 use media_server::serve_media;
 use search::SearchState;
 use search::search;
+use search::set_search_store;
 use specta_typescript::BigIntExportBehavior;
 use specta_typescript::Typescript;
 use tags::delete_tags;
@@ -61,9 +61,6 @@ mod search;
 mod tags;
 mod utils;
 
-const DEFAULT_LOGLEVEL_RELEASE: LevelFilter = LevelFilter::Warn;
-const DEFAULT_LOGLEVEL_DEV: LevelFilter = LevelFilter::Debug;
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // make vscode stop setting the GDK_BACKEND to x11 on wayland
@@ -84,9 +81,9 @@ pub fn run() {
     let dotenv = dotenvy::dotenv();
 
     #[cfg(debug_assertions)]
-    let default_log_level = DEFAULT_LOGLEVEL_DEV;
+    let default_log_level = LevelFilter::Debug;
     #[cfg(not(debug_assertions))]
-    let default_log_level = DEFAULT_LOGLEVEL_RELEASE;
+    let default_log_level = LevelFilter::Warn;
 
     let log_level_env = env::var("KASA_LOG")
         .unwrap_or("".to_string())
@@ -114,7 +111,6 @@ pub fn run() {
         collect_commands![
             connect_to_db,
             query_tags,
-            query_all,
             get_thumbnail,
             get_info,
             get_layout_from_cache,
@@ -152,6 +148,7 @@ pub fn run() {
             get_tags_grouped_by_source_categories,
             get_list_of_all_tags_with_details,
             open_file_manager_with_file_selected,
+            set_search_store,
         ]
     });
 

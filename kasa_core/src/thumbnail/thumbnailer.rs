@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use base64::prelude::*;
 use log::{error, trace};
-use sqlx::{query, query_scalar, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, query, query_scalar};
 
 use crate::{
     supported_formats,
@@ -12,7 +12,7 @@ use crate::{
 
 use super::{
     thumbnail_flash::thumbnail_flash,
-    thumbnail_image::{thumbnail_image_single_to_file, ThumbnailFormat},
+    thumbnail_image::{ThumbnailFormat, thumbnail_image_single_to_file},
 };
 
 /// Returns the relative path of the thumbnail inside the thumbnails directory
@@ -31,7 +31,7 @@ pub async fn get_thumbnail_from_file_impl(
         .unwrap();
 
     let thumbs = thumbs_path.unwrap();
-    if &thumbs != "" {
+    if !thumbs.is_empty() {
         return Some(thumbs);
     }
     /*
@@ -46,7 +46,7 @@ pub async fn get_thumbnail_from_file_impl(
     */
     let out_path = thumbnails_path
         .join(hash)
-        .with_extension(&thumbnail_format.to_string().to_lowercase());
+        .with_extension(thumbnail_format.to_string().to_lowercase());
 
     let path: String = query_scalar("SELECT path FROM Path WHERE hash = ?")
         .bind(hash)
@@ -72,7 +72,7 @@ pub async fn get_thumbnail_from_file_impl(
                 .await
                 .unwrap();
 
-            return Some(thumbnail_path);
+            Some(thumbnail_path)
         }
         Err(e) => {
             error!("An error occurred while processing thumbnail Error: {}", e);
@@ -135,7 +135,10 @@ pub async fn get_thumbnail_from_db_impl(
         crate::db::schema::MediaType::Unknown => {
             // Unknown media should not get indexed.
 
-            unreachable!("Unknown mime type {}, you somehow managed to index a format that wasn't on the supported formats list.", mime)
+            unreachable!(
+                "Unknown mime type {}, you somehow managed to index a format that wasn't on the supported formats list.",
+                mime
+            )
         }
         crate::db::schema::MediaType::Group => {
             let hashes: Vec<String> =
@@ -172,6 +175,5 @@ pub async fn get_thumbnail_from_db_impl(
     .unwrap();
 
     // return the encoded
-    let encoded = BASE64_STANDARD.encode(thumbnail.bytes);
-    encoded
+    BASE64_STANDARD.encode(thumbnail.bytes)
 }

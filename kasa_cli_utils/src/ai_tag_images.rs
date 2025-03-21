@@ -1,13 +1,12 @@
 use std::env;
 
-use clap::builder::Str;
 use kasa_core::{
     ai_tagger::{prepare_labels, prepare_session, tag_image_wdv},
     config::global_config::get_config_impl,
-    tags::tags::insert_tags_with_source_types,
+    tags::insert_tags_with_source_types,
 };
 use kasa_python::ExtractedTag;
-use sqlx::{query, query_scalar, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{query_scalar, sqlite::SqlitePoolOptions};
 
 pub async fn ai_tag_images() {
     let config = get_config_impl();
@@ -39,7 +38,7 @@ pub async fn ai_tag_images() {
 
         let first_path = path.first().unwrap();
 
-        let tags = tag_image_wdv(&session, &first_path, &labels, 0.85, 0.35);
+        let tags = tag_image_wdv(&session, first_path, &labels, 0.85, 0.35);
 
         let characters: Vec<ExtractedTag> = tags
             .character

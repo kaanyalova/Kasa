@@ -42,7 +42,6 @@ enum KasaCli {
 
 #[derive(clap::Args)]
 #[command(version, about, long_about = None)]
-
 struct GalleryDlArgs {
     url: String,
 }

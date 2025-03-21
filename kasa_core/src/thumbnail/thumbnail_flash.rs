@@ -219,10 +219,10 @@ pub fn get_flash_resolution_impl(path: &str) -> Result<(u32, u32)> {
 
     let movie = SwfMovie::from_path(path, None).map_err(|e| anyhow!(e.to_string()))?;
 
-    return Ok((
+    Ok((
         movie.width().to_pixels() as u32,
         movie.height().to_pixels() as u32,
-    ));
+    ))
 }
 
 #[cfg(not(feature = "swf_thumbnailer"))]

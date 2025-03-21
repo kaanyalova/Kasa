@@ -5,7 +5,7 @@ use kasa_core::downloaders::gallery_dl::PyTrustMe;
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
-use kasa_python::extractors::configurable::{get_extractors_from_path, ExtractorConfig};
+use kasa_python::extractors::configurable::{ExtractorConfig, get_extractors_from_path};
 use kasa_python::init_interpreter;
 use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
@@ -17,8 +17,6 @@ use crate::db::DbStore;
 pub struct PythonStore {
     interpreter: Mutex<Option<PyTrustMe>>,
 }
-
-fn init_or_get_python() {}
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -53,7 +51,7 @@ pub async fn download_and_index(handle: AppHandle, url: String) {
                 db,
                 thumbs_db,
                 &|| handle.emit("media_updated", "").unwrap(),
-                &extractors,
+                extractors,
             )
             .await
             .unwrap();

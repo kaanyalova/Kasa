@@ -1,6 +1,6 @@
-use kasa_core::tags::tags::{
-    get_list_of_all_tags_with_details_impl, get_tags_as_text_impl, remove_tags, update_tags_impl,
-    AllTagsOrderingCriteria, TagWithCount,
+use kasa_core::tags::{
+    AllTagsOrderingCriteria, TagWithCount, get_list_of_all_tags_with_details_impl,
+    get_tags_as_text_impl, remove_tags, update_tags_impl,
 };
 use tauri::{AppHandle, Manager};
 

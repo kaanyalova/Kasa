@@ -4,21 +4,21 @@ use itertools::Itertools;
 use nom::Finish;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use sqlx::{Pool, QueryBuilder, Sqlite};
-use std::{fs::File, io::BufReader, path::PathBuf, usize};
+use std::{fs::File, io::BufReader, path::PathBuf};
 
 #[allow(unused)] // SlopTag is unused even though it is used in tests
 use crate::{
-    ai_slop::{comfy::ComfyExifJson, SlopTag},
+    ai_slop::{SlopTag, comfy::ComfyExifJson},
     db::{self},
-    tags::tags::insert_tags,
+    tags::insert_tags,
 };
 
 use crate::ai_slop::{
-    a1111::{parse_a111_jpeg_usercomment, parse_a111_tags_from_meta},
-    comfy::{parse_comfy_tags_from_meta, ComfyPrompt},
-    errors::SlopTagParseError,
-    supported_formats::{parse_png_meta, SLOP_SUPPORTED_FORMATS},
     SlopTags,
+    a1111::{parse_a111_jpeg_usercomment, parse_a111_tags_from_meta},
+    comfy::{ComfyPrompt, parse_comfy_tags_from_meta},
+    errors::SlopTagParseError,
+    supported_formats::{SLOP_SUPPORTED_FORMATS, parse_png_meta},
 };
 
 /// Gets AI metadata from various image types for A1111 and Comfy metadata
@@ -37,7 +37,7 @@ pub fn extract_meta_from_img(path: &PathBuf) -> Result<SlopImageMeta> {
 
     match mime.to_string().as_ref() {
         "image/png" => {
-            let meta = parse_png_meta(&path)?;
+            let meta = parse_png_meta(path)?;
 
             // A1111 png images have the `parameters` field on them
             if let Some(meta_val) = meta.get("parameters") {
@@ -49,7 +49,7 @@ pub fn extract_meta_from_img(path: &PathBuf) -> Result<SlopImageMeta> {
                 return Ok(SlopImageMeta::ComfyPng(meta_val.to_owned()));
             }
 
-            return Ok(SlopImageMeta::NoMeta);
+            Ok(SlopImageMeta::NoMeta)
         }
 
         // Other supported image formats that use UserComment
@@ -115,7 +115,7 @@ pub fn get_prompt_tags_from_img(path: &PathBuf, max_tag_len: usize) -> Result<Op
     match extract_meta_from_img(path)? {
         SlopImageMeta::A1111Png(meta) => {
             let tags = parse_a111_tags_from_meta(&meta, max_tag_len)?;
-            return Ok(Some(tags));
+            Ok(Some(tags))
         }
         SlopImageMeta::A1111Other(meta) => {
             let (_, meta) = parse_a111_jpeg_usercomment(&meta)
@@ -124,7 +124,7 @@ pub fn get_prompt_tags_from_img(path: &PathBuf, max_tag_len: usize) -> Result<Op
 
             let tags = parse_a111_tags_from_meta(&meta, max_tag_len)?;
 
-            return Ok(Some(tags));
+            Ok(Some(tags))
         }
         SlopImageMeta::ComfyPng(meta) => {
             //println!("{}", String::from_utf8(meta_b));
@@ -140,7 +140,7 @@ pub fn get_prompt_tags_from_img(path: &PathBuf, max_tag_len: usize) -> Result<Op
 
             Ok(Some(parse_comfy_tags_from_meta(&json.prompt)))
         }
-        SlopImageMeta::NoMeta => return Ok(None),
+        SlopImageMeta::NoMeta => Ok(None),
     }
 }
 
@@ -152,7 +152,7 @@ pub async fn get_prompt_tags_from_ids_batch(
     max_tag_len: usize,
     pool: &Pool<Sqlite>,
 ) {
-    if input_ids.len() == 0 {
+    if input_ids.is_empty() {
         return;
     }
 

@@ -1,17 +1,7 @@
-use std::collections::HashMap;
-
 use log::error;
-use nom::{
-    branch::alt,
-    bytes::{
-        complete::{tag_no_case, take_till, take_until},
-        streaming::tag,
-    },
-    multi::{many0, separated_list0},
-};
 use regex::Regex;
-use ruffle_render_wgpu::wgpu::hal::auxil::db;
-use sqlx::{Execute, Pool, QueryBuilder, Sqlite, migrate, query_as, query_builder};
+use serde::{Deserialize, Serialize};
+use sqlx::{Pool, QueryBuilder, Sqlite, query_as};
 
 #[allow(unused)]
 use crate::{
@@ -19,7 +9,7 @@ use crate::{
     test_util::db_utils::{_insert_media_row, insert_hash_tag_pair_row},
 };
 
-use super::tags::parse_tags;
+use super::parse_tags;
 
 pub fn parse() {
     todo!()
@@ -44,7 +34,7 @@ pub fn parse() {
 /// Placeholder search until I implement proper search parsing
 /// Only supports searching for Media that have the tags
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
 pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
@@ -52,7 +42,7 @@ pub struct SearchCriteria {
     order_by: OrderCriteria,
 }
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
 enum OrderCriteria {
     #[default]
     NewestFirst,
@@ -78,7 +68,7 @@ impl SearchCriteria {
             let token = token.trim();
 
             // We don't want to parse empty tokens
-            if token == "" {
+            if token.is_empty() {
                 continue;
             }
 
@@ -95,7 +85,7 @@ impl SearchCriteria {
 
             // case insensitive, matches "or"s surrounded by whitespace, and "|"s
             else if or_separator_regex.is_match(token) {
-                let split: Vec<&str> = or_separator_regex.split(&token).collect();
+                let split: Vec<&str> = or_separator_regex.split(token).collect();
                 contains_tags_or_group.push(split.iter().map(|i| i.to_string()).collect());
             }
             // order by
@@ -158,6 +148,30 @@ impl SearchCriteria {
          */
 
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
+        // Handle cases where we are searching for "all tags" (empty query) or "only excludes"
+        if self.contains_tags.is_empty() && self.contains_tags_or_group.is_empty() {
+            let mut query_builder: QueryBuilder<Sqlite>;
+
+            // Handle case where we only want to exclude tags
+            if !self.excludes_tags.is_empty() {
+                query_builder = QueryBuilder::new(
+                    "SELECT m.* FROM Media m WHERE m.hash NOT IN (
+                     SELECT htp.hash FROM HashTagPair htp WHERE htp.tag_name IN (",
+                );
+
+                let mut separated = query_builder.separated(",");
+                for tag in &self.excludes_tags {
+                    separated.push_bind(tag);
+                }
+                query_builder.push("))");
+            } else {
+                query_builder = QueryBuilder::new("SELECT m.* FROM Media m");
+            }
+
+            self.apply_order_by(&mut query_builder);
+            return query_builder;
+        }
+
         let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             "
             SELECT m.* FROM HashTagPair htp, Media m
@@ -236,11 +250,7 @@ impl SearchCriteria {
             query_builder.push_bind(self.contains_tags.len() as i64);
         }
 
-        match self.order_by {
-            OrderCriteria::NewestFirst => query_builder.push(" ORDER BY m.time_added DESC"),
-            OrderCriteria::OldestFirst => query_builder.push(" ORDER BY m.time_added ASC"),
-            OrderCriteria::None => query_builder.push(" "),
-        };
+        self.apply_order_by(&mut query_builder);
 
         query_builder
 
@@ -264,6 +274,15 @@ impl SearchCriteria {
         */
     }
 
+    // Add this method to implement the ordering functionality
+    fn apply_order_by(&self, query_builder: &mut QueryBuilder<Sqlite>) {
+        match self.order_by {
+            OrderCriteria::NewestFirst => query_builder.push(" ORDER BY m.time_added DESC"),
+            OrderCriteria::OldestFirst => query_builder.push(" ORDER BY m.time_added ASC"),
+            OrderCriteria::None => query_builder.push(""),
+        };
+    }
+
     pub fn merge(&mut self, other: &Self) {
         self.contains_tags.append(&mut other.contains_tags.clone());
         self.contains_tags_or_group
@@ -276,9 +295,10 @@ impl SearchCriteria {
 
 #[sqlx::test]
 async fn test_sql_query_gen(pool: Pool<Sqlite>) {
+    use sqlx::migrate;
     migrate!("../migrations/db").run(&pool).await.unwrap();
 
-    let mut q = SearchCriteria::parse_from_str("foo, bar, python OR javascript, -csharp");
+    let q = SearchCriteria::parse_from_str("foo, bar, python OR javascript, -csharp");
     let mut q = q.to_query();
 
     let media1 = Media {
@@ -391,7 +411,7 @@ pub async fn search_simple_impl(raw_input: &str, pool: &Pool<Sqlite>) -> Vec<Med
     let tags = parse_tags(raw_input);
 
     // show all Media on empty search
-    if tags.len() == 0 {
+    if tags.is_empty() {
         return query_as("SELECT * FROM Media")
             .fetch_all(pool)
             .await

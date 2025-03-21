@@ -3,15 +3,13 @@ use std::{collections::HashMap, path::Path};
 use anyhow::Result;
 use kasa_python::extractors::configurable::ExtractorConfig;
 use rustpython_vm::Interpreter;
-use sqlx::{query_scalar, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;
 
 use crate::{
-    config::global_config::get_config_impl,
-    index::indexer::index,
-    tags::tags::insert_tags_with_source_types,
+    config::global_config::get_config_impl, index::indexer::index,
+    tags::insert_tags_with_source_types,
 };
-
 
 // fuck...
 pub struct PyTrustMe(pub Interpreter);
@@ -19,7 +17,7 @@ unsafe impl Send for PyTrustMe {}
 unsafe impl Sync for PyTrustMe {}
 
 /// output_path should be an absolute path
-pub async fn download_and_index_impl<'py, F: Fn() + Send + Sync>(
+pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
     interpreter: &PyTrustMe,
     url: &str,
     output_path: &str,
@@ -51,7 +49,7 @@ pub async fn download_and_index_impl<'py, F: Fn() + Send + Sync>(
 
         //dbg!(&extractor.get_tags());
 
-        insert_tags_with_source_types(extractor.get_tags(&extractors)?, pool, Some(hash), None)
+        insert_tags_with_source_types(extractor.get_tags(extractors)?, pool, Some(hash), None)
             .await;
     }
 

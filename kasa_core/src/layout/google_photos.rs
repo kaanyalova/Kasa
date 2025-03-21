@@ -45,7 +45,7 @@ pub fn calculate_layout(
 
     */
 
-    let min_aspect_ratio = ((width / 200.0) as f64).round();
+    let min_aspect_ratio = (width / 200.0).round();
 
     //let max_height = match width {
     //    0.0..=640.0 => 100.0,
@@ -59,7 +59,7 @@ pub fn calculate_layout(
 
     let images_len = images.len();
 
-    let mut current_y = 0 + gaps;
+    let mut current_y = /*0 + */ gaps;
 
     struct TempMedia {
         hash: String,
@@ -90,9 +90,9 @@ pub fn calculate_layout(
 
             // Add the values to the current row
 
-            let row_height: f64 = width as f64 / row_aspect_ratio;
+            let row_height: f64 = width / row_aspect_ratio;
 
-            let mut current_x = 0 + gaps; // add gaps to first one in the row
+            let mut current_x = /*0 +*/ gaps; // add gaps to first one in the row
 
             let mut placements = vec![];
 
@@ -139,7 +139,7 @@ pub fn calculate_layout(
             // if it is the case it should have a high aspect ratio and shouldn't look out of place
             if i + 1 == images_len && row_aspect_ratio < width / LAST_ROW_HEIGHT as f64 {
                 // min_aspect_ratio ~= 10 in 1080p
-                let mut current_x_last = 0 + gaps;
+                let mut current_x_last = /*0 + */ gaps;
 
                 for image in &mut image_row.images {
                     let (x, y) =
@@ -158,7 +158,7 @@ pub fn calculate_layout(
                 // set the row height to predetermined value
                 //image_row.height = LAST_ROW_HEIGHT;
 
-                if width as u64 >= current_x_last {
+                if (width as u64) < current_x_last {
                     error!(
                         "Width of the images are larger than the width of screen, something went wrong with last row layout. The assertion that (width = {} >= current_x_last = {}) failed",
                         width, current_x_last

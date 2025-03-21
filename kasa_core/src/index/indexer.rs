@@ -1,10 +1,10 @@
-
 use itertools::Itertools;
 use sqlx::{Pool, Sqlite};
 
 use crate::{
     index::{
-        indexer_first::index_first_batch, indexer_second::indexer_second_batch, write_to_db::write_to_db,
+        indexer_first::index_first_batch, indexer_second::indexer_second_batch,
+        write_to_db::write_to_db,
     },
     supported_formats::get_type,
 };
@@ -49,9 +49,6 @@ const CHUNK_SIZE: usize = 1000;
 /// noticeable difference. Optimize this later!
 ///
 /// In that case second_pass should only return Vec<MediaTypeWithData>
-///
-///
-
 pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
     let mut walkdir = WalkDir::new(path)
         .into_iter()
@@ -60,7 +57,7 @@ pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) 
         //.filter_map(|p| p.path().to_str().map(String::from))
         .peekable();
 
-    while let Some(_) = walkdir.peek() {
+    while walkdir.peek().is_some() {
         let chunk: Chunk = walkdir.by_ref().take(CHUNK_SIZE).collect();
 
         let first_passes = index_first_batch(chunk);
@@ -73,7 +70,7 @@ pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) 
         for (_type, group) in first_pass_groups {
             let batch = indexer_second_batch(_type, group);
 
-            write_to_db(batch, _type, &pool, &pool_thumbs, path).await;
+            write_to_db(batch, _type, pool, pool_thumbs, path).await;
         }
     }
 }

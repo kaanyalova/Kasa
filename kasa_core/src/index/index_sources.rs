@@ -1,10 +1,10 @@
-use sqlx::{query, query_scalar, Pool, QueryBuilder, Sqlite};
+use sqlx::{Pool, QueryBuilder, Sqlite, query, query_scalar};
 
 use super::indexer::index;
 /// Adds a single index source from the path, does not index that path without calling index_path()
 pub async fn add_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
     query("INSERT INTO IndexSource(path) VALUES (?)")
-        .bind(&path)
+        .bind(path)
         .execute(pool)
         .await
         .unwrap();
@@ -13,13 +13,13 @@ pub async fn add_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
 /// Removes files that are imported from the given path and marks any files without paths any references to paths
 pub async fn remove_index_source_impl(path: &str, pool: &Pool<Sqlite>) {
     query("DELETE FROM IndexSource WHERE path = ?")
-        .bind(&path)
+        .bind(path)
         .execute(pool)
         .await
         .unwrap();
 
     query("DELETE FROM Path WHERE imported_from = ?")
-        .bind(&path)
+        .bind(path)
         .execute(pool)
         .await
         .unwrap();
@@ -47,7 +47,7 @@ pub async fn get_index_paths_impl(pool: &Pool<Sqlite>) -> Vec<String> {
         .fetch_all(pool)
         .await
         .unwrap();
-    return paths;
+    paths
 }
 
 /// Removes all the data of all the media which contain no path references

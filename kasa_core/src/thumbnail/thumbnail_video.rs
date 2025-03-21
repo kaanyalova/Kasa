@@ -1,7 +1,7 @@
 use anyhow::Result;
 use fast_image_resize::images::Image;
 use fast_image_resize::{IntoImageView, Resizer};
-use ffmpeg::format::{input, Pixel};
+use ffmpeg::format::{Pixel, input};
 use ffmpeg::media::Type;
 use ffmpeg::software::scaling::{context::Context, flag::Flags};
 use ffmpeg::util::frame::video::Video;
@@ -13,7 +13,7 @@ use std::fs::File;
 use std::io::Write;
 
 use super::thumbnail_image::{
-    calculate_aspect_ratio, Thumbnail, ThumbnailFormat, ThumbnailerError,
+    Thumbnail, ThumbnailFormat, ThumbnailerError, calculate_aspect_ratio,
 };
 
 // Returns the frame and (width, height)
@@ -41,7 +41,7 @@ fn extract_frame(input_path: &str, timestamp: i64) -> Result<(Video, (u32, u32))
         Flags::BILINEAR,
     )?;
 
-    let time_base = decoder.time_base();
+    //let time_base = decoder.time_base();
 
     // this doesn't work on some videos, it just selects the default frame 0, decoder.time_base() also shows 0/1 on some videos
     // what is going on, is the conversion from c struct to rust broken?
@@ -70,12 +70,10 @@ fn extract_frame(input_path: &str, timestamp: i64) -> Result<(Video, (u32, u32))
         }
     }
 
-    return Err(ThumbnailerError::ImageOperationError(
-        "FFmpeg did not find any streams".to_string(),
-    )
-    .into());
+    Err(ThumbnailerError::ImageOperationError("FFmpeg did not find any streams".to_string()).into())
 }
 
+#[allow(unused)]
 fn save_frame(frame: &Video, output_path: &str) -> Result<()> {
     let mut file = File::create(output_path)?;
     file.write_all(format!("P6\n{} {}\n255\n", frame.width(), frame.height()).as_bytes())?;
@@ -87,7 +85,7 @@ fn get_buffer(frame: &Video) -> Result<ImageBuffer<Rgb<u8>, Vec<u8>>> {
     //std::fs::write("data.bin", frame.data(0).to_vec()).unwrap();
     let image = RgbImage::from_raw(frame.width(), frame.height(), frame.data(0).to_vec());
     match image {
-        Some(img) => return Ok(img),
+        Some(img) => Ok(img),
         None => Err(ThumbnailerError::ImageOperationError(
             "RgbImage::from_raw has the wrong resolution".to_string(),
         )

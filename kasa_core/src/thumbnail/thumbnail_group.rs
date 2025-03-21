@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use super::thumbnail_image::{thumbnail_image_single, Thumbnail, ThumbnailFormat};
+use super::thumbnail_image::{Thumbnail, ThumbnailFormat, thumbnail_image_single};
 
 pub fn thumbnail_group(img_paths: Vec<String>, style: GroupThumbnailStyle) -> Result<Thumbnail> {
     match style {
@@ -37,27 +37,8 @@ pub fn thumbnail_group(img_paths: Vec<String>, style: GroupThumbnailStyle) -> Re
     */
 }
 
+#[derive(Default)]
 pub enum GroupThumbnailStyle {
+    #[default]
     FirstImage,
-}
-
-impl Default for GroupThumbnailStyle {
-    fn default() -> Self {
-        GroupThumbnailStyle::FirstImage
-    }
-}
-
-#[test]
-fn test_overlay() {
-    let images = vec![
-        "../overlay_images/cat_0.jpg",
-        "../overlay_images/cat_1.jpg",
-        "../overlay_images/cat_2.jpg",
-        "../overlay_images/cat_3.jpg",
-        "../overlay_images/cat_4.jpg",
-    ];
-
-    //let thumb = thumbnail_group(images).unwrap();
-
-    //thumb.save("./cat_testthumb.png").unwrap();
 }

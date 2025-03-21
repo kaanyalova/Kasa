@@ -58,12 +58,10 @@ pub fn indexer_second_batch(
         })
         .collect();
 
-    let out = DbWritableMediaDataBatch {
+    DbWritableMediaDataBatch {
         media_type_identifier: media_type,
         media_data,
         generic_media_data,
         paths,
-    };
-
-    out
+    }
 }

@@ -65,12 +65,12 @@ pub const SUPPORTED_FORMATS_FLASH: [&str; 1] = ["application/x-shockwave-flash"]
 pub fn get_type(mime: &str) -> MediaType {
     // TODO replace this
     if SUPPORTED_FORMATS_IMAGE.contains(&mime) {
-        return MediaType::Image;
+        MediaType::Image
     } else if SUPPORTED_FORMATS_VIDEO.contains(&mime) {
-        return MediaType::Video;
+        MediaType::Video
     } else if SUPPORTED_FORMATS_FLASH.contains(&mime) {
-        return MediaType::Flash;
+        MediaType::Flash
     } else {
-        return MediaType::Unknown;
+        MediaType::Unknown
     }
 }

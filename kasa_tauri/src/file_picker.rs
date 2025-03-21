@@ -1,7 +1,4 @@
-use std::{os::unix::process::CommandExt, process::Command};
-
-use ashpd::{desktop::file_chooser::OpenFileRequest, zvariant::Str};
-use axum::http::Uri;
+use ashpd::desktop::file_chooser::OpenFileRequest;
 use zbus::Connection;
 use zbus_macros::proxy;
 #[tauri::command]
@@ -24,7 +21,7 @@ pub async fn new_linux_file_picker_dialog() -> Vec<String> {
 
         response
             .uris()
-            .into_iter()
+            .iter()
             .map(|uri| uri.path().to_string())
             .collect()
     }

@@ -29,7 +29,7 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
 
     if !does_db_exist {
         // check for empty paths in config
-        if config.db.db_path == "" {
+        if config.db.db_path.is_empty() {
             error!("db_path is empty");
             return;
         }
@@ -50,7 +50,7 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
     info!("checking if thumbs db exists");
     if !does_thumbs_db_exist {
         // check for empty paths in config
-        if config.db.db_path == "" {
+        if config.db.db_path.is_empty() {
             error!("thumbs_db_path is empty");
             return;
         }

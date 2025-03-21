@@ -5,7 +5,7 @@ use kasa_core::index::{
     },
     indexer::index,
 };
-use sqlx::{pool::PoolOptions, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, pool::PoolOptions};
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::DbStore;
@@ -28,7 +28,7 @@ pub async fn add_index_source(handle: AppHandle, path: String) {
 pub async fn remove_index_source(handle: AppHandle, path: String) {
     let connection_state = handle.state::<DbStore>();
     let connection_guard = connection_state.db.lock().await;
-    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+    //let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
 
     if let Some(db) = connection_guard.as_ref() {
         remove_index_source_impl(&path, db).await;
@@ -43,7 +43,7 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
     let connection_guard = connection_state.db.lock().await;
     let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
 
-    if let (Some(db), Some(thumbs_db)) =
+    if let (Some(_db), Some(_thumbs_db)) =
         (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
     {
         let p: Pool<Sqlite> = PoolOptions::new().connect("").await.unwrap();
@@ -65,7 +65,7 @@ pub async fn get_index_paths(handle: AppHandle) -> Vec<String> {
     if let Some(db) = connection_guard.as_ref() {
         get_index_paths_impl(db).await
     } else {
-        return vec![];
+        vec![]
     }
 }
 

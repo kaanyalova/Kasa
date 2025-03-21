@@ -4,11 +4,11 @@ use log::{error, trace};
 use nom::bytes::complete::tag;
 use nom::combinator::fail;
 use nom::{
+    IResult,
     bytes::complete::{take, take_until, take_until1, take_while},
     character::complete::char,
     multi::{many0, separated_list1},
     sequence::separated_pair,
-    IResult,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -40,7 +40,7 @@ enum ParenthesisType {
 /// Parses the various types of parenthesis between expressions
 /// returns the type and count
 fn parse_parenthesis_expr_outer(input: &str) -> IResult<&str, ParenthesisExpr> {
-    match input.chars().nth(0) {
+    match input.chars().next() {
         Some('(') => {
             let (input, parentheses) = many0(tag("("))(input)?;
             let (input, output) = take_until(")".repeat(parentheses.len()).as_str())(input)?;
@@ -53,7 +53,7 @@ fn parse_parenthesis_expr_outer(input: &str) -> IResult<&str, ParenthesisExpr> {
                 _type: ParenthesisType::Normal,
             };
 
-            return Ok((input, out));
+            Ok((input, out))
         }
 
         Some('[') => {
@@ -67,7 +67,7 @@ fn parse_parenthesis_expr_outer(input: &str) -> IResult<&str, ParenthesisExpr> {
                 _type: ParenthesisType::Square,
             };
 
-            return Ok((input, out));
+            Ok((input, out))
         }
 
         Some('{') => {
@@ -81,7 +81,7 @@ fn parse_parenthesis_expr_outer(input: &str) -> IResult<&str, ParenthesisExpr> {
                 _type: ParenthesisType::Curly,
             };
 
-            return Ok((input, out));
+            Ok((input, out))
         }
 
         Some('<') => {
@@ -95,14 +95,14 @@ fn parse_parenthesis_expr_outer(input: &str) -> IResult<&str, ParenthesisExpr> {
                 _type: ParenthesisType::Angled,
             };
 
-            return Ok((input, out));
+            Ok((input, out))
         }
         // Implement custom errors
         // why are they so annoying to implement
         // https://github.com/rust-bakery/nom/blob/main/examples/custom_error.rs
-        None => return fail(input),
+        None => fail(input),
 
-        Some(_) => return fail(input),
+        Some(_) => fail(input),
     }
 }
 //-------------------------
@@ -152,10 +152,10 @@ fn parse_parenthesis_inner(input: &str) -> IResult<String, (Vec<String>, f64)> {
 
     //  if it fails simply parse regular comma separated tags
     if let Ok((input, tags)) = parse_tags_list(input) {
-        return Ok((
+        Ok((
             (input.to_string()),
             (tags.into_iter().map(|tag| tag.to_string()).collect(), 1f64),
-        ));
+        ))
     } else {
         Err(nom::Err::Failure(nom::error::Error::new(
             input.to_string(),
@@ -173,11 +173,11 @@ fn parse_float(input: &str) -> IResult<&str, f64> {
             return Err(nom::Err::Failure(nom::error::Error::new(
                 input,
                 nom::error::ErrorKind::Fail,
-            )))
+            )));
         }
     };
 
-    if input.chars().nth(0) == Some('.') {
+    if input.starts_with('.') {
         let (input, _) = tag(".")(input)?;
         let (input, rest) = take_while(|c: char| c.is_numeric())(input)?;
         let num_len = rest.len();
@@ -185,9 +185,9 @@ fn parse_float(input: &str) -> IResult<&str, f64> {
 
         let num_rest = num as f64 / 10_f64.powf(num_len as f64);
 
-        return Ok((input, decimal + num_rest));
+        Ok((input, decimal + num_rest))
     } else {
-        return Ok((input, decimal));
+        Ok((input, decimal))
     }
 }
 
@@ -196,7 +196,7 @@ fn parse_float(input: &str) -> IResult<&str, f64> {
 /// `((one,two,three))` -> (_, (["one", "two", "three"], 1.3))
 fn parse_parenthesis_expr(input: &str) -> IResult<String, (Vec<String>, f64)> {
     let (input, parenthesis_expr) =
-        parse_parenthesis_expr_outer(&input).map_err(|e| e.to_owned())?;
+        parse_parenthesis_expr_outer(input).map_err(|e| e.to_owned())?;
 
     match parenthesis_expr._type {
         ParenthesisType::Normal => {
@@ -213,7 +213,7 @@ fn parse_parenthesis_expr(input: &str) -> IResult<String, (Vec<String>, f64)> {
             let parenthesis_pow = parenthesis_expr.count - 1;
             let pow = power * 1.1f64.powf(parenthesis_pow as f64);
 
-            return Ok((input.to_string(), (tags, pow)));
+            Ok((input.to_string(), (tags, pow)))
         }
         ParenthesisType::Square => {
             // check if the insides contains the characters `|`, `:` and just skip the parsing for now,
@@ -229,7 +229,7 @@ fn parse_parenthesis_expr(input: &str) -> IResult<String, (Vec<String>, f64)> {
             // make sure it isn't lower than 0
             let pow = pow.max(0.01);
 
-            return Ok(((input), (tags, pow)));
+            Ok(((input), (tags, pow)))
         }
         ParenthesisType::Curly => {
             // Same as `()`, used by NAI?, but with lower power
@@ -247,12 +247,12 @@ fn parse_parenthesis_expr(input: &str) -> IResult<String, (Vec<String>, f64)> {
             let parenthesis_pow = parenthesis_expr.count - 1;
             let pow = power * 1.05f64.powf(parenthesis_pow as f64);
 
-            return Ok((input, (tags, pow)));
+            Ok((input, (tags, pow)))
         }
         ParenthesisType::Angled => {
             trace!("Parsing Lora metadata not implemented yet.");
             // Lora parsing unimplemented
-            return Ok((input.to_string(), (vec![], 1f64)));
+            Ok((input.to_string(), (vec![], 1f64)))
         }
     }
 }
@@ -314,7 +314,7 @@ pub fn parse_prompt(input: &str) -> Vec<SlopTag> {
         remaining = remaining.trim_start_matches(",").to_string();
         remaining = remaining.trim().to_string();
 
-        if remaining == "" {
+        if remaining.is_empty() {
             return results;
         }
     }
@@ -351,16 +351,16 @@ pub fn prompt_to_tags(input: &str, max_tag_len: usize) -> Vec<SlopTag> {
 fn parse_tag(input: &str) -> IResult<&str, (String, f64)> {
     // we are at last tag
     match take_until(",")(input) {
-        Ok((input, output)) => return Ok((input, (output.to_string(), 1f64))),
+        Ok((input, output)) => Ok((input, (output.to_string(), 1f64))),
         std::result::Result::Err(e) => {
             // end of prompt
             if !input.contains(",") {
-                return Ok(("", (input.to_string(), 1f64)));
+                Ok(("", (input.to_string(), 1f64)))
             } else {
-                return Err(e);
+                Err(e)
             }
         }
-    };
+    }
 }
 
 #[test]
@@ -378,6 +378,7 @@ fn test_parser() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn parse_float_test() {
     let (_, pi) = parse_float("3.14").unwrap();
     assert_eq!(pi, 3.14f64);
@@ -399,12 +400,12 @@ fn parse_tags_test() {
 fn parse_tags_inner_test() {
     let inp = "one,two,three:1.3";
 
-    let (_, (tags, power)) = parse_parenthesis_inner(&inp).unwrap();
+    let (_, (tags, power)) = parse_parenthesis_inner(inp).unwrap();
     assert_eq!(tags, vec!["one", "two", "three"]);
     assert_eq!(power, 1.3f64);
 
     let inp = "one,two,three";
-    let (_, (tags, power)) = parse_parenthesis_inner(&inp).unwrap();
+    let (_, (tags, power)) = parse_parenthesis_inner(inp).unwrap();
     assert_eq!(tags, vec!["one", "two", "three"]);
     assert_eq!(power, 1f64);
 }

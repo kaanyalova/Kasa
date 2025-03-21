@@ -27,7 +27,7 @@ pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<Str
         )
         .await;
 
-        return Ok(thumbnail);
+        Ok(thumbnail)
     } else {
         Ok(None)
     }

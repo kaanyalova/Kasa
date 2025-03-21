@@ -1,14 +1,12 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Ok, Result};
-use ruffle_render_wgpu::wgpu::hal::auxil::db;
-use sqlx::{prelude::FromRow, query, query_as, query_scalar, Pool, QueryBuilder, Sqlite};
+use sqlx::{Pool, QueryBuilder, Sqlite, prelude::FromRow, query, query_as, query_scalar};
 use xxhash_rust::xxh3::xxh3_64;
 
 use crate::{
-    db::schema::{media_type_to_string, Media, MediaType},
-    media::{get_info_impl, MediaInfo},
-    test_util::{self, db_utils::insert_media_row},
+    db::schema::{MediaType, media_type_to_string},
+    media::{MediaInfo, get_info_impl},
 };
 
 const MAX_BINDS: usize = 32766;
@@ -27,7 +25,7 @@ async fn create_group(
         .reduce(|l, r| l.wrapping_add(r))
         .unwrap();
 
-    let bytes = unsafe { std::mem::transmute::<u64, [u8; 8]>(sum_of_hashes) };
+    let bytes = sum_of_hashes.to_ne_bytes();
     let hash = xxh3_64(&bytes);
 
     query("INSERT INTO MediaGroup(group_hash,group_name) VALUES (?,?) ")
@@ -138,6 +136,7 @@ async fn remove_group(group_id: &str, db: &Pool<Sqlite>) -> Result<()> {
 
 #[sqlx::test]
 async fn test_groups(pool: Pool<Sqlite>) {
+    use crate::test_util::db_utils::insert_media_row;
     sqlx::migrate!("../migrations/db").run(&pool).await.unwrap();
     insert_media_row(
         &pool,
@@ -184,11 +183,13 @@ async fn test_groups(pool: Pool<Sqlite>) {
     )
     .await;
 
-    let group_id = create_group(
+    create_group(
         vec!["1".to_string(), "2".to_string(), "3".to_string()],
         Some("named".to_string()),
         false,
         true,
         &pool,
-    );
+    )
+    .await
+    .unwrap();
 }

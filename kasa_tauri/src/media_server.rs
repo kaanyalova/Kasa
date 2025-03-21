@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc};
+use std::sync::Arc;
 
 use axum::Router;
 use log::trace;
@@ -8,6 +8,7 @@ use tokio::sync::{
     Mutex,
     oneshot::{self, Receiver, Sender},
 };
+
 use tower_http::services::ServeFile;
 
 use crate::db::DbStore;

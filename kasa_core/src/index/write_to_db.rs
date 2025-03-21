@@ -1,6 +1,6 @@
-use sqlx::{query as sqlx_query, Pool, QueryBuilder, Sqlite};
+use sqlx::{Pool, QueryBuilder, Sqlite, query as sqlx_query};
 
-use crate::db::schema::{media_type_to_string, MediaType};
+use crate::db::schema::{MediaType, media_type_to_string};
 
 use super::media_types::{DbWritableMediaDataBatch, MediaTypeWithData};
 
@@ -24,9 +24,9 @@ pub async fn write_to_db(
             .push_bind(&data.thumb_path)
             .push_bind(data.size as i64)
             .push_bind(&data.mime)
-            .push_bind(&data.time_added)
-            .push_bind(&data.thumbnail_x)
-            .push_bind(&data.thumbnail_y)
+            .push_bind(data.time_added)
+            .push_bind(data.thumbnail_x)
+            .push_bind(data.thumbnail_y)
             .push_bind(true);
     });
 
@@ -55,8 +55,8 @@ pub async fn write_to_db(
             query_builder.push_values(inputs.media_data.into_iter(), |mut b, data| {
                 #[allow(irrefutable_let_patterns)] // what???
                 if let MediaTypeWithData::Image(d) = data {
-                    b.push_bind(d.resolution_x as i64)
-                        .push_bind(d.resolution_y as i64)
+                    b.push_bind(d.resolution_x)
+                        .push_bind(d.resolution_y)
                         .push_bind(d.hash);
                 }
             });

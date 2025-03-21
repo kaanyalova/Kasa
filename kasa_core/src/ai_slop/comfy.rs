@@ -1,4 +1,4 @@
-use std::{fmt::Debug, path::PathBuf, usize};
+use std::{fmt::Debug, path::PathBuf};
 
 use anyhow::Result;
 use indexmap::{IndexMap, IndexSet};
@@ -6,10 +6,10 @@ use log::{error, trace};
 use serde::{Deserialize, Serialize};
 
 use super::{
+    SlopTag, SlopTags,
     errors::SlopTagParseError,
     prompt_parser::prompt_to_tags,
-    supported_formats::{parse_png_meta, SLOP_SUPPORTED_FORMATS},
-    SlopTag, SlopTags,
+    supported_formats::{SLOP_SUPPORTED_FORMATS, parse_png_meta},
 };
 
 /// input is the `Prompt` field of meta
@@ -23,7 +23,7 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
         if let Some(positive_nodes) = &node.1.inputs.positive {
             for positive_node in positive_nodes {
                 if let PromptVal::Val(positive_node_id) = positive_node {
-                    initial_positive_node_ids.push(&positive_node_id);
+                    initial_positive_node_ids.push(positive_node_id);
                 }
             }
         }
@@ -31,7 +31,7 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
         if let Some(negative_nodes) = &node.1.inputs.negative {
             for negative_node in negative_nodes {
                 if let PromptVal::Val(negative_node_id) = negative_node {
-                    initial_negative_node_ids.push(&negative_node_id);
+                    initial_negative_node_ids.push(negative_node_id);
                 }
             }
         }
@@ -71,31 +71,23 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
             if let Some(text) = &node.inputs.text {
                 let v = match text {
                     CuresedTextVal::Single(prompt_val) => prompt_val,
-                    CuresedTextVal::Vec(vec) => vec.get(0).unwrap_or(&PromptVal::None),
+                    CuresedTextVal::Vec(vec) => vec.first().unwrap_or(&PromptVal::None),
                 };
 
                 if let PromptVal::Val(text) = v {
                     positive_prompts.push(text.to_owned());
                 }
             }
-
-            if let Some(text) = &node.inputs.result {
-                if let PromptVal::Val(text) = text {
-                    positive_prompts.push(text.to_owned());
-                }
-
-                // For some reason the extension's text merge node doesn't have the result field on negative
-                // prompts, i know this is the positive prompt but this is here "just in case"
+            // For some reason the extension's text merge node doesn't have the result field on negative
+            // prompts, i know this is the positive prompt but this is here "just in case"
+            if let Some(PromptVal::Val(text)) = &node.inputs.result {
+                positive_prompts.push(text.to_owned());
             }
-            if let Some(text) = &node.inputs.text_a {
-                if let PromptVal::Val(text) = text {
-                    positive_prompts.push(text.to_owned());
-                }
+            if let Some(PromptVal::Val(text)) = &node.inputs.text_a {
+                positive_prompts.push(text.to_owned());
             }
-            if let Some(text) = &node.inputs.text_b {
-                if let PromptVal::Val(text) = text {
-                    positive_prompts.push(text.to_owned());
-                }
+            if let Some(PromptVal::Val(text)) = &node.inputs.text_b {
+                positive_prompts.push(text.to_owned());
             }
         }
     }
@@ -106,7 +98,7 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
             if let Some(text) = &node.inputs.text {
                 let v = match text {
                     CuresedTextVal::Single(prompt_val) => prompt_val,
-                    CuresedTextVal::Vec(vec) => vec.get(0).unwrap_or(&PromptVal::None),
+                    CuresedTextVal::Vec(vec) => vec.first().unwrap_or(&PromptVal::None),
                 };
 
                 if let PromptVal::Val(text) = v {
@@ -115,25 +107,18 @@ pub fn parse_comfy_tags_from_meta(input: &ComfyPrompt) -> SlopTags {
             }
 
             // Used by some comfy extension
-            if let Some(text) = &node.inputs.result {
-                if let PromptVal::Val(text) = text {
-                    negative_prompts.push(text.to_owned());
-                }
-
-                // For some reason the extension's text merge node doesn't have the result field on negative prompts
-                // further "deduplication" on next step should merge them properly... i hope
+            // For some reason the extension's text merge node doesn't have the result field on negative prompts
+            // further "deduplication" on next step should merge them properly... i hope
+            if let Some(PromptVal::Val(text)) = &node.inputs.result {
+                negative_prompts.push(text.to_owned());
             }
 
-            if let Some(text) = &node.inputs.text_a {
-                if let PromptVal::Val(text) = text {
-                    negative_prompts.push(text.to_owned());
-                }
+            if let Some(PromptVal::Val(text)) = &node.inputs.text_a {
+                negative_prompts.push(text.to_owned());
             }
 
-            if let Some(text) = &node.inputs.text_b {
-                if let PromptVal::Val(text) = text {
-                    negative_prompts.push(text.to_owned());
-                }
+            if let Some(PromptVal::Val(text)) = &node.inputs.text_b {
+                negative_prompts.push(text.to_owned());
             }
         }
     }
@@ -165,7 +150,9 @@ fn get_final_node(input: &ComfyPrompt, node_id: &str) -> Option<String> {
 
     let _final: Option<String> = loop {
         if max_loop == 0 {
-            error!("ComfyUI Prompt Parser: ran into a recursive node, what kind of spaghetti nodes does that image contain");
+            error!(
+                "ComfyUI Prompt Parser: ran into a recursive node, what kind of spaghetti nodes does that image contain"
+            );
             break None; // recursive nodes? is that even possible
         }
 
@@ -186,14 +173,16 @@ fn get_final_node(input: &ComfyPrompt, node_id: &str) -> Option<String> {
         }
 
         let Some(text) = &current_node.inputs.text else {
-            error!("ComfyUI Prompt Parser: The referenced positive/negative node doesn't have a text field on it");
+            error!(
+                "ComfyUI Prompt Parser: The referenced positive/negative node doesn't have a text field on it"
+            );
             break None; // this node doesn't have a text field, just return
         };
 
         let text_val = match text {
             CuresedTextVal::Single(prompt_val) => prompt_val,
             CuresedTextVal::Vec(vec) => {
-                if let Some(v) = vec.get(0) {
+                if let Some(v) = vec.first() {
                     v
                 } else {
                     break None;
@@ -214,12 +203,14 @@ fn get_final_node(input: &ComfyPrompt, node_id: &str) -> Option<String> {
             current_node_id = next_node_id.to_string();
             max_loop -= 1;
         } else {
-            error!("ComfyUI Prompt Parser: The referenced nodes text fields first index only has an integer");
+            error!(
+                "ComfyUI Prompt Parser: The referenced nodes text fields first index only has an integer"
+            );
             break None; // the value is a int?, what does that even mean?
         }
     };
 
-    return _final;
+    _final
 }
 
 #[deprecated]
@@ -244,7 +235,9 @@ fn parse_comfy_tags(path: PathBuf) -> Result<SlopTags> {
             match meta.get("prompt") {
                 Some(prompt) => unimplemented!(), //return Ok(parse_comfy_tags_from_meta(&prompt)),
                 None => {
-                    unreachable!("Presence of 'prompt' png field should be checked while determining if the AI metadata is present")
+                    unreachable!(
+                        "Presence of 'prompt' png field should be checked while determining if the AI metadata is present"
+                    )
                 }
             }
         }

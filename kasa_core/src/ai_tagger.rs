@@ -1,9 +1,6 @@
 use std::iter::zip;
 
-use anyhow::Result;
-use ffmpeg::error;
-use image::{imageops, Rgba};
-use thiserror::Error;
+use image::{Rgba, imageops};
 
 use ort::tensor::TensorElementType::Float32;
 use ort::{execution_providers::ROCmExecutionProvider, session::Session};
@@ -74,11 +71,7 @@ pub fn tag_image_wdv(
     let flattened = predictions.flatten();
 
     let tags = tag_labels;
-    let labels: Vec<(String, f32)> = zip(
-        tags.tag_names.to_owned().into_iter(),
-        flattened.to_owned().into_iter(),
-    )
-    .collect();
+    let labels: Vec<(String, f32)> = zip(tags.tag_names.to_owned(), flattened.to_owned()).collect();
 
     let ratings: Vec<TaggerTag> = tags
         .rating_indexes
@@ -153,8 +146,8 @@ pub fn tag_image_wdv(
     character.reverse();
 
     TaggerOutput {
-        character: character,
-        general: general,
+        character,
+        general,
         ratings: rating,
     }
 }
@@ -248,7 +241,7 @@ fn prepare_image(path: &str, size: (u32, u32)) -> ndarray::Array4<f32> {
         }
     }
 
-    return converted;
+    converted
 }
 
 /// https://stackoverflow.com/a/14731922
@@ -264,8 +257,5 @@ pub fn calculate_aspect_ratio(
         dest_max_x as f64 / src_x as f64,
         dest_max_y as f64 / src_y as f64,
     );
-    (
-        (src_x as f64 * ratio as f64) as u32,
-        (src_y as f64 * ratio as f64) as u32,
-    )
+    ((src_x as f64 * ratio) as u32, (src_y as f64 * ratio) as u32)
 }

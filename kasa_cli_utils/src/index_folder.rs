@@ -1,5 +1,5 @@
 use kasa_core::{
-    config::global_config::{get_config_impl, GlobalConfig},
+    config::global_config::{GlobalConfig, get_config_impl},
     db::migrations::prepare_dbs,
     index::indexer::index,
 };
@@ -49,5 +49,5 @@ pub async fn index_folder(args: IndexFolderArgs) {
         .await
         .unwrap();
 
-    index(args.folder.to_str().unwrap().into(), &pool, &pool_thumbs).await;
+    index(args.folder.to_str().unwrap(), &pool, &pool_thumbs).await;
 }

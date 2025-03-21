@@ -4,14 +4,14 @@ use tokio::sync::Mutex;
 use kasa_core::{
     config::global_config::get_config_impl,
     db::{
-        db::{TagQueryOutput, query_tags_impl},
         db_info::{ThumbsDBInfo, get_thumbs_db_info_impl},
         migrations::prepare_dbs,
         schema::Media,
+        {TagQueryOutput, query_tags_impl},
     },
     layout::google_photos::{ImageRow, calculate_layout},
 };
-use sqlx::{Pool, Sqlite, query, query_as, sqlite::SqlitePoolOptions};
+use sqlx::{Pool, Sqlite, query, sqlite::SqlitePoolOptions};
 use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
@@ -47,11 +47,10 @@ pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<
     let connection_guard = connection_state.db.lock().await;
 
     if let Some(pool) = connection_guard.as_ref() {
-        let tags = query_tags_impl(tag_name, count, pool).await;
-        return tags;
+        query_tags_impl(tag_name, count, pool).await
     } else {
         error!("no db found when querying tags");
-        return vec![];
+        vec![]
     }
 }
 
@@ -119,10 +118,10 @@ pub async fn get_layout_from_cache(
     let cache = handle.state::<MediaCache>().media.lock().await.clone(); // TODO: lots of clones here , somehow remove them?
 
     if let Some(media) = cache {
-        return Some(calculate_layout(media, width, img_height, gaps));
+        Some(calculate_layout(media, width, img_height, gaps))
     } else {
         info!("No media found on cache!");
-        return None;
+        None
     }
 }
 

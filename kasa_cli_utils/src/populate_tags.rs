@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use sqlx::{sqlite::SqlitePoolOptions, QueryBuilder, Sqlite};
+use sqlx::{QueryBuilder, Sqlite, sqlite::SqlitePoolOptions};
 
 use crate::PopulateTagsArgs;
 
@@ -32,7 +32,7 @@ pub async fn populate_tags(args: PopulateTagsArgs) {
 
     for chunk in tags.chunks(BIND_LIMIT / 4) {
         query_builder.push_values(chunk.iter().take(BIND_LIMIT / 4), |mut b, tag| {
-            b.push_bind(&tag.name).push_bind(&tag.count); // Remove clone ?
+            b.push_bind(&tag.name).push_bind(tag.count); // Remove clone ?
         });
         let query = query_builder.build();
 

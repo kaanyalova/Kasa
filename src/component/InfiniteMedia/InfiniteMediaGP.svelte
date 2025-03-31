@@ -2,7 +2,7 @@
 	// This should "technically work" but
 
 	import { invoke } from '@tauri-apps/api/core';
-	import { error, info, trace } from '@tauri-apps/plugin-log';
+	import { debug, error, info, trace } from '@tauri-apps/plugin-log';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import VirtualList, { type VirtualListEvents } from 'svelte-tiny-virtual-list';
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
@@ -30,7 +30,8 @@
 	});
 
 	listen('media_updated', async (_) => {
-		await updateLayoutFromCache();
+		await initializeLayout();
+		trace('media_updated event received');
 	});
 
 	// drag and drop support
@@ -99,14 +100,16 @@
 	 * unlike updateLayout() it retries until the database is up and does not use the cached values.
 	 */
 	async function initializeLayout() {
+		console.log(`call init layout size is ${values.length}`);
 		try {
-			if ((await !commands.areDbsMounted()) || values.length === 0) {
+			console.log(values.length);
+			if (await commands.areDbsMounted()) {
 				await commands.search(
 					SearchStore.searchContents,
 					tauri_width - sidebarStore.size * 3 - 20,
 					12
 				);
-				updateLayoutFromCache();
+			} else {
 				setTimeout(initializeLayout, 500);
 			}
 		} catch (error) {
@@ -115,8 +118,8 @@
 		}
 	}
 
-	onMount(() => {
-		initializeLayout();
+	onMount(async () => {
+		await initializeLayout();
 
 		// reload the values
 		values = values;

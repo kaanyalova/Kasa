@@ -8,11 +8,37 @@
 	import TagPickerCheckBox from './TagPickerCheckBox.svelte';
 	import VirtualList, { type VirtualListProps } from 'svelte-tiny-virtual-list';
 	import { error } from '@tauri-apps/plugin-log';
+	import { comma } from 'postcss/lib/list';
+	import { SearchStore } from '../Search/SearchStore.svelte';
+	import { listen } from '@tauri-apps/api/event';
+	import FilterAltOff from '../../Vector/FilterAltOff.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
+	let checkedTags: Map<string, TagPickerCheckboxState> = $state(new SvelteMap());
 	let filterInput = $state('');
 	let textWidthCanvas: CanvasRenderingContext2D | null;
 	let virtualList: VirtualList;
+
+	async function onCheck(state: TagPickerCheckboxState, tagName: string) {
+		if (state === 'unselected') {
+			checkedTags.delete(tagName);
+		} else {
+			checkedTags.set(tagName, state);
+		}
+		await commands.setSearchStore({
+			contains_tags: Array.from(checkedTags.entries())
+				.filter(([_tag, state]) => state === 'selected')
+				.map(([tag, _state]) => tag),
+			contains_tags_or_group: [],
+			excludes_tags: Array.from(checkedTags.entries())
+				.filter(([_tag, state]) => state === 'exclude')
+				.map(([tag, _state]) => tag),
+			order_by: 'NewestFirst'
+		});
+
+		await commands.search(SearchStore.searchContents, 0, 0);
+	}
 
 	let filteredTags: Array<TagWithCount> = $derived(
 		tags?.filter((tag) => {
@@ -34,6 +60,10 @@
 			clearInterval(initialLoadInterval);
 		}
 	}, 500);
+
+	listen('tags_updated', (_) => {
+		loadTags();
+	});
 
 	// Prepare the canvas for text width calculations
 	onMount(() => {
@@ -70,39 +100,65 @@
 	function calculateHeight(index: number): number {
 		const tag = filteredTags[index].tag_name;
 		const width = getTextWidth(tag);
-		console.log(width);
 		return Math.ceil((width ?? TEXT_MAX_HEIGHT) / TEXT_MAX_HEIGHT) * 26 + 4;
+	}
+
+	async function resetTags() {
+		checkedTags.clear();
+		await commands.setSearchStore({
+			contains_tags: [],
+			contains_tags_or_group: [],
+			excludes_tags: [],
+			order_by: 'NewestFirst'
+		});
+
+		await commands.search(SearchStore.searchContents, 0, 0);
 	}
 </script>
 
 <div class="tagPicker">
 	<div class="tagPickerList">
-		<VirtualList
-			height={500}
-			itemCount={filteredTags.length}
-			itemSize={calculateHeight}
-			bind:this={virtualList}
-			scrollToIndex={/*How does this even work?*/ 0}
-		>
-			<div slot="item" let:index let:style {style}>
-				<div class="tag">
-					<TagPickerCheckBox tagName={filteredTags!![index].tag_name}></TagPickerCheckBox>
-					<label for="tag-{filteredTags!![index].tag_name}">
-						<div class="tagName">
-							{filteredTags!![index].tag_name}
-						</div>
-					</label>
+		{#if filteredTags.length > 0}
+			<VirtualList
+				height={500}
+				itemCount={filteredTags.length}
+				itemSize={calculateHeight}
+				bind:this={virtualList}
+				scrollToIndex={/*How does this even work?*/ 0}
+			>
+				<div slot="item" let:index let:style {style}>
+					<div class="tag">
+						<TagPickerCheckBox
+							tagName={filteredTags!![index].tag_name}
+							state={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
+							{onCheck}
+						></TagPickerCheckBox>
+						<label for="tag-{filteredTags!![index].tag_name}">
+							<div class="tagName">
+								{filteredTags!![index].tag_name}
+							</div>
+						</label>
 
-					<div class="count" style="background-color: {getCountColor(filteredTags!![index].count)}">
-						{formatCount(filteredTags!![index].count)}
+						<div
+							class="count"
+							style="background-color: {getCountColor(filteredTags!![index].count)}"
+						>
+							{formatCount(filteredTags!![index].count)}
+						</div>
 					</div>
 				</div>
-			</div>
-		</VirtualList>
+			</VirtualList>
+		{/if}
 	</div>
 
 	<div class="search">
-		Search Tags
+		<div class="searchUpper">
+			<div class="searchLabel">Search Tags</div>
+			<button class="resetFilter" onclick={async () => await resetTags()}>
+				Clear
+				<FilterAltOff height={24} width={24}></FilterAltOff>
+			</button>
+		</div>
 		<input type="text" bind:value={filterInput} />
 	</div>
 
@@ -121,6 +177,7 @@
 		display: flex;
 		flex-grow: 1;
 		margin: 8px;
+		margin-bottom: 4px;
 		padding: 4px;
 		flex-direction: column;
 		color: var(--text);
@@ -163,10 +220,12 @@
 		justify-content: center;
 		padding-left: 20px;
 		padding-right: 20px;
-		padding: 8px;
+		padding: 4px;
+		padding-right: 8px;
 		padding-left: 12px;
 		flex-direction: column;
 		color: var(--text);
+		margin-bottom: 4px;
 	}
 
 	.search > input {
@@ -182,6 +241,33 @@
 		outline: var(--accent) 1px solid;
 	}
 
+	.searchUpper {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.resetFilter {
+		color: var(--text);
+		background-color: var(--background);
+		border-radius: 8px;
+		border: 1px solid var(--secondary-alt);
+		padding: 2px;
+		margin-bottom: 4px;
+		fill: var(--text);
+		display: flex;
+		flex-direction: row;
+		padding-left: 4px;
+		padding-right: 4px;
+	}
+	.resetFilter:hover {
+		background-color: var(--secondary-alt);
+	}
+
+	.searchLabel {
+		display: inline-block;
+		align-self: flex-end;
+	}
 	.tagPicker {
 		border: 1px solid var(--secondary-alt);
 		margin: 4px;

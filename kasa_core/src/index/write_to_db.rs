@@ -1,4 +1,7 @@
-use sqlx::{Pool, QueryBuilder, Sqlite, query as sqlx_query};
+use core::hash;
+
+use log::trace;
+use sqlx::{Execute, Pool, QueryBuilder, Sqlite, query as sqlx_query};
 
 use crate::db::schema::{MediaType, media_type_to_string};
 
@@ -47,6 +50,8 @@ pub async fn write_to_db(
 
     // Write specific file metadata
 
+    let mut invalid_media_to_be_tagged = vec![];
+
     match media_type {
         MediaType::Image => {
             let mut query_builder: QueryBuilder<Sqlite> =
@@ -58,10 +63,18 @@ pub async fn write_to_db(
                     b.push_bind(d.resolution_x)
                         .push_bind(d.resolution_y)
                         .push_bind(d.hash);
+                } else if let MediaTypeWithData::Invalid(hash) = data {
+                    // if the data is invalid insert a dummy entry
+                    // would it be better to skip this?, but that would require iterating over all the data to
+                    //find out if the query should run at all
+                    b.push_bind(0).push_bind(0).push_bind(hash.clone());
+                    invalid_media_to_be_tagged.push(hash);
+                    //TODO update the
                 }
             });
 
             let query = query_builder.build();
+            dbg!(query.sql());
             query.execute(pool).await.unwrap();
         }
         MediaType::Video => { /* TODO implement video meta */ }
@@ -73,6 +86,24 @@ pub async fn write_to_db(
 
     // Mark any unreferenced files
     sqlx_query("UPDATE Media SET has_file_ref = false WHERE NOT EXISTS (SELECT 1 FROM Path WHERE Path.hash = Media.hash)").execute(pool).await.unwrap();
+
+    if !invalid_media_to_be_tagged.is_empty() {
+        let mut query_builder: QueryBuilder<Sqlite> =
+            QueryBuilder::new("UPDATE Media SET is_valid = false WHERE Media.hash IN ( ");
+
+        let mut separated = query_builder.separated(", ");
+
+        for hash in &invalid_media_to_be_tagged {
+            separated.push_bind(hash);
+        }
+        separated.push_unseparated(") ");
+
+        query_builder.build().execute(pool).await.unwrap();
+        trace!(
+            "Invalid media marked with is_valid = false: {:?}",
+            invalid_media_to_be_tagged
+        );
+    }
 
     /*
     UPDATE Media

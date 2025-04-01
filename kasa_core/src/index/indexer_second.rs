@@ -18,6 +18,7 @@ use super::{
 ///  It checks if the hash of the file was previously written to the DB
 ///
 /// It writes extra info about the `MediaType` of the file to a table named after that `MediaType`
+///
 pub fn indexer_second_batch(
     media_type: MediaType,
     first_passes: Vec<FirstPass>,

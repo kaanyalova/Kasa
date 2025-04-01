@@ -217,6 +217,7 @@ fn test_random_generation() {
                     time_added: 0,
                     has_file_ref: false,
                     hide: false,
+                    is_valid: true,
                 }
             });
         }

@@ -1,13 +1,17 @@
 use std::path::PathBuf;
 
+use anyhow::anyhow;
 use base64::prelude::*;
 use log::{error, trace};
-use sqlx::{Pool, Sqlite, query, query_scalar};
+use sqlx::{Pool, Sqlite, prelude::FromRow, query, query_as, query_scalar};
 
 use crate::{
     supported_formats,
-    thumbnail::thumbnail_group::thumbnail_group,
-    thumbnail::{thumbnail_image::thumbnail_image_single, thumbnail_video::thumbnail_video},
+    thumbnail::{
+        thumbnail_group::thumbnail_group,
+        thumbnail_image::{Thumbnail, thumbnail_image_single},
+        thumbnail_video::thumbnail_video,
+    },
 };
 
 use super::{
@@ -91,17 +95,25 @@ pub async fn get_thumbnail_from_db_impl(
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
 ) -> String {
-    let bytes: Option<Vec<u8>> = query_scalar("SELECT bytes FROM Thumbs WHERE hash = ?")
-        .bind(hash)
-        .fetch_optional(pool_thumbs)
-        .await
-        .unwrap();
+    #[derive(FromRow)]
+    struct ThumbnailData {
+        bytes: Option<Vec<u8>>,
+        success: bool,
+    }
 
-    if let Some(bytes) = bytes {
-        // thanks sqlx very cool
-        if !bytes.is_empty() {
-            trace!("thumbnail found in db returning that");
-            return BASE64_STANDARD.encode(bytes);
+    let thumbnail_from_db: Option<ThumbnailData> =
+        query_as("SELECT bytes, success FROM Thumbs WHERE hash = ?")
+            .bind(hash)
+            .fetch_optional(pool_thumbs)
+            .await
+            .unwrap();
+
+    if let Some(thumbnail) = thumbnail_from_db {
+        if let Some(bytes) = thumbnail.bytes {
+            if !bytes.is_empty() && thumbnail.success {
+                trace!("thumbnail found in db returning that");
+                return BASE64_STANDARD.encode(bytes);
+            }
         }
     }
 
@@ -124,36 +136,52 @@ pub async fn get_thumbnail_from_db_impl(
 
     let thumbnail = match _type {
         crate::db::schema::MediaType::Image => {
-            thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG).unwrap()
+            thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG)
         }
         crate::db::schema::MediaType::Video => {
-            thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 5000).unwrap()
+            thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 5000)
         }
         crate::db::schema::MediaType::Game => {
-            unimplemented!()
+            return "".to_string(); // Return empty string for unimplemented type
         }
         crate::db::schema::MediaType::Unknown => {
-            // Unknown media should not get indexed.
-
-            unreachable!(
-                "Unknown mime type {}, you somehow managed to index a format that wasn't on the supported formats list.",
+            error!(
+                "Unknown mime type {}, you have somehow managed to index a format that wasn't on the supported formats list.",
                 mime
-            )
+            );
+            return "".to_string(); // Return empty string for unknown type
         }
         crate::db::schema::MediaType::Group => {
+            // Handle database query errors properly
             let hashes: Vec<String> =
                 query_scalar("SELECT hash FROM MediaGroupEntry WHERE group_hash = ?")
                     .bind(hash.to_string())
                     .fetch_all(pool)
                     .await
-                    .unwrap();
+                    .unwrap(); // how to handle this ?
 
-            thumbnail_group(hashes, Default::default()).unwrap()
+            thumbnail_group(hashes, Default::default())
         }
         crate::db::schema::MediaType::Flash => {
-            thumbnail_flash(&path, (256, 256), &ThumbnailFormat::PNG)
-                .await
-                .unwrap()
+            thumbnail_flash(&path, (256, 256), &ThumbnailFormat::PNG).await
+        }
+    };
+
+    // Handle the Result<Thumbnail> outside the match statement
+
+    let error_placeholder = include_bytes!("placeholders/error_placeholder.png");
+    let thumnail_success = thumbnail.is_ok();
+
+    let thumbnail = match thumbnail {
+        Ok(thumb) => thumb,
+        Err(e) => {
+            error!("Failed to generate thumbnail: {}", e);
+
+            Thumbnail {
+                x: 256,
+                y: 256,
+                bytes: error_placeholder.to_vec(),
+            }
         }
     };
 
@@ -161,7 +189,7 @@ pub async fn get_thumbnail_from_db_impl(
 
     // write the thumbnail to db
     query(
-        "INSERT INTO Thumbs(hash, x, y, x_max, y_max, format, bytes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO Thumbs(hash, x, y, x_max, y_max, format, bytes, success) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(hash)
     .bind(thumbnail.x)
@@ -170,6 +198,7 @@ pub async fn get_thumbnail_from_db_impl(
     .bind(256) // TODO unhardcode
     .bind("PNG") // TODO unhardcode
     .bind(&thumbnail.bytes)
+    .bind(thumnail_success)
     .execute(pool_thumbs)
     .await
     .unwrap();

@@ -141,7 +141,7 @@ async fn take_screenshot(
     size: SizeOpt,
     skip_unsupported: bool,
 ) -> Result<Vec<RgbaImage>> {
-    let bytes = include_bytes!("swf_placeholder.png");
+    let bytes = include_bytes!("placeholders/swf_placeholder.png");
     let img = image::load_from_memory(bytes)?;
     Ok(vec![img.to_rgba8()])
 }

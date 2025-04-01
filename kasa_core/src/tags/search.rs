@@ -312,6 +312,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         time_added: 0,
         has_file_ref: true,
         hide: false,
+        is_valid: true,
     };
 
     let media2 = Media {
@@ -325,6 +326,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         time_added: 0,
         has_file_ref: true,
         hide: false,
+        is_valid: true,
     };
 
     let media3 = Media {
@@ -338,6 +340,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         time_added: 0,
         has_file_ref: true,
         hide: false,
+        is_valid: true,
     };
 
     let media4 = Media {
@@ -351,6 +354,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         time_added: 0,
         has_file_ref: true,
         hide: false,
+        is_valid: true,
     };
 
     _insert_media_row(&pool, &media1).await;

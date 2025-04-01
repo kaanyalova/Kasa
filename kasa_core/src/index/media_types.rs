@@ -43,6 +43,7 @@ pub struct ImageData {
 pub enum MediaTypeWithData {
     Image(Image),
     Video, // TODO add metadata
+    Invalid(String),
 }
 
 // Not a table anymore ,move this later

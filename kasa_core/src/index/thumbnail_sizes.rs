@@ -6,13 +6,10 @@ use ffmpeg::media::Type;
 
 pub fn get_thumbnail_size(media_type: MediaType, path: &str) -> (u32, u32) {
     let (src_x, src_y) = match media_type {
-        MediaType::Image => {
-            let size = imagesize::size(path).unwrap();
-            (size.width as u32, size.height as u32)
-        }
-        MediaType::Video => {
-            get_video_resolution(path).unwrap_or((1920, 1080)) // default value if ffmpeg dies
-        } // TODO ignore errors
+        MediaType::Image => imagesize::size(path)
+            .map(|s| (s.width as u32, s.height as u32))
+            .unwrap_or((256, 256)),
+        MediaType::Video => get_video_resolution(path).unwrap_or((1920, 1080)), // default value if ffmpeg dies
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),

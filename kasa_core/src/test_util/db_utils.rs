@@ -49,6 +49,7 @@ pub async fn insert_media_row(
         time_added,
         has_file_ref,
         hide,
+        is_valid: true,
     };
     _insert_media_row(pool, media).await;
 }

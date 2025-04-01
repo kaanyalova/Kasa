@@ -218,17 +218,24 @@ pub fn thumbnail_image_single(
     let mut bytes: Vec<u8> = vec![];
 
     match _format {
-        ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut bytes)
-                .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-                .unwrap();
-        }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
+        ThumbnailFormat::PNG => PngEncoder::new(&mut bytes).write_image(
+            dest_img.buffer(),
+            dst_x,
+            dst_y,
+            src_color_type.into(),
+        )?,
+        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes).write_image(
+            dest_img.buffer(),
+            dst_x,
+            dst_y,
+            src_color_type.into(),
+        )?,
+        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes).write_image(
+            dest_img.buffer(),
+            dst_x,
+            dst_y,
+            src_color_type.into(),
+        )?,
     }
 
     let thumbnail = Thumbnail {

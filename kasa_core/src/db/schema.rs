@@ -1,6 +1,6 @@
 use rayon::str;
 use serde::{Deserialize, Serialize};
-use sqlx::{prelude::FromRow, Encode};
+use sqlx::{Encode, prelude::FromRow};
 use strum::EnumString;
 
 /// Info about Media of all types
@@ -22,6 +22,7 @@ pub struct Media {
 
     //pub imported_from: String,
     pub has_file_ref: bool,
+    pub is_valid: bool,
 
     pub hide: bool,
 }

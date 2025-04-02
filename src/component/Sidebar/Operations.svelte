@@ -28,11 +28,6 @@
 				<Heart height={20} width={20}></Heart>
 			</SidebarButton>
 		</li>
-		<li>
-			<SidebarButton text="Generate With AI">
-				<Heart height={20} width={20}></Heart>
-			</SidebarButton>
-		</li>
 
 		<li>
 			<SidebarButton text="Download" onClick={onClickDownload}>

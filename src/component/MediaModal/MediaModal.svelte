@@ -7,9 +7,14 @@
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';
 	import { commands, type MediaInfo } from '$lib/tauri_bindings';
-	import 'vidstack/bundle';
-	import { MediaPlayer } from 'vidstack';
 	import { stat } from '@tauri-apps/plugin-fs';
+
+	import 'vidstack/player';
+	import 'vidstack/player/layouts/default';
+	import 'vidstack/player/ui';
+
+	import 'vidstack/player/styles/default/theme.css';
+	import 'vidstack/player/styles/default/layouts/video.css';
 
 	let { imageHash: mediaHash }: MediaModalProps = $props();
 

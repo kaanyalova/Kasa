@@ -34,6 +34,12 @@
 		trace('media_updated event received');
 	});
 
+	listen('dbs_updated', async (_) => {
+		await commands.connectDbs();
+		await initializeLayout();
+		trace('dbs_mounted event received');
+	});
+
 	// drag and drop support
 	listen('tauri://drag-drop', (event: any) => {
 		// what is the type for the drag and drop event?
@@ -45,6 +51,8 @@
 	});
 
 	onMount(async () => {
+		await commands.connectDbs();
+
 		const initial_size = await getCurrentWindow().innerSize();
 		tauri_height = initial_size.height;
 		tauri_width = initial_size.width;
@@ -104,11 +112,7 @@
 		try {
 			console.log(values.length);
 			if (await commands.areDbsMounted()) {
-				await commands.search(
-					SearchStore.searchContents,
-					tauri_width - sidebarStore.size * 3 - 20,
-					12
-				);
+				await commands.search(SearchStore.searchContents);
 			} else {
 				setTimeout(initializeLayout, 500);
 			}

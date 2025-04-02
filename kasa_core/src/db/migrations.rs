@@ -23,6 +23,7 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
     info!("trying to connect to dbs");
     //let config = get_config_impl();
 
+    info!("db_path: {}", &db_path_absolute);
     let does_db_exist = sqlx::Sqlite::database_exists(&db_path_absolute)
         .await
         .unwrap();

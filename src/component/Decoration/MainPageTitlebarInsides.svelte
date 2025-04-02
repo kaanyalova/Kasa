@@ -5,9 +5,47 @@
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
 	import { InfiniteMediaStore } from '../InfiniteMedia/InfiniteMediaStore.svelte';
 	import '../../fonts.css';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { error } from '@tauri-apps/plugin-log';
+	import { commands } from '$lib/tauri_bindings';
+	import { emit } from '@tauri-apps/api/event';
+	import {
+		openFilePickerWithSaveDialog,
+		openFilePickerWithSelectDialog
+	} from '$lib/openFilePicker';
 
 	function handleSidebarButton() {
 		sidebarStore.toggle();
+	}
+
+	async function onNewDb() {
+		const paths = await openFilePickerWithSaveDialog('Kasa Database', '*.kasa', 'default.kasa');
+		const path = paths[0];
+
+		console.log('Selected path:', path);
+
+		if (!path) {
+			error('File picker failed to select file');
+			return;
+		}
+
+		await commands.setDbPath(path);
+		await emit('dbs_updated');
+	}
+
+	async function onOpenDb() {
+		const paths = await openFilePickerWithSelectDialog('Kasa Database', '*.kasa');
+		const path = paths[0];
+
+		console.log('Selected path:', path);
+
+		if (!path) {
+			error('File picker failed to select file');
+			return;
+		}
+
+		await commands.setDbPath(path);
+		await emit('dbs_updated');
 	}
 </script>
 
@@ -31,10 +69,11 @@
          <Moon height={20} width={20}></Moon>
 		<div class="iconPadding"></div>-->
 
-			<div class="open">Open DB ▼</div>
+			<button class="option newDb" onclick={async () => onNewDb()}> New DB </button>
 			<div class="iconPadding" data-tauri-drag-region></div>
 
-			<div class="open">Select ▼</div>
+			<button class="option" onclick={async () => await onOpenDb()}>Open DB ▼</button>
+			<div class="iconPadding" data-tauri-drag-region></div>
 		</div>
 
 		<div class="insidesFiller"></div>
@@ -75,7 +114,7 @@
 	.iconPadding {
 		width: 10px;
 	}
-	.open {
+	.option {
 		color: black;
 		background: var(--accent);
 		padding-left: 2px;
@@ -112,5 +151,10 @@
 		border-radius: 4px;
 		padding-left: 2px;
 		padding-right: 2px;
+	}
+
+	.newDb {
+		padding-right: 4px;
+		padding-left: 4px;
 	}
 </style>

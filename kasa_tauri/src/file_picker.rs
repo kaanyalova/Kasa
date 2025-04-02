@@ -1,9 +1,9 @@
-use ashpd::desktop::file_chooser::OpenFileRequest;
+use ashpd::desktop::file_chooser::{FileFilter, OpenFileRequest, SaveFileRequest};
 use zbus::Connection;
 use zbus_macros::proxy;
 #[tauri::command]
 #[specta::specta]
-pub async fn new_linux_file_picker_dialog() -> Vec<String> {
+pub async fn new_linux_file_picker_dialog_folder_select() -> Vec<String> {
     // This adds a few megabytes to the binary just for a proper file picker, tauri devs are refusing to upgrade their stuff
     // to gtk4
     #[cfg(target_os = "linux")]
@@ -13,6 +13,63 @@ pub async fn new_linux_file_picker_dialog() -> Vec<String> {
             .accept_label("Select")
             .multiple(true)
             .directory(true)
+            .send()
+            .await
+            .unwrap()
+            .response()
+            .unwrap();
+
+        response
+            .uris()
+            .iter()
+            .map(|uri| uri.path().to_string())
+            .collect()
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    vec![]
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn new_linux_file_picker_dialog_save_file(
+    filter_name: String,
+    filter_glob: String,
+    current_name: String,
+) -> Vec<String> {
+    #[cfg(target_os = "linux")]
+    {
+        let response = SaveFileRequest::default()
+            .modal(true)
+            .current_name(&*current_name)
+            .filters([FileFilter::new(&filter_name).glob(&filter_glob)])
+            .send()
+            .await
+            .unwrap()
+            .response()
+            .unwrap();
+
+        response
+            .uris()
+            .iter()
+            .map(|uri| uri.path().to_string())
+            .collect()
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn new_linux_file_picker_dialog_file_select(
+    filter_name: String,
+    filter_glob: String,
+) -> Vec<String> {
+    #[cfg(target_os = "linux")]
+    {
+        let response = OpenFileRequest::default()
+            .modal(true)
+            .accept_label("Select")
+            .multiple(false)
+            .filters([FileFilter::new(&filter_name).glob(&filter_glob)])
             .send()
             .await
             .unwrap()

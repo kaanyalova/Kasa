@@ -168,6 +168,34 @@ pub fn set_value_str(category: &str, key: &str, val: &str) {
     fs::write(path, toml.to_string()).unwrap();
 }
 
+pub fn set_db_path_impl(db_path: &PathBuf) {
+    let path = get_config_dir().join("config.toml");
+
+    find_or_create_config(&path);
+
+    let f = fs::read_to_string(&path).unwrap();
+
+    let mut toml = f.parse::<DocumentMut>().unwrap();
+
+    toml["Database"]["db_path"] = value(db_path.to_string_lossy().to_string());
+
+    fs::write(path, toml.to_string()).unwrap();
+}
+
+pub fn set_thumbs_db_path_impl(db_path: &PathBuf) {
+    let path = get_config_dir().join("config.toml");
+
+    find_or_create_config(&path);
+
+    let f = fs::read_to_string(&path).unwrap();
+
+    let mut toml = f.parse::<DocumentMut>().unwrap();
+
+    toml["Thumbnails"]["thumbs_db_path"] = value(db_path.to_string_lossy().to_string());
+
+    fs::write(path, toml.to_string()).unwrap();
+}
+
 /// Checks if the config file exists, creates it if it doesn't
 /// `path` is absolute path to config.toml
 fn find_or_create_config(path: &PathBuf) {

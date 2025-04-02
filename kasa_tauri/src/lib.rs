@@ -3,6 +3,8 @@ use std::env;
 use config::get_config;
 use config::set_config_resolution_value;
 use config::set_config_value;
+use config::set_db_path;
+use config::set_thumbs_db_path;
 use db::DbStore;
 use db::MediaCache;
 use db::are_dbs_mounted;
@@ -15,7 +17,9 @@ use db::query_tags;
 use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
 use downloaders::download_and_index;
-use file_picker::new_linux_file_picker_dialog;
+use file_picker::new_linux_file_picker_dialog_file_select;
+use file_picker::new_linux_file_picker_dialog_folder_select;
+use file_picker::new_linux_file_picker_dialog_save_file;
 use file_picker::open_file_manager_with_file_selected;
 use image::get_thumbnail;
 use image::get_thumbnail_from_db;
@@ -48,6 +52,7 @@ use tauri_specta::{Builder, collect_commands};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
+
 mod db;
 mod image;
 mod media;
@@ -136,7 +141,9 @@ pub fn run() {
             index_path,
             image_path_to_rgba_bytes,
             open_with_system_default_app,
-            new_linux_file_picker_dialog,
+            new_linux_file_picker_dialog_folder_select,
+            new_linux_file_picker_dialog_save_file,
+            new_linux_file_picker_dialog_file_select,
             nuke_all_indexes,
             nuke_selected_index,
             cleanup_unreferenced_files,
@@ -149,6 +156,8 @@ pub fn run() {
             get_list_of_all_tags_with_details,
             open_file_manager_with_file_selected,
             set_search_store,
+            set_db_path,
+            set_thumbs_db_path,
         ]
     });
 

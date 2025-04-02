@@ -37,7 +37,7 @@
 			order_by: 'NewestFirst'
 		});
 
-		await commands.search(SearchStore.searchContents, 0, 0);
+		await commands.search(SearchStore.searchContents);
 	}
 
 	let filteredTags: Array<TagWithCount> = $derived(
@@ -105,6 +105,7 @@
 
 	async function resetTags() {
 		checkedTags.clear();
+		filterInput = '';
 		await commands.setSearchStore({
 			contains_tags: [],
 			contains_tags_or_group: [],
@@ -112,7 +113,7 @@
 			order_by: 'NewestFirst'
 		});
 
-		await commands.search(SearchStore.searchContents, 0, 0);
+		await commands.search(SearchStore.searchContents);
 	}
 </script>
 

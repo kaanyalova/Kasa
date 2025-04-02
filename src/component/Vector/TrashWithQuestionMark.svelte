@@ -6,11 +6,10 @@
 	viewBox="0 0 200704 262144"
 	version="1.1"
 	id="svg1"
-	width="200704"
-	height="262144"
+	{height}
+	{width}
 	xmlns="http://www.w3.org/2000/svg"
 >
-	<defs id="defs1" />
 	<!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
 	<path
 		d="M 135.2,17.7 128,32 H 32 C 14.3,32 0,46.3 0,64 0,81.7 14.3,96 32,96 h 384 c 17.7,0 32,-14.3 32,-32 0,-17.7 -14.3,-32 -32,-32 H 320 L 312.8,17.7 C 307.4,6.8 296.3,0 284.2,0 H 163.8 C 151.7,0 140.6,6.8 135.2,17.7 Z M 416,128 H 32 l 21.2,339 c 1.6,25.3 22.6,45 47.9,45 h 245.8 c 25.3,0 46.3,-19.7 47.9,-45 z"

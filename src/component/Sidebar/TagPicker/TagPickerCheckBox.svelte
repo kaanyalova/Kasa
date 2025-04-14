@@ -4,35 +4,36 @@
 	import Cross from '../../Vector/Cross.svelte';
 	import type { MouseEventHandler } from 'svelte/elements';
 	import { stat } from '@tauri-apps/plugin-fs';
+	import { trace } from '@tauri-apps/plugin-log';
 
-	let { tagName, onCheck, state }: TagPickerCheckBoxProps = $props();
-
-	$effect(() => {
-		onCheck(state, tagName);
-	});
+	let { tagName, onCheck, checkboxState }: TagPickerCheckBoxProps = $props();
 
 	function onClick() {
-		if (state === 'selected') {
-			state = 'unselected';
+		if (checkboxState === 'selected') {
+			checkboxState = 'unselected';
+			onCheck(checkboxState, tagName);
 		} else {
-			state = 'selected';
+			checkboxState = 'selected';
+			onCheck(checkboxState, tagName);
 		}
 	}
 	function onContextMenu(e: Event) {
 		e.preventDefault();
-		if (state === 'exclude') {
-			state = 'unselected';
+		if (checkboxState === 'exclude') {
+			checkboxState = 'unselected';
+			onCheck(checkboxState, tagName);
 		} else {
-			state = 'exclude';
+			checkboxState = 'exclude';
+			onCheck(checkboxState, tagName);
 		}
 	}
 </script>
 
 <div class="tagPickerCheckBox">
 	<button class="checkBox" onclick={() => onClick()} oncontextmenu={(e) => onContextMenu(e)}>
-		{#if state === 'selected'}
+		{#if checkboxState === 'selected'}
 			<Tick height={16} width={16}></Tick>
-		{:else if state === 'exclude'}
+		{:else if checkboxState === 'exclude'}
 			<Cross height={20} width={20}></Cross>
 		{:else}{/if}
 	</button>

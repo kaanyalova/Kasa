@@ -1,33 +1,26 @@
-function createInfiniteMediaStore() {
-    let selectedHashes: Array<string> = $state([]);
-    let onSelectMode = $derived(selectedHashes.length > 0);
+import { stat } from '@tauri-apps/plugin-fs';
 
+export class InfiniteMediaStoreInner {
+	constructor() {}
+	selectedHashes: Array<string> = $state([]);
+	onSelectMode = $derived(this.selectedHashes.length > 0);
+	showNames = $state(true);
 
+	addMedia(hash: string) {
+		if (this.selectedHashes.includes(hash as never)) {
+			this.selectedHashes = this.selectedHashes.filter((h) => h !== hash);
+		} else {
+			this.selectedHashes = [...this.selectedHashes, hash];
+		}
+	}
 
-    return {
+	cleanAllMedia() {
+		this.selectedHashes = [];
+	}
 
-        get selectedHashes() { return selectedHashes },
-        get onSelectMode() { return onSelectMode },
-
-        addMedia: (hash: string) => {
-
-            if (selectedHashes.includes(hash as never)) {
-                selectedHashes = selectedHashes.filter((h) => h !== hash);
-            } else {
-                selectedHashes = [...selectedHashes, hash];
-            }
-
-        },
-
-
-        cleanAllMedia: () => {
-            selectedHashes = [];
-        }
-
-
-
-
-    }
+	setShowNames(state: boolean) {
+		this.showNames = state;
+	}
 }
 
-export const InfiniteMediaStore = createInfiniteMediaStore();
+export const InfiniteMediaStore = new InfiniteMediaStoreInner();

@@ -1,8 +1,8 @@
 use crate::db::DbStore;
 use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{
-    MediaInfo, SourceCategoryGroupedTags, TagWithDetails, get_info_impl, get_media_type_impl,
-    get_tags_detailed_impl, get_tags_grouped_by_source_categories_impl,
+    MediaInfo, SourceCategoryGroupedTags, TagWithDetails, get_info_impl, get_media_name_impl,
+    get_media_type_impl, get_tags_detailed_impl, get_tags_grouped_by_source_categories_impl,
 };
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;
@@ -90,5 +90,19 @@ pub async fn get_tags_grouped_by_source_categories(
     } else {
         error!("No connection to database , could not get group info");
         None
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_media_name(handle: AppHandle, hash: String) -> String {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        get_media_name_impl(&hash, pool).await
+    } else {
+        error!("No connection to database , could not get group info");
+        "".to_string()
     }
 }

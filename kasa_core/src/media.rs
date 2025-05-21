@@ -1,6 +1,12 @@
-use std::{collections::HashMap, path::PathBuf, str::FromStr};
+use std::{
+    collections::HashMap,
+    ffi::OsString,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
+use ffmpeg::media;
 use human_bytes::human_bytes;
 use itertools::Itertools;
 use rustpython_vm::common::str;
@@ -200,6 +206,24 @@ pub async fn get_media_type_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
         .fetch_one(pool)
         .await
         .unwrap()
+}
+
+pub async fn get_media_name_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
+    let media_path_string: String = query_scalar(
+        "SELECT Path.path FROM Media, Path WHERE Media.hash = ? AND Media.hash = Path.hash",
+    )
+    .bind(hash)
+    .fetch_one(pool)
+    .await
+    .unwrap();
+
+    let media_path = PathBuf::from(media_path_string);
+    let file_name = media_path.file_name();
+
+    file_name
+        .unwrap_or(&OsString::new())
+        .to_string_lossy()
+        .to_string()
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

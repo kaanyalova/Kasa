@@ -174,6 +174,9 @@ async setDbPath(path: string) : Promise<void> {
 },
 async setThumbsDbPath(path: string) : Promise<void> {
     await TAURI_INVOKE("set_thumbs_db_path", { path });
+},
+async getMediaName(hash: string) : Promise<string> {
+    return await TAURI_INVOKE("get_media_name", { hash });
 }
 }
 

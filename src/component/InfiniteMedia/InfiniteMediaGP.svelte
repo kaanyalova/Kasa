@@ -8,10 +8,11 @@
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
 	import { appWindow } from '../Decoration/utils/window';
 	import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
-	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+	import { emit, listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import MediaThumbnail from './MediaThumbnail.svelte';
 	import { commands } from '$lib/tauri_bindings';
 	import { SearchStore } from '../Sidebar/Search/SearchStore.svelte';
+	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
 
 	let values: Array<ImageRow> = $state([]);
 	let heights: Array<number> = $state([]);
@@ -27,6 +28,7 @@
 	// on cache update run updateLayout();
 	listen('cache_updated', async (_) => {
 		await updateLayoutFromCache();
+		trace('cache_updated event received');
 	});
 
 	listen('media_updated', async (_) => {
@@ -37,6 +39,7 @@
 	listen('dbs_updated', async (_) => {
 		await commands.connectDbs();
 		await initializeLayout();
+		await emit('tags_updated');
 		trace('dbs_mounted event received');
 	});
 
@@ -50,6 +53,11 @@
 		});
 	});
 
+	$effect(() => {
+		InfiniteMediaStore.showNames;
+		console.log('setshownames updated');
+		updateLayoutFromCache();
+	});
 	onMount(async () => {
 		await commands.connectDbs();
 
@@ -72,6 +80,14 @@
 		cooldown = setTimeout(updateLayoutFromCache, 100);
 	}
 
+	function calculateRowHeight(height: number): number {
+		if (InfiniteMediaStore.showNames) {
+			return height + 30;
+		} else {
+			return height;
+		}
+	}
+
 	/**
 	 * Gets the media from the database possibly using cached values, sets the heights for the media and media themselves to
 	 * the received values.
@@ -90,12 +106,7 @@
 
 		const _heights: Array<number> = _values.map((row) => {
 			// first row should have the gaps height
-			if (row.index === 0) {
-				return row.height;
-				//return (row.height += 12);
-			} else {
-				return row.height;
-			}
+			return calculateRowHeight(row.height);
 		});
 
 		heights = _heights;
@@ -112,6 +123,7 @@
 		try {
 			console.log(values.length);
 			if (await commands.areDbsMounted()) {
+				trace('search via initialize layout');
 				await commands.search(SearchStore.searchContents);
 			} else {
 				setTimeout(initializeLayout, 500);

@@ -1,6 +1,6 @@
 type TagPickerCheckBoxProps = {
 	tagName: string;
 	onCheck: (state: TagPickerCheckboxState, tagName: string) => void;
-	state: TagPickerCheckboxState;
+	checkboxState: TagPickerCheckboxState;
 };
 type TagPickerCheckboxState = 'selected' | 'unselected' | 'exclude';

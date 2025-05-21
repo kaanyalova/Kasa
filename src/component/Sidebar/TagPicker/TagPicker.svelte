@@ -7,7 +7,7 @@
 	import { formatCount, getCountColor } from '$lib/colorUtils';
 	import TagPickerCheckBox from './TagPickerCheckBox.svelte';
 	import VirtualList, { type VirtualListProps } from 'svelte-tiny-virtual-list';
-	import { error } from '@tauri-apps/plugin-log';
+	import { error, trace } from '@tauri-apps/plugin-log';
 	import { comma } from 'postcss/lib/list';
 	import { SearchStore } from '../Search/SearchStore.svelte';
 	import { listen } from '@tauri-apps/api/event';
@@ -37,6 +37,7 @@
 			order_by: 'NewestFirst'
 		});
 
+		trace('search via tag picker check');
 		await commands.search(SearchStore.searchContents);
 	}
 
@@ -48,6 +49,7 @@
 
 	async function loadTags() {
 		tags = await commands.getListOfAllTagsWithDetails('TagCount');
+		trace('load tags');
 	}
 
 	let loadTagsPromise = $state(loadTags);
@@ -62,6 +64,7 @@
 	}, 500);
 
 	listen('tags_updated', (_) => {
+		trace('tags_updated emitted');
 		loadTags();
 	});
 
@@ -113,6 +116,7 @@
 			order_by: 'NewestFirst'
 		});
 
+		trace('search via tag picker reset');
 		await commands.search(SearchStore.searchContents);
 	}
 </script>
@@ -131,7 +135,7 @@
 					<div class="tag">
 						<TagPickerCheckBox
 							tagName={filteredTags!![index].tag_name}
-							state={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
+							checkboxState={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
 							{onCheck}
 						></TagPickerCheckBox>
 						<label for="tag-{filteredTags!![index].tag_name}">

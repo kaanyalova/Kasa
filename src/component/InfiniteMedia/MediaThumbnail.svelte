@@ -53,6 +53,10 @@
 		clickOutsideClass(node, onEventFunction, 'virtual-list-wrapper');
 	}
 
+	async function getMediaName(): Promise<string> {
+		return commands.getMediaName(hash);
+	}
+
 	// the rust side seems to reassign hashes to existing rows, we load images only once in the onMount(), additional
 	// changes to the hash doesn't get reflected to the image, we could reload the image every time the hash
 	// gets set but that would cause all images to rerender on every single resize "tick", we only want to
@@ -104,6 +108,17 @@
 	{:else if mediaType === 'Flash'}
 		<div class="mediaTypeIcon" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
 			<Swf height={32} width={32}></Swf>
+		</div>
+	{/if}
+
+	{#if InfiniteMediaStore.showNames}
+		<div
+			class="nameInfoBox"
+			style="transform: translate3d({offset_x}px, {height}px, 0px); height: 30px; width: {width}px"
+		>
+			{#await getMediaName() then name}
+				{name}
+			{/await}
 		</div>
 	{/if}
 {/await}
@@ -160,5 +175,18 @@
 		100% {
 			transform: rotate(360deg);
 		}
+	}
+
+	.nameInfoBox {
+		background-color: var(--background);
+		border: 1px solid var(--secondary-alt);
+		border-top: none;
+		border-radius: 0px 0px 4px 4px;
+		position: absolute;
+		color: var(--text);
+		padding-left: 4px;
+		padding-right: 4px;
+		overflow: hidden;
+		padding-top: 4px;
 	}
 </style>

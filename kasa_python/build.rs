@@ -1,6 +1,6 @@
 use std::{io::Cursor, path::Path, vec};
 
-use diffy::{apply, Patch};
+use diffy::{Patch, apply};
 use flate2::bufread::GzDecoder;
 use tar::Archive;
 
@@ -72,27 +72,42 @@ fn main() {
         }
     }
 
-    let sources =
-        vec![
+    let sources = vec![
         Source::new(
-            "https://github.com/mikf/gallery-dl/releases/download/v1.27.7/gallery_dl-1.27.7.tar.gz",
+            "https://github.com/mikf/gallery-dl/releases/download/v1.29.3/gallery_dl-1.29.3.tar.gz",
             "gallery-dl",
         ),
-        Source::new("https://github.com/jawah/charset_normalizer/releases/download/3.4.0/charset_normalizer-3.4.0.tar.gz", "charset_normalizer"),
-        Source::new("https://github.com/psf/requests/releases/download/v2.32.3/requests-2.32.3.tar.gz", "requests"),
-        Source::new("https://github.com/urllib3/urllib3/releases/download/2.2.3/urllib3-2.2.3.tar.gz", "urllib3"),
-        Source::new("https://github.com/kjd/idna/releases/download/v3.10/idna-3.10.tar.gz", "idna")
+        Source::new(
+            "https://github.com/jawah/charset_normalizer/releases/download/3.4.0/charset_normalizer-3.4.0.tar.gz",
+            "charset_normalizer",
+        ),
+        Source::new(
+            "https://github.com/psf/requests/releases/download/v2.32.3/requests-2.32.3.tar.gz",
+            "requests",
+        ),
+        Source::new(
+            "https://github.com/urllib3/urllib3/releases/download/2.2.3/urllib3-2.2.3.tar.gz",
+            "urllib3",
+        ),
+        Source::new(
+            "https://github.com/kjd/idna/releases/download/v3.10/idna-3.10.tar.gz",
+            "idna",
+        ),
     ];
 
     for source in sources {
         source.download_and_extract();
     }
 
-    let patches = vec![_Patch::new(
-        "py/dependencies/charset_normalizer/charset_normalizer-3.4.0/charset_normalizer/utils.py",
-        "py/patches/fix_broken_multibytecodec_import.diff",
-    ),
-    _Patch::new("py/dependencies/gallery-dl/gallery_dl-1.27.7/gallery_dl/job.py", "py/patches/add_output_paths.diff")
+    let patches = vec![
+        _Patch::new(
+            "py/dependencies/charset_normalizer/charset_normalizer-3.4.0/charset_normalizer/utils.py",
+            "py/patches/fix_broken_multibytecodec_import.diff",
+        ),
+        _Patch::new(
+            "py/dependencies/gallery-dl/gallery_dl-1.29.3/gallery_dl/job.py",
+            "py/patches/add_output_paths.diff",
+        ),
     ];
 
     for patch in patches {

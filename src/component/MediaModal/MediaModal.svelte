@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 	import '../../fonts.css';
-	import { info } from '@tauri-apps/plugin-log';
+	import { info, trace } from '@tauri-apps/plugin-log';
 	import { clickOutsideModal, clickOutsideTagName } from '$lib/clickOutside';
 	import Sidebar from './Sidebar.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
@@ -55,7 +55,9 @@
 	});
 
 	async function onClose() {
+		trace('close media modal');
 		if (MediaModalStatusStore.tagsEditModeActive) {
+			trace('update tags on close');
 			await invoke('update_tags', {
 				rawInput: tagsTextBoxContents,
 				hash: mediaHash
@@ -97,6 +99,7 @@
 			class="dialogContents"
 			use:clickOutsideModal={async () => {
 				await onClose();
+				trace('click outside modal');
 			}}
 		>
 			<div class="imageWrapper">

@@ -13,6 +13,7 @@
 	import NewTag from './NewTag.svelte';
 	import { comma } from 'postcss/lib/list';
 	import type { CursorPosition, TagDisplayProps } from './TagDisplay';
+	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 	let searchInput: HTMLDivElement;
 	let { initialEditBoxContents, isInEditMode, updateTagsTextBoxContents, data }: TagDisplayProps =
 		$props();
@@ -59,7 +60,6 @@
 		// on editMode -> viewMode, save the tags
 		if (editModeState === true) {
 			info('updating tags');
-
 			commands.updateTags(tagsTextLocal!!, data.hash);
 		}
 
@@ -127,7 +127,16 @@
 
 	async function onDeleteTag(name: string) {
 		await commands.deleteTags(data.hash, [name]);
+		trace('delte tags');
 		await refreshTags();
+	}
+
+	async function onCopyTags() {
+		const tags = await commands.getTagsAsText(data.hash);
+		console.log(tags);
+		if (tags !== null) {
+			writeText(tags);
+		}
 	}
 </script>
 
@@ -162,7 +171,13 @@
 		<Pen height={12} width={12}></Pen>
 	</button>
 
-	<button class="titleButton" onclick={() => {}} title="Copy Tags">
+	<button
+		class="titleButton"
+		onclick={async () => {
+			await onCopyTags();
+		}}
+		title="Copy Tags"
+	>
 		<Clipboard height={12} width={12}></Clipboard>
 	</button>
 </div>

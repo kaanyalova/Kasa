@@ -1,4 +1,5 @@
 use kasa_core::{db::schema::Media, tags::search::SearchCriteria};
+use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::Mutex;
 
@@ -38,6 +39,7 @@ pub async fn search(handle: AppHandle, input_raw: String) {
         *state.media.lock().await = Some(media);
 
         handle.emit("cache_updated", "").unwrap();
+        trace!("cache_updated via search");
     }
 }
 
@@ -51,4 +53,5 @@ pub async fn set_search_store(handle: AppHandle, search_criteria: SearchCriteria
     *search_guard = search_criteria;
 
     handle.emit("cache_updated", "").unwrap();
+    trace!("cache_updated via search");
 }

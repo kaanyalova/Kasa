@@ -2,6 +2,7 @@ use kasa_core::tags::{
     AllTagsOrderingCriteria, TagWithCount, get_list_of_all_tags_with_details_impl,
     get_tags_as_text_impl, remove_tags, update_tags_impl,
 };
+use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::DbStore;
@@ -15,6 +16,7 @@ pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
     if let Some(pool) = connection_guard.as_ref() {
         update_tags_impl(&raw_input, hash, pool).await;
         handle.emit("tags_updated", "").unwrap();
+        trace!("Tags updated");
     } else {
         println!("DB connection wasn't initialized yet!")
     }
@@ -28,6 +30,7 @@ pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
     if let Some(pool) = connection_guard.as_ref() {
         remove_tags(tags, pool, Some(hash)).await;
         handle.emit("tags_updated", "").unwrap();
+        trace!("Tags deleted");
     } else {
         println!("DB connection wasn't initialized yet!")
     }

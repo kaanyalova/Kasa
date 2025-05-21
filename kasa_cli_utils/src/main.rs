@@ -25,19 +25,19 @@ enum KasaCli {
     #[command(alias = "index")]
     IndexFolder(IndexFolderArgs),
     DumpGILayout,
-    #[command(alias = "index-ai-all")]
-    IndexAllAIImages(IndexAllAIImagesArgs), //ThumbnailFolder(ThumbnailArgs),
+    #[command(alias = "get-ai")]
+    GetAiTags(IndexAllAIImagesArgs), //ThumbnailFolder(ThumbnailArgs),
     #[command(alias = "gdl")]
     GalleryDL(GalleryDlArgs),
     #[command(alias = "nuke")]
     NukeDBVersioning,
-    #[command(alias = "tag-ai-all")]
+    #[command(alias = "tag-ai")]
     /// Needs the following environment variables set
     ///
     /// KASA_ONNX_RT_PATH: Path to the libonnxruntime.so or onnxruntime.dll
     /// KASA_WDV_MODEL_PATH: Path to the WDV Model https://huggingface.co/SmilingWolf
     /// KASA_WDV_LABEL_PATH: Path to the WDV Model labels
-    AITagImages,
+    TagUsingAi,
 }
 
 #[derive(clap::Args)]
@@ -103,11 +103,11 @@ async fn main() {
         KasaCli::PopulateTags(args) => populate_tags(args).await,
         KasaCli::IndexFolder(args) => index_folder(args).await,
         KasaCli::DumpGILayout => dump_random_gi_layout(),
-        KasaCli::IndexAllAIImages(args) => {
+        KasaCli::GetAiTags(args) => {
             index_all_ai_images(args.db_path, args.tag_max_len as usize).await
         }
         KasaCli::GalleryDL(args) => gdl(&args.url, extractors).await,
         KasaCli::NukeDBVersioning => nuke_db_versioning().await,
-        KasaCli::AITagImages => ai_tag_images().await,
+        KasaCli::TagUsingAi => ai_tag_images().await,
     }
 }

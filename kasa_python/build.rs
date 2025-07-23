@@ -51,10 +51,15 @@ fn main() {
         }
 
         fn patch(&self) {
+            println!("Applying patch from {}", self.patch_path);
+
+
             let original = std::fs::read_to_string(&self.file_path).unwrap();
             let patch_file = std::fs::read_to_string(&self.patch_path).unwrap();
             let patch = Patch::from_str(&patch_file).unwrap();
             let apply = apply(&original, &patch);
+
+
 
             // dumb way of skipping already applied patches, will cause problems if patching actually fails
             match apply {
@@ -74,7 +79,7 @@ fn main() {
 
     let sources = vec![
         Source::new(
-            "https://github.com/mikf/gallery-dl/releases/download/v1.29.3/gallery_dl-1.29.3.tar.gz",
+            "https://github.com/mikf/gallery-dl/releases/download/v1.30.0/gallery_dl-1.30.0.tar.gz",
             "gallery-dl",
         ),
         Source::new(
@@ -105,7 +110,7 @@ fn main() {
             "py/patches/fix_broken_multibytecodec_import.diff",
         ),
         _Patch::new(
-            "py/dependencies/gallery-dl/gallery_dl-1.29.3/gallery_dl/job.py",
+            "py/dependencies/gallery-dl/gallery_dl-1.30.0/gallery_dl/job.py",
             "py/patches/add_output_paths.diff",
         ),
     ];

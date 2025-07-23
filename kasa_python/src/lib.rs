@@ -40,7 +40,7 @@ pub fn init_interpreter() -> Interpreter {
         vm.add_native_module("rust_side", Box::new(rust_side::make_module));
 
         vm.add_frozen(py_freeze!(
-            dir = "py/dependencies/gallery-dl/gallery_dl-1.29.3"
+            dir = "py/dependencies/gallery-dl/gallery_dl-1.30.0"
         ));
         vm.add_frozen(py_freeze!(
             dir = "py/dependencies/charset_normalizer/charset_normalizer-3.4.0"

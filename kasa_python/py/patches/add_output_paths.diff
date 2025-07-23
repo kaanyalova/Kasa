@@ -16,11 +16,3 @@
          self._skipcnt = 0
          if archive and self._archive_write_file:
              archive.add(kwdict)
-@@ -493,6 +495,7 @@
-                     raise self._skipexc()
-             else:
-                 self._skipcnt = 0
-+        self.output_paths.append(pathfmt.path)
- 
-     def download(self, url):
-         """Download 'url'"""

@@ -27,13 +27,7 @@ const LAST_ROW_HEIGHT: u64 = 250;
 /// TODO check if svelte-tiny-list works with
 ///
 /// TODO `max_height` is not used remove it
-pub fn calculate_layout(
-    images: Vec<Media>,
-    //downscale_mult: f64,
-    width: f64,
-    _max_height: u64, // TODO remove this unused
-    gaps: u64,
-) -> Vec<ImageRow> {
+pub fn calculate_layout(images: Vec<Media>, scale: f64, width: f64, gaps: u64) -> Vec<ImageRow> {
     let mut row_index = 0;
     /*
     let min_aspect_ratio = match width {
@@ -45,7 +39,7 @@ pub fn calculate_layout(
 
     */
 
-    let min_aspect_ratio = (width / 200.0).round();
+    let min_aspect_ratio = (width / 200.0 * scale).round();
 
     //let max_height = match width {
     //    0.0..=640.0 => 100.0,
@@ -77,8 +71,8 @@ pub fn calculate_layout(
 
         current_row_temp.push(TempMedia {
             hash: image.hash,
-            thumbnail_x: image.thumbnail_x,
-            thumbnail_y: image.thumbnail_y,
+            thumbnail_x: image.thumbnail_x as i64,
+            thumbnail_y: image.thumbnail_y as i64,
         });
 
         // Row is complete or we don't have any more images
@@ -222,6 +216,6 @@ fn test_random_generation() {
             });
         }
 
-        calculate_layout(media, 1920.0, 0, 0);
+        calculate_layout(media, 1.0, 1920.0, 0);
     }
 }

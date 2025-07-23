@@ -95,8 +95,8 @@
 	async function updateLayoutFromCache() {
 		let _values = await commands.getLayoutFromCache(
 			tauri_width - sidebarStore.size * 3 - 20,
-			tauri_height / 2,
-			12
+			12,
+			InfiniteMediaStore.thumbnailScale
 		);
 
 		if (_values === null) {
@@ -165,7 +165,7 @@
 		width="100%"
 		itemSize={heights}
 		itemCount={values.length}
-		overscanCount={8}
+		overscanCount={Math.round(8 * InfiniteMediaStore.thumbnailScale)}
 		bind:this={virtualList}
 	>
 		<div slot="item" let:index let:style {style}>

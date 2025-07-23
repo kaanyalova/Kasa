@@ -2,9 +2,11 @@ import { stat } from '@tauri-apps/plugin-fs';
 
 export class InfiniteMediaStoreInner {
 	constructor() {}
+
 	selectedHashes: Array<string> = $state([]);
 	onSelectMode = $derived(this.selectedHashes.length > 0);
 	showNames = $state(true);
+	thumbnailScale = $state(3.0);
 
 	addMedia(hash: string) {
 		if (this.selectedHashes.includes(hash as never)) {

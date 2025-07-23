@@ -111,10 +111,13 @@
 		</div>
 	{/if}
 
+	<!--
+	TODO figure a way of setting the padding and sizes dynamically
+	-->
 	{#if InfiniteMediaStore.showNames}
 		<div
 			class="nameInfoBox"
-			style="transform: translate3d({offset_x}px, {height}px, 0px); height: 30px; width: {width}px"
+			style="transform: translate3d({offset_x}px, {height}px, 0px); width: {width}px; height: 30px"
 		>
 			{#await getMediaName() then name}
 				{name}
@@ -184,9 +187,8 @@
 		border-radius: 0px 0px 4px 4px;
 		position: absolute;
 		color: var(--text);
-		padding-left: 4px;
-		padding-right: 4px;
+		padding: 4px;
+		padding-bottom: 0px !important;
 		overflow: hidden;
-		padding-top: 4px;
 	}
 </style>

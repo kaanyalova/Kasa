@@ -5,7 +5,7 @@
 	import Settings from '../../component/Settings/Settings.svelte';
 	import SettingsSidebar from '../../component/Settings/Sidebar/SettingsSidebar.svelte';
 
-	let selectedCategory: string = $state(SettingsCategories.Thumbnails);
+	let selectedCategory: string = $state(SettingsCategories.Database);
 
 	function updateSelectedCategory(category: string) {
 		selectedCategory = category;

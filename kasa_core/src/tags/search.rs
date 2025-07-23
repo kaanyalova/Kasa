@@ -35,11 +35,18 @@ pub fn parse() {
 /// Only supports searching for Media that have the tags
 
 #[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
+pub struct DateRange {
+    start: u64,
+    end: u64,
+}
+
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
 pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
     excludes_tags: Vec<String>,
     order_by: OrderCriteria,
+    date_range: Option<DateRange>,
 }
 
 #[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
@@ -112,6 +119,10 @@ impl SearchCriteria {
                 };
 
                 order_by_criteria = Some(ordering_criteria_date_parsed);
+            }
+            // date range
+            else if token.starts_with("from") {
+                todo!()
             } else {
                 contains_tags.push(token.to_string());
             }
@@ -123,6 +134,7 @@ impl SearchCriteria {
             contains_tags_or_group,
             excludes_tags,
             order_by: order_by_criteria.unwrap_or(OrderCriteria::OldestFirst),
+            date_range: None,
         }
     }
 

@@ -27,8 +27,8 @@ async getThumbnail(hash: string) : Promise<Result<string | null, null>> {
 async getInfo(hash: string) : Promise<MediaInfo | null> {
     return await TAURI_INVOKE("get_info", { hash });
 },
-async getLayoutFromCache(width: number, imgHeight: number, gaps: number) : Promise<ImageRow[] | null> {
-    return await TAURI_INVOKE("get_layout_from_cache", { width, imgHeight, gaps });
+async getLayoutFromCache(width: number, gaps: number, scale: number) : Promise<ImageRow[] | null> {
+    return await TAURI_INVOKE("get_layout_from_cache", { width, gaps, scale });
 },
 async updateTags(rawInput: string, hash: string) : Promise<void> {
     await TAURI_INVOKE("update_tags", { rawInput, hash });
@@ -121,8 +121,8 @@ async imagePathToRgbaBytes(path: string) : Promise<RawImage> {
 async openWithSystemDefaultApp(path: string) : Promise<void> {
     await TAURI_INVOKE("open_with_system_default_app", { path });
 },
-async newLinuxFilePickerDialogFolderSelect() : Promise<string[]> {
-    return await TAURI_INVOKE("new_linux_file_picker_dialog_folder_select");
+async newLinuxFilePickerDialogMultipleFolderSelect() : Promise<string[]> {
+    return await TAURI_INVOKE("new_linux_file_picker_dialog_multiple_folder_select");
 },
 async newLinuxFilePickerDialogSaveFile(filterName: string, filterGlob: string, currentName: string) : Promise<string[]> {
     return await TAURI_INVOKE("new_linux_file_picker_dialog_save_file", { filterName, filterGlob, currentName });
@@ -192,6 +192,11 @@ async getMediaName(hash: string) : Promise<string> {
 
 export type AllTagsOrderingCriteria = "Alphabetic" | "AlphabeticReverse" | "TagCount" | "TagCountReverse"
 export type Database = { db_path: string }
+/**
+ * Placeholder search until I implement proper search parsing
+ * Only supports searching for Media that have the tags
+ */
+export type DateRange = { start: number; end: number }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader }
 /**
@@ -209,11 +214,7 @@ export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 export type RawImage = { width: number; height: number; bytes: number[] }
-/**
- * Placeholder search until I implement proper search parsing
- * Only supports searching for Media that have the tags
- */
-export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by: OrderCriteria }
+export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by: OrderCriteria; date_range: DateRange | null }
 export type SourceCategoryGroupedTags = { source_categories: { [key in string]: HashTagPair[] }; uncategorized: HashTagPair[] }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations

@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS Thumbs (
     x INT NOT NULL, 
     y INT NOT NULL,
     x_max INT NOT NULL,
-    y_max INT NOT NULL
+    y_max INT NOT NULL,
+    success BOOLEAN NOT NULL
 );

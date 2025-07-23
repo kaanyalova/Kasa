@@ -10,10 +10,11 @@
 	import { getCursorPosition } from '$lib/getCaretPos';
 	import TagDropDown from './TagDropDown.svelte';
 	import Tag from './Tag.svelte';
-	import NewTag from './NewTag.svelte';
+	import NewTag from './NewTag/NewTagButton.svelte';
 	import { comma } from 'postcss/lib/list';
 	import type { CursorPosition, TagDisplayProps } from './TagDisplay';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+	import NewTagButton from './NewTag/NewTagButton.svelte';
 	let searchInput: HTMLDivElement;
 	let { initialEditBoxContents, isInEditMode, updateTagsTextBoxContents, data }: TagDisplayProps =
 		$props();
@@ -262,6 +263,12 @@
 				<Tag name={tagWithCategory.tag_name} onDelete={async (name: string) => onDeleteTag(name)}
 				></Tag>
 			{/each}
+
+			<!--
+			Not sure how intuative is this compared to the edit mode, don't show it for now
+
+			<NewTagButton></NewTagButton>
+			-->
 		</div>
 	{/each}
 
@@ -277,6 +284,13 @@
 					onDelete={async (name: string) => await onDeleteTag(name)}
 				></Tag>
 			{/each}
+			<NewTagButton></NewTagButton>
+		</div>
+	{/if}
+
+	{#if sourceCategoryGroupedTags.uncategorized.length === 0 && Object.keys(sourceCategoryGroupedTags.source_categories).length === 0}
+		<div class="tagsDisplay">
+			<NewTagButton></NewTagButton>
 		</div>
 	{/if}
 {/if}

@@ -2,7 +2,6 @@
 	import { commands } from '$lib/tauri_bindings';
 	import FileManager from '../../../Vector/FileManager.svelte';
 	import '../../../../fonts.css';
-	import Select from 'svelte-select';
 	import { comma } from 'postcss/lib/list';
 	import type { ThumbsDBInfo } from '$lib/tauri_bindings';
 	import { dataDir } from '@tauri-apps/api/path';

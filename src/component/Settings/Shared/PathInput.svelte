@@ -3,8 +3,12 @@
 	import '../../../fonts.css';
 	import { info } from '@tauri-apps/plugin-log';
 	import Button from './Button.svelte';
+	import { commands } from '$lib/tauri_bindings';
+	import { openFilePickerWithSelectDialog } from '$lib/openFilePicker';
 
 	let { details, path = $bindable(), onConfirm }: PathInputProps = $props();
+
+	function onClickBrowse() {}
 </script>
 
 <div class="pathInput">

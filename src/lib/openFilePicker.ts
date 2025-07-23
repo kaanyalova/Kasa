@@ -4,10 +4,15 @@ import type { TauriEvent } from '@tauri-apps/api/event';
 import { comma } from 'postcss/lib/list';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { error } from '@tauri-apps/plugin-log';
+
+/**
+ *  Open a file picker dialog to select multiple files.
+ *  Uses the ashpd file picker on linux, falls back to the tauri one on other platforms.
+ */
 export async function openFilePickerWithMultipleFolderSelection(): Promise<Array<string>> {
 	const os = platform();
 	if (os === 'linux') {
-		const files = await commands.newLinuxFilePickerDialogFolderSelect();
+		const files = await commands.newLinuxFilePickerDialogMultipleFolderSelect();
 		return files.map((it) => decodeURI(it));
 	} else {
 		// The ts definition is just wrong
@@ -62,6 +67,12 @@ export async function openFilePickerWithSaveDialog(
 	}
 }
 
+/**
+ *
+ * @param filterName The name to be displayed in the file picker dialog
+ * @param filterGlob The file extension filter to be applied
+ * @returns
+ */
 export async function openFilePickerWithSelectDialog(
 	filterName: string,
 	filterGlob: string

@@ -1,7 +1,11 @@
 use rayon::str;
 use serde::{Deserialize, Serialize};
-use sqlx::{Encode, prelude::FromRow};
+use sqlx::{Encode, prelude::FromRow, types::Json};
 use strum::EnumString;
+
+use sqlx::types::Json as SqlxJson;
+
+use crate::tags::presets::TagPresetData;
 
 /// Info about Media of all types
 #[derive(FromRow, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -127,4 +131,9 @@ pub struct MediaGroupEntry {
 pub struct MediaSource {
     hash: String,
     source: String,
+}
+#[derive(FromRow, Clone, Serialize, Deserialize)]
+pub struct TagPreset {
+    pub name: String,
+    pub preset: SqlxJson<TagPresetData>,
 }

@@ -67,8 +67,7 @@
 	}
 
 	function onSearch() {
-		commands.search(SearchStore.searchContents, 0, 0);
-		
+		commands.search(SearchStore.searchContents);
 	}
 </script>
 

@@ -13,6 +13,7 @@
 	import { listen } from '@tauri-apps/api/event';
 	import FilterAltOff from '../../Vector/FilterAltOff.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import TagPresets from './TagPresets.svelte';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
 	let checkedTags: Map<string, TagPickerCheckboxState> = $state(new SvelteMap());
@@ -34,7 +35,8 @@
 			excludes_tags: Array.from(checkedTags.entries())
 				.filter(([_tag, state]) => state === 'exclude')
 				.map(([tag, _state]) => tag),
-			order_by: 'NewestFirst'
+			order_by: 'NewestFirst',
+			date_range: null
 		});
 
 		trace('search via tag picker check');
@@ -113,7 +115,8 @@
 			contains_tags: [],
 			contains_tags_or_group: [],
 			excludes_tags: [],
-			order_by: 'NewestFirst'
+			order_by: 'NewestFirst',
+			date_range: null
 		});
 
 		trace('search via tag picker reset');
@@ -168,11 +171,9 @@
 	</div>
 
 	<div class="tagPresets">
-		Tag Presets
+		<div class="tagPresetsText">Tag Presets</div>
 		<div class="tagPresetsButtonContainer">
-			<button class="tagPresetButton">Save</button>
-			<button class="tagPresetButton">Load</button>
-			<button class="tagPresetButton">Hello</button>
+			<TagPresets></TagPresets>
 		</div>
 	</div>
 </div>
@@ -300,6 +301,9 @@
 		border: 1px solid var(--secondary-alt);
 		margin: 0px 8px 8px 8px;
 		color: var(--text);
+	}
+
+	.tagPresetsText {
 		padding-left: 4px;
 	}
 </style>

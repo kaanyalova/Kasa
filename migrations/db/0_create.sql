@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS Media (
     time_added INT,
     has_file_ref BOOLEAN,
     is_in_group BOOLEAN,
-    hide BOOLEAN
+    hide BOOLEAN,
+    is_valid BOOLEAN
 );
 
 
@@ -92,3 +93,9 @@ CREATE TABLE IF NOT EXISTS MediaSource (
     hash TEXT NOT NULL,
     source TEXT NOT NULL
 );
+
+
+CREATE TABLE IF NOT EXISTS SearchPreset (
+    name TEXT NOT NULL,
+    preset JSON NOT NULL
+)   

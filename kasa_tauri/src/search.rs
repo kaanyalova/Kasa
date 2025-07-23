@@ -1,4 +1,7 @@
-use kasa_core::{db::schema::Media, tags::search::SearchCriteria};
+use kasa_core::{
+    db::schema::Media,
+    tags::{presets::new_or_update_preset_impl, search::SearchCriteria},
+};
 use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::Mutex;
@@ -54,4 +57,24 @@ pub async fn set_search_store(handle: AppHandle, search_criteria: SearchCriteria
 
     handle.emit("cache_updated", "").unwrap();
     trace!("cache_updated via search");
+}
+
+pub async fn new_or_update_preset(
+    handle: AppHandle,
+    includes: Vec<String>,
+    excludes: Vec<String>,
+    name: &str,
+) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        let result = new_or_update_preset_impl(includes, excludes, name, pool).await;
+
+        if result.is_err() {
+            trace!("Failed to update preset: {:?}", result);
+        } else {
+            trace!("Preset updated: {}", name);
+        }
+    }
 }

@@ -64,7 +64,37 @@ export function clickOutsideClass(node: Node, onEventFunction: any, _class: stri
 		// Needed so it doesn't exits from video players settings menu
 
 		//(event.target as HTMLElement).classList.forEach((v) => console.log(`Class: ${v}`))
-		if (!(event.target as HTMLElement).classList.contains(_class)) {
+		if ((event.target as HTMLElement).classList.contains(_class)) {
+			return;
+		}
+		//trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)
+
+		//console.log((event.target as HTMLElement).tagName);
+
+		if (!path.includes(node)) {
+			onEventFunction();
+		}
+	};
+
+	document.addEventListener('click', handleClick);
+
+	return {
+		destroy() {
+			console.log('Destory called... Somewhere');
+
+			document.removeEventListener('click', handleClick);
+		}
+	};
+}
+
+export function clickOutsideClassExcluding(node: Node, onEventFunction: any, _class: string) {
+	const handleClick = (event: Event) => {
+		var path = event.composedPath();
+
+		// Needed so it doesn't exits from video players settings menu
+
+		//(event.target as HTMLElement).classList.forEach((v) => console.log(`Class: ${v}`))
+		if ((event.target as HTMLElement).classList.contains(_class)) {
 			return;
 		}
 		//trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)

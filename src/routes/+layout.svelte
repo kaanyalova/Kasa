@@ -8,6 +8,7 @@
 	// https://github.com/tauri-apps/wry/issues/30
 	//disableMenu();
 </script>
+
 <!--
 Needed for dragging to be possible if the app is run on fullscreen, At least on gnome it seems like
 it is not possible to drag the window if the top bar doesn't exist (if the app is on a non-primary monitor) 
@@ -46,11 +47,10 @@ it is not possible to drag the window if the top bar doesn't exist (if the app i
 		position: absolute;
 		top: 0;
 		left: 0;
-		height:var(--window-border-size);
+		height: var(--window-border-size);
 		width: 100vw;
 		background-color: transparent;
 		z-index: 9999;
-
 	}
 
 	:global(:root) {

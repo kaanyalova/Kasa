@@ -18,7 +18,7 @@ use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
 use downloaders::download_and_index;
 use file_picker::new_linux_file_picker_dialog_file_select;
-use file_picker::new_linux_file_picker_dialog_folder_select;
+use file_picker::new_linux_file_picker_dialog_multiple_folder_select;
 use file_picker::new_linux_file_picker_dialog_save_file;
 use file_picker::open_file_manager_with_file_selected;
 use image::get_thumbnail;
@@ -142,7 +142,7 @@ pub fn run() {
             index_path,
             image_path_to_rgba_bytes,
             open_with_system_default_app,
-            new_linux_file_picker_dialog_folder_select,
+            new_linux_file_picker_dialog_multiple_folder_select,
             new_linux_file_picker_dialog_save_file,
             new_linux_file_picker_dialog_file_select,
             nuke_all_indexes,

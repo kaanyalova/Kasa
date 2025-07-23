@@ -1,9 +1,10 @@
 use ashpd::desktop::file_chooser::{FileFilter, OpenFileRequest, SaveFileRequest};
+use serde::{Deserialize, Serialize};
 use zbus::Connection;
 use zbus_macros::proxy;
 #[tauri::command]
 #[specta::specta]
-pub async fn new_linux_file_picker_dialog_folder_select() -> Vec<String> {
+pub async fn new_linux_file_picker_dialog_multiple_folder_select() -> Vec<String> {
     // This adds a few megabytes to the binary just for a proper file picker, tauri devs are refusing to upgrade their stuff
     // to gtk4
     #[cfg(target_os = "linux")]
@@ -28,6 +29,31 @@ pub async fn new_linux_file_picker_dialog_folder_select() -> Vec<String> {
 
     #[cfg(not(target_os = "linux"))]
     vec![]
+}
+
+pub async fn new_linux_file_picker_dialog_single_folder_select() -> String {
+    #[cfg(target_os = "linux")]
+    {
+        let response = OpenFileRequest::default()
+            .modal(true)
+            .accept_label("Select")
+            .multiple(false)
+            .directory(true)
+            .send()
+            .await
+            .unwrap()
+            .response()
+            .unwrap();
+
+        response
+            .uris()
+            .first()
+            .map(|uri| uri.path().to_string())
+            .unwrap_or_default()
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    String::new()
 }
 
 #[tauri::command]

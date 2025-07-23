@@ -112,13 +112,13 @@ pub async fn connect_dbs(handle: AppHandle) {
 pub async fn get_layout_from_cache(
     handle: AppHandle,
     width: f64,
-    img_height: u64,
     gaps: u64,
+    scale: f64,
 ) -> Option<Vec<ImageRow>> {
     let cache = handle.state::<MediaCache>().media.lock().await.clone(); // TODO: lots of clones here , somehow remove them?
 
     if let Some(media) = cache {
-        Some(calculate_layout(media, width, img_height, gaps))
+        Some(calculate_layout(media, scale, width, gaps))
     } else {
         info!("No media found on cache!");
         None

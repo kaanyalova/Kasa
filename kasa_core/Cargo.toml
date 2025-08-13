@@ -49,6 +49,7 @@ image = { workspace = true }
 axum = { workspace = true }
 rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 axum-macros = { workspace = true }
+kasa_ai = { path = "../kasa_ai", optional = true }
 
 # Dependencies for flash thumbnailer support
 ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
@@ -58,15 +59,6 @@ ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
 ruffle_render_wgpu = { git = "https://github.com/ruffle-rs/ruffle", features = [
     "clap",
 ], optional = true, rev = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
-
-
-# Dependencies for image tag recognition
-ort = { version = "2.0.0-rc.7", features = [
-    "rocm",
-    "load-dynamic",
-], optional = true } # should we build it from source?
-ndarray = { version = "0.16.1", optional = true }
-csv = { version = "1.3.1", optional = true }
 
 
 [dependencies.ffmpeg]
@@ -92,7 +84,7 @@ xz = { workspace = true }
 
 
 [features]
-default = ["swf_thumbnailer", "ai_tagger"]
+default = ["swf_thumbnailer", "ai"]
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
-ai_tagger = ["dep:ort", "dep:ndarray", "dep:csv"]
+ai = ["dep:kasa_ai"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]

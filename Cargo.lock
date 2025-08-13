@@ -4099,6 +4099,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kasa_ai"
+version = "0.1.0"
+dependencies = [
+ "csv",
+ "image",
+ "ndarray",
+ "ort",
+]
+
+[[package]]
 name = "kasa_bench"
 version = "0.1.0"
 dependencies = [
@@ -4114,6 +4124,7 @@ dependencies = [
  "clap 4.5.32",
  "dotenvy",
  "env_logger 0.11.7",
+ "kasa_ai",
  "kasa_core",
  "kasa_python",
  "rand 0.8.5",
@@ -4131,7 +4142,6 @@ dependencies = [
  "axum-macros",
  "base64 0.22.1",
  "chrono",
- "csv",
  "dirs 5.0.1",
  "fast_image_resize",
  "ffmpeg-next",
@@ -4142,14 +4152,13 @@ dependencies = [
  "indexmap 2.8.0",
  "itertools 0.13.0",
  "kamadak-exif",
+ "kasa_ai",
  "kasa_python",
  "log",
  "memchr",
  "mime_guess",
- "ndarray",
  "nom",
  "num_cpus",
- "ort",
  "os_info",
  "rand 0.8.5",
  "rayon",

@@ -10,6 +10,7 @@ sqlx = { workspace = true, features = ["sqlite", "runtime-tokio"] }
 tokio = { workspace = true, features = ["full"] }
 kasa_core = { path = "../kasa_core" }
 kasa_python = { path = "../kasa_python" }
+kasa_ai = { path = "../kasa_ai" }
 rand = { workspace = true }
 dotenvy = { workspace = true }
 env_logger = { workspace = true }

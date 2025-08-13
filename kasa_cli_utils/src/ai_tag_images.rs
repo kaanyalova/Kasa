@@ -1,10 +1,7 @@
 use std::env;
 
-use kasa_core::{
-    ai_tagger::{prepare_labels, prepare_session, tag_image_wdv},
-    config::global_config::get_config_impl,
-    tags::insert_tags_with_source_types,
-};
+use kasa_ai::wdv_tagger::{prepare_labels, prepare_session, tag_image_wdv};
+use kasa_core::{config::global_config::get_config_impl, tags::insert_tags_with_source_types};
 use kasa_python::ExtractedTag;
 use sqlx::{query_scalar, sqlite::SqlitePoolOptions};
 

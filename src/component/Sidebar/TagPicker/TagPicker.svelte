@@ -5,7 +5,7 @@
 	import { stat } from '@tauri-apps/plugin-fs';
 	import type { TagWithCount, TagWithDetails } from '$lib/tauri_bindings';
 	import { formatCount, getCountColor } from '$lib/colorUtils';
-	import TagPickerCheckBox from './TagPickerCheckBox.svelte';
+	import TagPickerEntry from './TagPickerEntry.svelte';
 	import VirtualList, { type VirtualListProps } from 'svelte-tiny-virtual-list';
 	import { error, trace } from '@tauri-apps/plugin-log';
 	import { comma } from 'postcss/lib/list';
@@ -135,25 +135,12 @@
 				scrollToIndex={/*How does this even work?*/ 0}
 			>
 				<div slot="item" let:index let:style {style}>
-					<div class="tag">
-						<TagPickerCheckBox
-							tagName={filteredTags!![index].tag_name}
-							checkboxState={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
-							{onCheck}
-						></TagPickerCheckBox>
-						<label for="tag-{filteredTags!![index].tag_name}">
-							<div class="tagName">
-								{filteredTags!![index].tag_name}
-							</div>
-						</label>
-
-						<div
-							class="count"
-							style="background-color: {getCountColor(filteredTags!![index].count)}"
-						>
-							{formatCount(filteredTags!![index].count)}
-						</div>
-					</div>
+					<TagPickerEntry
+						tagName={filteredTags!![index].tag_name}
+						count={filteredTags!![index].count}
+						checkboxState={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
+						{onCheck}
+					/>
 				</div>
 			</VirtualList>
 		{/if}
@@ -197,28 +184,6 @@
 
 	.tagPickerList :global(.virtual-list-wrapper) {
 		padding-right: 18px;
-	}
-
-	.count {
-		margin-left: auto;
-		min-width: 50px;
-		color: black;
-		text-align: center;
-		border-radius: 0px 10px 10px 0px;
-	}
-
-	.tag {
-		display: flex;
-		border: 1px solid var(--secondary-alt);
-		margin: 2px;
-		padding-left: 4px;
-		border-radius: 0px 10px 10px 0px;
-	}
-
-	.tagName {
-		overflow-wrap: break-word;
-		word-break: break-all;
-		margin-right: 8px;
 	}
 
 	.search {

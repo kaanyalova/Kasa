@@ -1,15 +1,20 @@
-mod http_client;
-
 use futures::FutureExt;
+
+pub mod async_body;
+mod http_client_tls;
+mod requests;
+mod tokio;
+
 use gpui::{
     App, AppContext, Application, Asset as _, AssetLogger, Bounds, ClickEvent, Context, ElementId,
     Entity, ImageAssetLoader, ImageCache, ImageCacheProvider, KeyBinding, Menu, MenuItem,
     RetainAllImageCache, SharedString, TitlebarOptions, Window, WindowBounds, WindowOptions,
-    actions, div, hash, http_client::HttpClient, image_cache, img, prelude::*, px, rgb, size,
+    actions, div, hash, image_cache, img, prelude::*, px, rgb, size,
 };
+
 use std::{collections::HashMap, sync::Arc};
 
-use crate::http_client::ReqwestClient;
+use crate::requests::ReqwestClient;
 
 const IMAGES_IN_GALLERY: usize = 30;
 
@@ -247,14 +252,12 @@ impl ImageCache for SimpleLruCache {
 
 actions!(image, [Quit]);
 
-#[tokio::main]
-async fn main() {
+fn main() {
     env_logger::init();
 
     Application::new().run(move |cx: &mut App| {
-        let reqwest_client = reqwest::Client::new();
-        let client = ReqwestClient::new(reqwest_client);
-        cx.set_http_client(Arc::new(client));
+        //let client = cx.set_http_client(Arc::new(client));
+        let client = cx.set_http_client(Arc::new(ReqwestClient::new()));
 
         cx.activate(true);
         cx.on_action(|_: &Quit, cx| cx.quit());

@@ -12,7 +12,10 @@ members = [
     "kasa_cli_utils",
     "kasa_tauri",
     "kasa_bench",
-    "kasa_python", "kasa_ai",
+    "kasa_python",
+    "kasa_ai",
+    "kasa_gpui",
+
     # "kasa_gtk_experiment",
 ]
 

@@ -5,7 +5,9 @@
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import { commands } from '$lib/tauri_bindings';
 	import { comma } from 'postcss/lib/list';
+	import { onMount } from 'svelte';
 
+	let status = $state('');
 	let downloadBox = $state('');
 
 	async function onDownload() {
@@ -19,9 +21,16 @@
 			console.log('done');
 		});
 	}
+
+	async function updateStatus() {
+		let newStatus = await commands.getDownloadProgress();
+		status = JSON.stringify(newStatus);
+	}
 </script>
 
 <div class="downloader">
+	<div class=""></div>
+
 	<div class="sections">
 		<div class="leftSide">
 			<textarea class="downloadInputBox borderedBox" bind:value={downloadBox}></textarea>
@@ -32,6 +41,17 @@
 			<HorizontalDivider height={DividerSizes.Small}></HorizontalDivider>
 			<button class="button" onclick={onDownload}> Download </button>
 		</div>
+	</div>
+
+	<div class="status">
+		<button
+			onclick={async () => {
+				updateStatus();
+			}}
+		>
+			UpdateStatus</button
+		>
+		{status}
 	</div>
 </div>
 
@@ -91,5 +111,8 @@
 		border: 1px solid var(--secondary-alt);
 		/*padding: 4px;*/
 		width: 100%;
+	}
+	.status {
+		color: var(--text);
 	}
 </style>

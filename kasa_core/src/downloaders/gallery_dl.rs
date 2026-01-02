@@ -1,7 +1,9 @@
 use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
-use kasa_python::extractors::configurable::ExtractorConfig;
+use kasa_python::{
+    GalleryDlStatus, GalleryDlStatuses, extractors::configurable::ExtractorConfig, get_progress,
+};
 use rustpython_vm::Interpreter;
 use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;
@@ -55,6 +57,10 @@ pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
 
     when_done();
     Ok(())
+}
+
+pub async fn get_download_progress_impl(interpreter: &PyTrustMe) -> Result<GalleryDlStatuses> {
+    get_progress(&interpreter.0)
 }
 
 #[derive(Error, Debug)]

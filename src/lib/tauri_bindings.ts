@@ -177,6 +177,9 @@ async setThumbsDbPath(path: string) : Promise<void> {
 },
 async getMediaName(hash: string) : Promise<string> {
     return await TAURI_INVOKE("get_media_name", { hash });
+},
+async getDownloadProgress() : Promise<GalleryDlStatuses> {
+    return await TAURI_INVOKE("get_download_progress");
 }
 }
 
@@ -198,6 +201,8 @@ export type Database = { db_path: string }
  */
 export type DateRange = { start: number; end: number }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
+export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number }
+export type GalleryDlStatuses = { [key in string]: GalleryDlStatus }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader }
 /**
  * File-tag pairs

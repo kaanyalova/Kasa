@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, default};
 
 use anyhow::{Ok, Result};
 use extractors::configurable::{ExtractorConfig, extract_tags};
@@ -106,7 +106,52 @@ pub fn gdl_download(
     })
 }
 
-pub fn get_progress() {}
+pub fn get_progress(interpreter: &Interpreter) -> Result<GalleryDlStatuses> {
+    interpreter.enter(|vm| {
+        let module = vm.import("gdl", 0).map_err(|e| {
+            PyError::PythonException(
+                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".into()),
+            )
+        })?;
+
+        let func = module.get_attr("get_jobs_status", vm).map_err(|e| {
+            PyError::PythonException(
+                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
+            )
+        })?;
+
+        let output = func
+            .call((), vm)
+            .map_err(|e| {
+                vm.print_exception(e)
+
+                //PyError::PythonException(
+                //    e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
+                //)
+            })
+            .unwrap();
+
+        let output: String = output.try_into_value(vm).map_err(|e| {
+            PyError::PythonException(
+                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
+            )
+        })?;
+
+        let gdl_output: GalleryDlStatuses = serde_json::from_str(&output)?;
+
+        Ok(gdl_output)
+    })
+}
+
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+pub struct GalleryDlStatus {
+    pub bytes_total: i64,
+    pub bytes_downloaded: i64,
+    pub bytes_per_second: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, specta::Type)]
+pub struct GalleryDlStatuses(HashMap<String, GalleryDlStatus>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GalleryDlOutput {

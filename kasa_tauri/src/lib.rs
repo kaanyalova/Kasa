@@ -17,6 +17,7 @@ use db::query_tags;
 use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
 use downloaders::download_and_index;
+use downloaders::get_download_progress;
 use file_picker::new_linux_file_picker_dialog_file_select;
 use file_picker::new_linux_file_picker_dialog_multiple_folder_select;
 use file_picker::new_linux_file_picker_dialog_save_file;
@@ -159,7 +160,8 @@ pub fn run() {
             set_search_store,
             set_db_path,
             set_thumbs_db_path,
-            get_media_name
+            get_media_name,
+            get_download_progress
         ]
     });
 

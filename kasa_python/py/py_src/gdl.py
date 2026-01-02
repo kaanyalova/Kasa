@@ -90,5 +90,14 @@ def download(url: str, path: str, config_dir: str) -> str:
     return json.dumps(info, default=str)
 
 
-def get_job_statuses() -> str:
-    pass
+def get_jobs_status() -> str:
+    global jobs
+    jobs = list(filter(lambda j: not j.is_done, jobs))
+
+    jobs_output = {}
+
+    for job in jobs:
+        jobs_output[job.url_hash] = job.out.state
+
+    return json.dumps(jobs_output)
+        

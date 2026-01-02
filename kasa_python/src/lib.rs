@@ -4,9 +4,7 @@ use anyhow::{Ok, Result};
 use extractors::configurable::{ExtractorConfig, extract_tags};
 use log::trace;
 use rustpython_pylib::FROZEN_STDLIB;
-use rustpython_vm::{
-    Interpreter, compiler::parser::ast::String, convert::ToPyObject, py_freeze, pymodule, vm,
-};
+use rustpython_vm::{Interpreter, convert::ToPyObject, py_freeze, pymodule, vm};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

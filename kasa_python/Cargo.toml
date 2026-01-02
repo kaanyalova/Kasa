@@ -16,9 +16,7 @@ rustpython-pylib = { workspace = true, features = [] }
 rustpython = { workspace = true, features = [
     "freeze-stdlib",
     "sqlite",
-    "ssl-vendor",
 ] }
-openssl = { workspace = true }
 
 
 anyhow = { workspace = true }

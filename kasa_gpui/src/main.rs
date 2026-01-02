@@ -9,8 +9,9 @@ use gpui::{
     App, AppContext, Application, Asset as _, AssetLogger, Bounds, ClickEvent, Context, ElementId,
     Entity, ImageAssetLoader, ImageCache, ImageCacheProvider, KeyBinding, Menu, MenuItem,
     RetainAllImageCache, SharedString, TitlebarOptions, Window, WindowBounds, WindowOptions,
-    actions, div, hash, image_cache, img, prelude::*, px, rgb, size,
+    actions, blue, div, hash, image_cache, img, prelude::*, px, rgb, size, white,
 };
+use gpui_component::scroll::ScrollableElement;
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -21,24 +22,6 @@ const IMAGES_IN_GALLERY: usize = 30;
 struct ImageGallery {
     image_key: String,
     items_count: usize,
-    total_count: usize,
-    image_cache: Entity<RetainAllImageCache>,
-}
-
-impl ImageGallery {
-    fn on_next_image(&mut self, _: &ClickEvent, window: &mut Window, cx: &mut Context<Self>) {
-        self.image_cache
-            .update(cx, |image_cache, cx| image_cache.clear(window, cx));
-
-        let t = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
-
-        self.image_key = format!("{}", t);
-        self.total_count += self.items_count;
-        cx.notify();
-    }
 }
 
 impl Render for ImageGallery {
@@ -48,91 +31,53 @@ impl Render for ImageGallery {
 
         div()
             .flex()
+            .size_full()
+            .flex_grow()
             .flex_col()
             .text_color(gpui::white())
-            .child("Manually managed image cache:")
+            .child("Automatically managed image cache:")
             .child(
-                div()
-                    .image_cache(self.image_cache.clone())
-                    .id("main")
-                    .text_color(gpui::black())
-                    .bg(rgb(0xE9E9E9))
-                    .overflow_y_scroll()
-                    .p_4()
+                image_cache(simple_lru_cache("lru-cache", IMAGES_IN_GALLERY))
                     .size_full()
-                    .flex()
-                    .flex_col()
-                    .items_center()
-                    .gap_2()
                     .child(
                         div()
-                            .w_full()
                             .flex()
-                            .flex_row()
-                            .justify_between()
-                            .child(format!(
-                                "Example to show images and test memory usage (Rendered: {} images).",
-                                self.total_count
-                            ))
+                            .size_full()
+                            .flex_col()
+                            .text_color(gpui::white())
+                            .child("Automatically managed image cache:")
                             .child(
                                 div()
-                                    .id("btn")
-                                    .py_1()
-                                    .px_4()
-                                    .bg(gpui::black())
-                                    .hover(|this| this.opacity(0.8))
-                                    .text_color(gpui::white())
-                                    .text_center()
-                                    .w_40()
-                                    .child("Next Photos")
-                                    .on_click(cx.listener(Self::on_next_image)),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .id("image-gallery")
-                            .flex()
-                            .flex_row()
-                            .flex_wrap()
-                            .gap_x_4()
-                            .gap_y_2()
-                            .justify_around()
-                            .children(
-                                (0..self.items_count)
-                                    .map(|ix| img(format!("{}-{}", image_url, ix)).size_20()),
+                                    .id("main")
+                                    .flex_grow() // Uses flex_grow to fill remaining space
+                                    .bg(blue())
+                                    .overflow_y_scroll() // Should work now
+                                    .size_full()
+                                    .text_color(gpui::black())
+                                    .p_4()
+                                    .flex()
+                                    .flex_col()
+                                    .items_center()
+                                    .gap_2()
+                                    .child(
+                                        div()
+                                            .id("image-gallery")
+                                            .flex()
+                                            .flex_row()
+                                            .flex_wrap()
+                                            .gap_x_4()
+                                            .gap_y_2()
+                                            .justify_around()
+                                            .bg(blue())
+                                            .children(
+                                                (0..self.items_count).map(|ix| {
+                                                    img(format!("{}-{}", image_url, ix)).size_20()
+                                                }),
+                                            ),
+                                    ),
                             ),
                     ),
             )
-            .child(
-                "Automatically managed image cache:"
-            )
-            .child(image_cache(simple_lru_cache("lru-cache", IMAGES_IN_GALLERY)).child(
-                div()
-                    .id("main")
-                    .bg(rgb(0xE9E9E9))
-                    .text_color(gpui::black())
-                    .overflow_y_scroll()
-                    .p_4()
-                    .size_full()
-                    .flex()
-                    .flex_col()
-                    .items_center()
-                    .gap_2()
-                    .child(
-                        div()
-                            .id("image-gallery")
-                            .flex()
-                            .flex_row()
-                            .flex_wrap()
-                            .gap_x_4()
-                            .gap_y_2()
-                            .justify_around()
-                            .children(
-                                (0..self.items_count)
-                                    .map(|ix| img(format!("{}-{}", image_url, ix)).size_20()),
-                            ),
-                    )
-            ))
     }
 }
 
@@ -287,8 +232,6 @@ fn main() {
             cx.new(|ctx| ImageGallery {
                 image_key: "".into(),
                 items_count: IMAGES_IN_GALLERY,
-                total_count: 0,
-                image_cache: RetainAllImageCache::new(ctx),
             })
         })
         .unwrap();

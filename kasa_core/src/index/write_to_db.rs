@@ -74,7 +74,6 @@ pub async fn write_to_db(
             });
 
             let query = query_builder.build();
-            dbg!(query.sql());
             query.execute(pool).await.unwrap();
         }
         MediaType::Video => { /* TODO implement video meta */ }

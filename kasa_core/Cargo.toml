@@ -88,3 +88,8 @@ default = ["swf_thumbnailer", "ai"]
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
 ai = ["dep:kasa_ai"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]
+
+
+
+[patch.crates-io]
+libsqlite3-sys = { version = "0.30.1" }

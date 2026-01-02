@@ -38,7 +38,7 @@ pub fn init_interpreter() -> Interpreter {
         vm.add_native_module("rust_side", Box::new(rust_side::make_module));
 
         vm.add_frozen(py_freeze!(
-            dir = "py/dependencies/gallery-dl/gallery_dl-1.30.0"
+            dir = "py/dependencies/gallery-dl/gallery_dl-1.31.2"
         ));
         vm.add_frozen(py_freeze!(
             dir = "py/dependencies/charset_normalizer/charset_normalizer-3.4.0"
@@ -105,6 +105,8 @@ pub fn gdl_download(
         Ok(gdl_output)
     })
 }
+
+pub fn get_progress() {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GalleryDlOutput {

@@ -5,7 +5,8 @@ from gallery_dl import InputManager, job, config
 from gallery_dl.extractor.message import Message
 import logging
 import json
-
+from kasa_download_job import KasaDownloadJob
+jobs = []
 
 def download(url: str, path: str, config_dir: str) -> str:
     config.load(files=[config_dir])
@@ -32,7 +33,8 @@ def download(url: str, path: str, config_dir: str) -> str:
     # config.set(key_tuple[:-1], key_tuple[-1], option["value"])
     # print(f"loaded config option, val= {option['value']}")
 
-    _job = job.DownloadJob(url)
+    _job = KasaDownloadJob(url)
+    jobs.append(_job)
 
     # TODO check the status
     status = _job.run()
@@ -86,3 +88,7 @@ def download(url: str, path: str, config_dir: str) -> str:
 
     # datetime is not serializable without default=str
     return json.dumps(info, default=str)
+
+
+def get_job_statuses() -> str:
+    pass

@@ -53,13 +53,10 @@ fn main() {
         fn patch(&self) {
             println!("Applying patch from {}", self.patch_path);
 
-
             let original = std::fs::read_to_string(&self.file_path).unwrap();
             let patch_file = std::fs::read_to_string(&self.patch_path).unwrap();
             let patch = Patch::from_str(&patch_file).unwrap();
             let apply = apply(&original, &patch);
-
-
 
             // dumb way of skipping already applied patches, will cause problems if patching actually fails
             match apply {
@@ -79,7 +76,7 @@ fn main() {
 
     let sources = vec![
         Source::new(
-            "https://github.com/mikf/gallery-dl/releases/download/v1.30.0/gallery_dl-1.30.0.tar.gz",
+            "https://github.com/mikf/gallery-dl/releases/download/v1.31.2/gallery_dl-1.31.2.tar.gz",
             "gallery-dl",
         ),
         Source::new(
@@ -104,18 +101,9 @@ fn main() {
         source.download_and_extract();
     }
 
-    let patches = vec![
-        _Patch::new(
-            "py/dependencies/charset_normalizer/charset_normalizer-3.4.0/charset_normalizer/utils.py",
-            "py/patches/fix_broken_multibytecodec_import.diff",
-        ),
-        _Patch::new(
-            "py/dependencies/gallery-dl/gallery_dl-1.30.0/gallery_dl/job.py",
-            "py/patches/add_output_paths.diff",
-        ),
-    ];
+    //let patches = vec![];
 
-    for patch in patches {
-        patch.patch();
-    }
+    //for patch in patches {
+    //    patch.patch();
+    //}
 }

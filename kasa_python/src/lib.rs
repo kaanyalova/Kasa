@@ -3,6 +3,7 @@ use std::{collections::HashMap, default};
 use anyhow::{Ok, Result};
 use extractors::configurable::{ExtractorConfig, extract_tags};
 use log::trace;
+use rustpython::{InterpreterBuilder, InterpreterBuilderExt};
 use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{Interpreter, convert::ToPyObject, py_freeze, pymodule, vm};
 
@@ -29,30 +30,29 @@ pub fn init_interpreter() -> Interpreter {
         std::fs::write(cert_path, CERT_BYTES).unwrap();
     }
 
-    vm::Interpreter::with_init(Default::default(), |vm| {
-        vm.add_native_modules(rustpython_stdlib::get_module_inits());
+    let builder = InterpreterBuilder::new().init_stdlib();
+    let rust_side_module_def = rust_side::module_def(&builder.ctx);
+    let builder = builder
+        .add_native_module(rust_side_module_def)
+        .add_frozen_modules(FROZEN_STDLIB)
+        .add_frozen_modules(py_freeze!(
+            dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.2"
+        ))
+        .add_frozen_modules(py_freeze!(
+            dir = "../py/dependencies/charset_normalizer/charset_normalizer-3.4.0"
+        ))
+        .add_frozen_modules(py_freeze!(dir = "../py/dependencies/idna/idna-3.10"))
+        .add_frozen_modules(py_freeze!(
+            dir = "../py/dependencies/requests/requests-2.32.3/src"
+        ))
+        .add_frozen_modules(py_freeze!(dir = "../py/dependencies/certifi"))
+        .add_frozen_modules(py_freeze!(
+            dir = "../py/dependencies/urllib3/urllib3-2.2.3/src"
+        ))
+        .add_frozen_modules(py_freeze!(dir = "../py/py_src"))
+        .build();
 
-        vm.add_frozen(FROZEN_STDLIB);
-
-        // First, just in case the order matters
-        vm.add_native_module("rust_side", Box::new(rust_side::make_module));
-
-        vm.add_frozen(py_freeze!(
-            dir = "py/dependencies/gallery-dl/gallery_dl-1.31.2"
-        ));
-        vm.add_frozen(py_freeze!(
-            dir = "py/dependencies/charset_normalizer/charset_normalizer-3.4.0"
-        ));
-        vm.add_frozen(py_freeze!(dir = "py/dependencies/idna/idna-3.10"));
-        vm.add_frozen(py_freeze!(
-            dir = "py/dependencies/requests/requests-2.32.3/src"
-        ));
-        vm.add_frozen(py_freeze!(dir = "py/dependencies/certifi"));
-        vm.add_frozen(py_freeze!(
-            dir = "py/dependencies/urllib3/urllib3-2.2.3/src"
-        ));
-        vm.add_frozen(py_freeze!(dir = "py/py_src"));
-    })
+    builder
 }
 
 pub fn gdl_download(

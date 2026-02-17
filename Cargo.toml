@@ -14,7 +14,7 @@ members = [
     "kasa_bench",
     "kasa_python",
     "kasa_ai",
-    #"kasa_gpui", 
+    #"kasa_gpui",
 
     # "kasa_gtk_experiment",
 ]

@@ -3,6 +3,7 @@ use std::iter::zip;
 use image::{Rgba, imageops};
 
 use ort::tensor::TensorElementType::Float32;
+use ort::value::Tensor;
 use ort::{execution_providers::ROCmExecutionProvider, session::Session};
 
 #[derive(Debug)]
@@ -21,9 +22,9 @@ pub struct TaggerTag {
 pub fn prepare_session(model_path: &str) -> Session {
     let onnx_path = std::env::var("KASA_ONNX_RT_PATH").unwrap();
     ort::init_from(&onnx_path)
+        .unwrap()
         .with_execution_providers([ROCmExecutionProvider::default().build().error_on_failure()])
-        .commit()
-        .unwrap();
+        .commit();
 
     Session::builder()
         .unwrap()
@@ -36,16 +37,16 @@ pub fn prepare_session(model_path: &str) -> Session {
 }
 
 pub fn tag_image_wdv(
-    session: &Session,
+    session: &mut Session,
     image_path: &str,
     tag_labels: &Labels,
     character_thresh: f32,
     general_thresh: f32,
 ) -> TaggerOutput {
-    let (dim_x, dim_y) = match &session.inputs.first().unwrap().input_type {
+    let (dim_x, dim_y) = match &session.inputs().first().unwrap().dtype() {
         ort::value::ValueType::Tensor {
             ty,
-            dimensions,
+            shape: dimensions,
             dimension_symbols: _,
         } => {
             assert_eq!(ty, &Float32, "Model not supported");
@@ -64,11 +65,10 @@ pub fn tag_image_wdv(
     // any way to not use ndarray for this?
 
     let outputs = session
-        .run(ort::inputs!["input" => image].unwrap())
+        .run(ort::inputs!["input" => Tensor::from_array(image).unwrap()])
         .unwrap();
 
-    let predictions = outputs["output"].try_extract_tensor::<f32>().unwrap();
-    let flattened = predictions.flatten();
+    let (_, flattened) = outputs["output"].try_extract_tensor::<f32>().unwrap();
 
     let tags = tag_labels;
     let labels: Vec<(String, f32)> = zip(tags.tag_names.to_owned(), flattened.to_owned()).collect();

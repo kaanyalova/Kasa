@@ -9,11 +9,12 @@ pub fn get_thumbnail_size(media_type: MediaType, path: &str) -> (u32, u32) {
         MediaType::Image => imagesize::size(path)
             .map(|s| (s.width as u32, s.height as u32))
             .unwrap_or((256, 256)),
-        MediaType::Video => get_video_resolution(path).unwrap_or((1920, 1080)), // default value if ffmpeg dies
+        MediaType::Video => get_video_resolution(path).unwrap_or((1920, 1080)),
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),
         MediaType::Flash => get_flash_resolution_impl(path).unwrap_or((256, 256)),
+        MediaType::Pdf => (256, 256),
     };
     // TODO make this configurable, make sure it matches the actual thumbnail sizes in dev
     calculate_aspect_ratio(src_x, src_y, 256, 256)

@@ -95,6 +95,10 @@ fn main() {
             "https://github.com/kjd/idna/releases/download/v3.10/idna-3.10.tar.gz",
             "idna",
         ),
+        Source::new(
+            "https://github.com/yt-dlp/yt-dlp/releases/download/2025.07.21/yt-dlp.tar.gz",
+            "yt-dlp"
+        )
     ];
 
     for source in sources {
@@ -107,3 +111,4 @@ fn main() {
     //    patch.patch();
     //}
 }
+//

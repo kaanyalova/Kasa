@@ -92,6 +92,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         MediaType::Unknown => unimplemented!(),
         MediaType::Group => unimplemented!(),
         MediaType::Flash => { /* TODO implement flash meta */ }
+        MediaType::Pdf => unimplemented!(),
     };
 
     let import = ImportInfo {

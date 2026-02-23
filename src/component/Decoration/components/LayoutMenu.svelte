@@ -9,7 +9,16 @@
 		InfiniteMediaStore.setShowNames(state);
 	}
 
-	function onThumbnailSizeChange() {}
+	let thumbnailScaleDisplay = $state(InfiniteMediaStore.thumbnailScale);
+
+	let thumbnailScaleTimer: number = 0;
+	function onChangeThumbnailScale(scale: number) {
+		thumbnailScaleDisplay = scale;
+		clearTimeout(thumbnailScaleTimer);
+		thumbnailScaleTimer = setTimeout(() => {
+			InfiniteMediaStore.thumbnailScale = scale;
+		}, 200);
+	}
 </script>
 
 <dialog class="layoutMenu" open>
@@ -25,7 +34,7 @@
 		</li>
 
 		<li class="layoutMenuItem">
-			<div class="layoutMenuItemDescription">Thumbnail Scale</div>
+			<div class="propertyText">Thumbnail Scale</div>
 
 			<div class="thumbnailScaleSliderContainer">
 				<input
@@ -34,12 +43,14 @@
 					min="0.5"
 					max="3"
 					step="0.2"
-					bind:value={InfiniteMediaStore.thumbnailScale}
+					bind:value={() => thumbnailScaleDisplay, (v) => onChangeThumbnailScale(v)}
 				/>
 			</div>
 
 			<div class="thumbnailScaleSliderValue">
-				{InfiniteMediaStore.thumbnailScale}
+				<span class="thumbnailScaleText">
+					{thumbnailScaleDisplay}
+				</span>
 			</div>
 		</li>
 	</ul>
@@ -68,6 +79,20 @@
 
 	.layoutMenuItemDescription {
 		margin: 4px;
+		font-size: small;
+	}
+
+	.propertyText {
+		font-size: 12px;
+		background-color: var(--secondary-alt);
+		padding-top: 8px;
+		padding-bottom: 8px;
+		padding-left: 2px;
+		padding-right: 2px;
+		text-align: center;
+		border: 1px solid var(--border);
+		border-right: none;
+		border-radius: 4px 0px 0px 4px;
 	}
 
 	.thumbnailScaleSliderValue {
@@ -79,15 +104,23 @@
 		width: 36px;
 		height: 36px;
 		text-align: center;
+		border-radius: 0px 4px 4px 0px;
 	}
 
 	.thumbnailScaleSlider {
 		padding: 4px;
+		position: relative;
+		top: 2px;
 	}
 
 	.thumbnailScaleSliderContainer {
 		border: 1px solid var(--secondary-alt);
 		padding-left: 4px;
 		padding-right: 4px;
+	}
+
+	.thumbnailScaleText {
+		position: relative;
+		top: 3px;
 	}
 </style>

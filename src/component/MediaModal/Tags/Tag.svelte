@@ -5,7 +5,7 @@
 	import TrashGnome from '../../Vector/TrashGnome.svelte';
 	import TrashWithQuestionMark from '../../Vector/TrashWithQuestionMark.svelte';
 
-	let { name, onDelete }: TagProps = $props();
+	let { name, color, onDelete }: TagProps = $props();
 
 	let clickCount = $state(0);
 	let clickColdown: number = $state(0);
@@ -34,8 +34,6 @@
 			onClick();
 		}}
 	>
-		<div class="name">{name}</div>
-
 		<div class="tagButton">
 			{#if clickCount === 1}
 				<!--
@@ -50,19 +48,21 @@
 				</div>
 			{/if}
 		</div>
+
+		<div class="name">{name}</div>
+
+		<div class="coloredPart" style="background-color:{color};"></div>
 	</button>
 {/if}
 
 <style>
 	.tag {
-		padding: 2px;
-		padding-right: 6px;
-		padding-left: 6px;
 		border: 1px solid var(--border);
 		display: flex;
-		margin: 4px;
 		align-items: center;
 		justify-content: center;
+		margin: 4px;
+		border-radius: 0px 2px 2px 0px;
 	}
 
 	.tag:hover {
@@ -74,7 +74,6 @@
 		align-items: center;
 		justify-content: center;
 		display: flex;
-		padding-left: 2px;
 		width: 16px;
 	}
 
@@ -82,10 +81,16 @@
 		font-size: small;
 		word-wrap: break-word;
 		max-width: 238px;
+		margin-right: 4px;
 	}
 
 	.xButton {
 		position: relative;
-		top: 1px;
+	}
+
+	.coloredPart {
+		width: 4px;
+		height: 25px;
+		border-radius: 0px 2px 2px 0px;
 	}
 </style>

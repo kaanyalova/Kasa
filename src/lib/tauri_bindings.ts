@@ -220,7 +220,7 @@ export type MetaEntry = { name: string; value: string; isValueMonospaced: boolea
 export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 export type RawImage = { width: number; height: number; bytes: number[] }
 export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by: OrderCriteria; date_range: DateRange | null }
-export type SourceCategoryGroupedTags = { source_categories: { [key in string]: HashTagPair[] }; uncategorized: HashTagPair[] }
+export type SourceCategoryGroupedTags = { tags_with_source_categories: { [key in string]: TagWithDetails[] }; tags_without_source_categories: TagWithDetails[] }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
  * of virtual tables
@@ -233,7 +233,7 @@ delete_on_no_references_left: boolean; color: string | null; group: string | nul
 /**
  * Should this tag use its own color instead of the group one
  */
-override_group_color: boolean }
+override_group_color: boolean; count: number }
 export type TagQueryOutput = { name: string; count: number; tag_details: TagDetail }
 export type TagWithCount = { tag_name: string; count: number; details: TagDetail }
 export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail }

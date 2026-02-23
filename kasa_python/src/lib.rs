@@ -33,20 +33,30 @@ pub fn init_interpreter() -> Interpreter {
     let builder = InterpreterBuilder::new().init_stdlib();
     let rust_side_module_def = rust_side::module_def(&builder.ctx);
     let builder = builder
-        .add_native_module(rust_side_module_def)
         .add_frozen_modules(FROZEN_STDLIB)
+        .add_native_module(rust_side_module_def)
         .add_frozen_modules(py_freeze!(
+            module_name = "gallery_dl",
             dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.2"
         ))
         .add_frozen_modules(py_freeze!(
+            module_name = "charset_normalizer",
             dir = "../py/dependencies/charset_normalizer/charset_normalizer-3.4.0"
         ))
-        .add_frozen_modules(py_freeze!(dir = "../py/dependencies/idna/idna-3.10"))
         .add_frozen_modules(py_freeze!(
+            module_name = "idna",
+            dir = "../py/dependencies/idna/idna-3.10"
+        ))
+        .add_frozen_modules(py_freeze!(
+            module_name = "requests",
             dir = "../py/dependencies/requests/requests-2.32.3/src"
         ))
-        .add_frozen_modules(py_freeze!(dir = "../py/dependencies/certifi"))
         .add_frozen_modules(py_freeze!(
+            module_name = "certifi",
+            dir = "../py/dependencies/certifi/"
+        ))
+        .add_frozen_modules(py_freeze!(
+            module_name = "urllib3",
             dir = "../py/dependencies/urllib3/urllib3-2.2.3/src"
         ))
         .add_frozen_modules(py_freeze!(dir = "../py/py_src"))

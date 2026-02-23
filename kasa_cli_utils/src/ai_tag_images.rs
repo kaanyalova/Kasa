@@ -21,7 +21,7 @@ pub async fn ai_tag_images() {
 
     println!("{} Hashes found", hashes.len());
 
-    let session = prepare_session(&env::var("KASA_WDV_MODEL_PATH").unwrap());
+    let mut session = prepare_session(&env::var("KASA_WDV_MODEL_PATH").unwrap());
     let labels = prepare_labels(&env::var("KASA_WDV_LABEL_PATH").unwrap());
 
     let mut counter = 0;
@@ -35,7 +35,7 @@ pub async fn ai_tag_images() {
 
         let first_path = path.first().unwrap();
 
-        let tags = tag_image_wdv(&session, first_path, &labels, 0.85, 0.35);
+        let tags = tag_image_wdv(&mut session, first_path, &labels, 0.85, 0.35);
 
         let characters: Vec<ExtractedTag> = tags
             .character

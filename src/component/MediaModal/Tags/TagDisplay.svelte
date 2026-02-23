@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 	import Clipboard from '../../Vector/Clipboard.svelte';
 	import { handleSelect } from '../../Sidebar/Search/HandleSelect';
-	import { commands, type TagQueryOutput } from '$lib/tauri_bindings';
+	import { commands, type TagDetail, type TagQueryOutput } from '$lib/tauri_bindings';
 	import { getCursorPosition } from '$lib/getCaretPos';
 	import TagDropDown from './TagDropDown.svelte';
 	import Tag from './Tag.svelte';
@@ -15,12 +15,12 @@
 	import type { CursorPosition, TagDisplayProps } from './TagDisplay';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 	import NewTagButton from './NewTag/NewTagButton.svelte';
+	import { getCountColor } from '$lib/colorUtils';
 	let searchInput: HTMLDivElement;
 	let { initialEditBoxContents, isInEditMode, updateTagsTextBoxContents, data }: TagDisplayProps =
 		$props();
 	let tagsTextLocal: string | null | undefined = $state();
 
-	let tags = $state(data.tags);
 	let sourceCategoryGroupedTags = $state(data.sourceCategoryGroupedTags);
 
 	let cursorPosition: CursorPosition = $state({ top: null, left: null });
@@ -43,12 +43,7 @@
 	});
 
 	async function refreshTags() {
-		const newTags = await commands.getTags(data.hash);
 		const newGroupedTags = await commands.getTagsGroupedBySourceCategories(data.hash);
-
-		if (newTags !== null) {
-			tags = newTags;
-		}
 
 		if (newGroupedTags !== null) {
 			sourceCategoryGroupedTags = newGroupedTags;
@@ -137,6 +132,15 @@
 		console.log(tags);
 		if (tags !== null) {
 			writeText(tags);
+		}
+	}
+
+	function getTagColor(tagDetail: TagDetail): string {
+		// TODO decide on an actual order for group colors, count colors and overwritten colors
+		if (tagDetail.color !== null) {
+			return tagDetail.color;
+		} else {
+			return getCountColor(tagDetail.count);
 		}
 	}
 </script>
@@ -256,11 +260,14 @@
 		{initialEditBoxContents}
 	</div>
 {:else}
-	{#each Object.entries(sourceCategoryGroupedTags.source_categories).sort() as [category, tagsWithCategory]}
+	{#each Object.entries(sourceCategoryGroupedTags.tags_with_source_categories).sort() as [category, tagsWithCategory]}
 		<h3>{category}</h3>
 		<div class="tagsList">
 			{#each tagsWithCategory as tagWithCategory}
-				<Tag name={tagWithCategory.tag_name} onDelete={async (name: string) => onDeleteTag(name)}
+				<Tag
+					name={tagWithCategory.hash_tag_pair.tag_name}
+					onDelete={async (name: string) => onDeleteTag(name)}
+					color={getTagColor(tagWithCategory.details)}
 				></Tag>
 			{/each}
 
@@ -273,23 +280,18 @@
 	{/each}
 
 	<!-- Only show the Uncategorized category if there is elements inside of it -->
-	{#if sourceCategoryGroupedTags.uncategorized.length > 0}
+	{#if sourceCategoryGroupedTags.tags_without_source_categories.length > 0}
 		<h3>Uncategorized</h3>
 
 		<div class="tagsList">
-			{#each sourceCategoryGroupedTags.uncategorized as uncategorizedTag}
+			{#each sourceCategoryGroupedTags.tags_without_source_categories as uncategorizedTag}
 				<!--Check if the tag exists in the main tag array, only display it if it does-->
 				<Tag
-					name={uncategorizedTag.tag_name}
+					color={getTagColor(uncategorizedTag.details)}
+					name={uncategorizedTag.hash_tag_pair.tag_name}
 					onDelete={async (name: string) => await onDeleteTag(name)}
 				></Tag>
 			{/each}
-			<NewTagButton></NewTagButton>
-		</div>
-	{/if}
-
-	{#if sourceCategoryGroupedTags.uncategorized.length === 0 && Object.keys(sourceCategoryGroupedTags.source_categories).length === 0}
-		<div class="tagsDisplay">
 			<NewTagButton></NewTagButton>
 		</div>
 	{/if}

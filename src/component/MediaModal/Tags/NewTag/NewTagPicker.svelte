@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { commands } from '$lib/tauri_bindings';
 	import { onMount } from 'svelte';
 
-	onMount(() => {
-		const allTags = commands.getTags;
-	});
+	onMount(() => {});
 </script>
 
 <div class="newTagPicker newTagPickerElement">

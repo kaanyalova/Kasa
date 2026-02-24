@@ -129,10 +129,14 @@ pub struct MediaGroupEntry {
     hash: String,
 }
 
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize, specta::Type)]
 #[allow(unused)]
 pub struct MediaSource {
     hash: String,
+    importer_type: String,
+    link_or_path: String,
     source: String,
+    raw_data: String,
 }
 #[derive(FromRow, Clone, Serialize, Deserialize)]
 pub struct TagPreset {

@@ -8,6 +8,8 @@ use rustpython_vm::Interpreter;
 use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;
 
+use sqlx::query;
+
 use crate::{
     config::global_config::get_config_impl, index::indexer::index,
     tags::insert_tags_with_source_types,
@@ -50,6 +52,16 @@ pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
             .await?;
 
         //dbg!(&extractor.get_tags());
+
+        let raw_data = serde_json::to_string(&extractor)?;
+        query("INSERT INTO MediaSource(hash, importer_type, link_or_path, source, raw_data) VALUES (?, ?, ?, ?, ?)")
+            .bind(&hash)
+            .bind("gallery_dl")
+            .bind(&url)
+            .bind(&downloader_output.extractor)
+            .bind(&raw_data)
+            .execute(pool)
+            .await?;
 
         insert_tags_with_source_types(extractor.get_tags(extractors)?, pool, Some(hash), None)
             .await;

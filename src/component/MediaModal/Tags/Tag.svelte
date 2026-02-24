@@ -75,6 +75,9 @@
 		justify-content: center;
 		display: flex;
 		width: 16px;
+		position: relative;
+		height: 19px;
+		top: 1px;
 	}
 
 	.name {
@@ -82,6 +85,7 @@
 		word-wrap: break-word;
 		max-width: 238px;
 		margin-right: 4px;
+		text-align: center;
 	}
 
 	.xButton {

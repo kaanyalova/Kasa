@@ -180,6 +180,9 @@ async getMediaName(hash: string) : Promise<string> {
 },
 async getDownloadProgress() : Promise<GalleryDlStatuses> {
     return await TAURI_INVOKE("get_download_progress");
+},
+async getMediaSources(hash: string) : Promise<MediaSource[]> {
+    return await TAURI_INVOKE("get_media_sources", { hash });
 }
 }
 
@@ -216,6 +219,7 @@ export type ImagePlacement = { x_relative: number; y_relative: number; width: nu
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
+export type MediaSource = { hash: string; link_or_path: string; source: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 export type RawImage = { width: number; height: number; bytes: number[] }
@@ -233,7 +237,7 @@ delete_on_no_references_left: boolean; color: string | null; group: string | nul
 /**
  * Should this tag use its own color instead of the group one
  */
-override_group_color: boolean; count: number }
+override_group_color: boolean }
 export type TagQueryOutput = { name: string; count: number; tag_details: TagDetail }
 export type TagWithCount = { tag_name: string; count: number; details: TagDetail }
 export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail }

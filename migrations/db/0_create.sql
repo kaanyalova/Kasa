@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS TagDetail (
 CREATE TABLE IF NOT EXISTS TagGroup (
     name TEXT NOT NULL,
     color TEXT
-); 
+);
 
 CREATE TABLE IF NOT EXISTS IndexSource (
     path TEXT NOT NULL
@@ -91,11 +91,14 @@ CREATE TABLE IF NOT EXISTS MediaGroupEntry (
 
 CREATE TABLE IF NOT EXISTS MediaSource (
     hash TEXT NOT NULL,
-    source TEXT NOT NULL
+    importer_type TEXT NOT NULL,
+    link_or_path TEXT NOT NULL,
+    source TEXT NOT NULL,
+    raw_data TEXT NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS SearchPreset (
     name TEXT NOT NULL,
     preset JSON NOT NULL
-)   
+)

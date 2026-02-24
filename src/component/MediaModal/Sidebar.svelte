@@ -12,6 +12,7 @@
 	import Tick from '../Vector/Tick.svelte';
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
+	import ImportInfo from './ImportInfo.svelte';
 
 	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
 
@@ -88,20 +89,7 @@
 
 		<div class="separator"></div>
 
-		<div class="header">Import Info</div>
-		<ul class="details">
-			<li class="paddedLi">Imported From <span class="redditMoveThisLater">Placeholder</span></li>
-			<li class="paddedLi">
-				Link : <a href="https://old.reddit.com/" class="">
-					https://www.youtube.com/watch?v=dQw4w9WgXcQ</a
-				>
-
-				<!-- 	
-		This should open in users browser not in tauri There should also be the reddit's alien thing
-		next to the "badge", The Link should not be the full, just cut off after first line Not done
-		-->
-			</li>
-		</ul>
+		<ImportInfo hash={data.hash}></ImportInfo>
 
 		<div class="separator"></div>
 

@@ -34,6 +34,7 @@ use log::warn;
 use media::get_group_info;
 use media::get_info;
 use media::get_media_name;
+use media::get_media_sources;
 use media::get_media_type;
 use media::get_swf_resolution;
 use media::get_tags;
@@ -161,7 +162,8 @@ pub fn run() {
             set_db_path,
             set_thumbs_db_path,
             get_media_name,
-            get_download_progress
+            get_download_progress,
+            get_media_sources
         ]
     });
 

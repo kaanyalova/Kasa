@@ -137,10 +137,15 @@
 
 	function getTagColor(tagDetail: TagDetail): string {
 		// TODO decide on an actual order for group colors, count colors and overwritten colors
+		console.log(`count is ${tagDetail.count}`);
+		console.log(`color is ${tagDetail.color}`);
+
 		if (tagDetail.color !== null) {
 			return tagDetail.color;
-		} else {
+		} else if (tagDetail.count) {
 			return getCountColor(tagDetail.count);
+		} else {
+			return getCountColor(0);
 		}
 	}
 </script>

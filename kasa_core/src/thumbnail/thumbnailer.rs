@@ -9,7 +9,7 @@ use crate::{
     supported_formats,
     thumbnail::{
         thumbnail_group::thumbnail_group,
-        thumbnail_image::{Thumbnail, thumbnail_image_single},
+        thumbnail_image::{Thumbnail, ThumbnailerError, thumbnail_image_single},
         thumbnail_video::thumbnail_video,
     },
 };
@@ -165,6 +165,9 @@ pub async fn get_thumbnail_from_db_impl(
         crate::db::schema::MediaType::Flash => {
             thumbnail_flash(&path, (256, 256), &ThumbnailFormat::PNG).await
         }
+        crate::db::schema::MediaType::Pdf => Err(anyhow!(ThumbnailerError::FormatUnsupported(
+            "Pdf thumbnails not implemented yet".to_string()
+        ))),
     };
 
     // Handle the Result<Thumbnail> outside the match statement

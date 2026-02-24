@@ -1,4 +1,122 @@
-<div class="">
-    Imported via 
+<script lang="ts">
+	import { commands } from '$lib/tauri_bindings';
+	import { show } from '@tauri-apps/api/app';
+	let { hash }: ImportInfoProps = $props();
 
-</div>
+	//let importInfo = commands.getMediaSource();
+	import '../../fonts.css';
+	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+
+	function formatSource(source: string): string {
+		return source.charAt(0).toUpperCase() + source.slice(1);
+	}
+
+	function showFullImportMetadata() {
+		const window = new WebviewWindow('source_data_viewer', {
+			url: `/source_data_viewer/${hash}/`,
+			decorations: false
+		});
+
+		window.once('tauri://created', function () {
+			console.log('created');
+		});
+
+		window.once('tauri://error', function (e) {
+			console.log(e);
+		});
+	}
+</script>
+
+<div class="header">Import Info</div>
+
+{#await commands.getMediaSources(hash) then sources}
+	{#each sources as source}
+		<ul class="details">
+			<li class="paddedLi">
+				Imported by <span class="monospaced importerType">{source.importer_type}</span>
+			</li>
+
+			<li class="paddedLi">
+				Imported from <span class="importSource">{formatSource(source.source)}</span>
+			</li>
+			<li class="paddedLi linkContainer">
+				<span class="linkHeader">Link: </span>
+				<a href={source.link_or_path} class="link"> {source.link_or_path}</a>
+			</li>
+
+			<li>
+				<button
+					class="fullImportMetadataButton"
+					onclick={() => {
+						showFullImportMetadata();
+					}}
+				>
+					See full import metadata
+				</button>
+			</li>
+		</ul>
+	{/each}
+{/await}
+
+<style>
+	.header {
+		padding-left: 4px;
+		padding-right: 4px;
+	}
+
+	.details {
+		font-size: small;
+		border: var(--secondary-alt) 1px solid;
+		padding: 2px;
+		border-radius: 2px;
+		margin: 4px;
+	}
+
+	.paddedLi {
+		padding: 2px;
+	}
+
+	.importSource {
+		background-color: var(--accent);
+		padding: 2px;
+		color: var(--text-opposite);
+		border-radius: 2px;
+		font-weight: bold;
+		font-family: 'Ubuntu';
+	}
+
+	.monospaced {
+		font-family: 'UbuntuMono';
+	}
+
+	.importerType {
+		border: 1px solid var(--secondary-alt);
+		padding: 2px;
+	}
+
+	.linkContainer {
+		word-break: break-all;
+	}
+
+	.link {
+		text-decoration: underline;
+	}
+
+	.linkHeader {
+		font-weight: bold;
+	}
+
+	.fullImportMetadataButton {
+		background-color: var(--accent);
+		color: var(--text-opposite);
+		padding: 2px;
+		padding-left: 4px;
+		padding-right: 4px;
+		margin: 2px;
+		border-radius: 2px;
+	}
+
+	.fullImportMetadataButton:hover {
+		background-color: color-mix(in srgb, var(--accent) 90%, black 10%);
+	}
+</style>

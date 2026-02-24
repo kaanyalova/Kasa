@@ -39,6 +39,7 @@ pub enum MediaType {
     Game,
     Group,
     Flash,
+    Pdf,
     Unknown,
 }
 
@@ -51,6 +52,7 @@ pub fn media_type_to_string(i: &MediaType) -> String {
         MediaType::Unknown => "Unknown",
         MediaType::Group => "Group",
         MediaType::Flash => "Flash",
+        MediaType::Pdf => "Pdf",
     };
     output.to_string()
 }
@@ -127,10 +129,14 @@ pub struct MediaGroupEntry {
     hash: String,
 }
 
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize, specta::Type)]
 #[allow(unused)]
 pub struct MediaSource {
     hash: String,
+    importer_type: String,
+    link_or_path: String,
     source: String,
+    raw_data: String,
 }
 #[derive(FromRow, Clone, Serialize, Deserialize)]
 pub struct TagPreset {

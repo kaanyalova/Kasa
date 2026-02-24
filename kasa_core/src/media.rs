@@ -13,7 +13,9 @@ use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite, query_as, query_scalar};
 
-use crate::db::schema::{HashTagPair, Image, Media, MediaType, RawTagsField, TagDetail};
+use crate::db::schema::{
+    HashTagPair, Image, Media, MediaSource, MediaType, RawTagsField, TagDetail,
+};
 
 /// Gets all the info to show to user in the sidebar for a piece of media
 pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
@@ -92,6 +94,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         MediaType::Unknown => unimplemented!(),
         MediaType::Group => unimplemented!(),
         MediaType::Flash => { /* TODO implement flash meta */ }
+        MediaType::Pdf => unimplemented!(),
     };
 
     let import = ImportInfo {
@@ -222,6 +225,14 @@ pub async fn get_media_name_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
         .unwrap_or(&OsString::new())
         .to_string_lossy()
         .to_string()
+}
+
+pub async fn get_media_sources_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<MediaSource> {
+    query_as("SELECT * FROM MediaSource WHERE hash = ?")
+        .bind(hash)
+        .fetch_all(pool)
+        .await
+        .unwrap()
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

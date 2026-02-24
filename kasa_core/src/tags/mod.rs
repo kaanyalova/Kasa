@@ -91,7 +91,7 @@ pub async fn insert_tags_with_source_types(
                 .bind(&tag._type)
                 .execute(&mut *tx)
                 .await
-                .unwrap();
+                 .unwrap();
         }
     }
 

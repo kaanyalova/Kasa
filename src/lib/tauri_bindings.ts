@@ -219,7 +219,7 @@ export type ImagePlacement = { x_relative: number; y_relative: number; width: nu
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
-export type MediaSource = { hash: string; link_or_path: string; source: string }
+export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 export type RawImage = { width: number; height: number; bytes: number[] }
@@ -240,7 +240,7 @@ delete_on_no_references_left: boolean; color: string | null; group: string | nul
 override_group_color: boolean }
 export type TagQueryOutput = { name: string; count: number; tag_details: TagDetail }
 export type TagWithCount = { tag_name: string; count: number; details: TagDetail }
-export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail }
+export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail; count: number }
 export type ThumbnailFormat = "png" | "jpeg" | "avif"
 export type Thumbs = { resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
 export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }

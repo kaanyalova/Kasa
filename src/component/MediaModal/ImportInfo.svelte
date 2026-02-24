@@ -31,7 +31,7 @@
 
 {#await commands.getMediaSources(hash) then sources}
 	{#each sources as source}
-		<ul class="details">
+		<ul class="details multicolorRows">
 			<li class="paddedLi">
 				Imported by <span class="monospaced importerType">{source.importer_type}</span>
 			</li>
@@ -44,7 +44,7 @@
 				<a href={source.link_or_path} class="link"> {source.link_or_path}</a>
 			</li>
 
-			<li>
+			<li class="noColoredRow">
 				<button
 					class="fullImportMetadataButton"
 					onclick={() => {
@@ -77,12 +77,12 @@
 	}
 
 	.importSource {
-		background-color: var(--accent);
 		padding: 2px;
-		color: var(--text-opposite);
+		color: var(--text);
 		border-radius: 2px;
-		font-weight: bold;
-		font-family: 'Ubuntu';
+		font-family: 'UbuntuMono';
+		border: var(--background) 1px solid;
+		background-color: var(--background);
 	}
 
 	.monospaced {
@@ -118,5 +118,13 @@
 
 	.fullImportMetadataButton:hover {
 		background-color: color-mix(in srgb, var(--accent) 90%, black 10%);
+	}
+
+	.multicolorRows > li:nth-child(2n) {
+		background-color: var(--secondary-alt);
+	}
+
+	.noColoredRow {
+		background-color: var(--background) !important;
 	}
 </style>

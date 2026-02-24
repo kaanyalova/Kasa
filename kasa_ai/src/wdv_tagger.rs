@@ -19,23 +19,6 @@ pub struct TaggerTag {
     pub confidence: f32,
 }
 
-pub fn prepare_session(model_path: &str) -> Session {
-    let onnx_path = std::env::var("KASA_ONNX_RT_PATH").unwrap();
-    ort::init_from(&onnx_path)
-        .unwrap()
-        .with_execution_providers([ROCmExecutionProvider::default().build().error_on_failure()])
-        .commit();
-
-    Session::builder()
-        .unwrap()
-        .with_optimization_level(ort::session::builder::GraphOptimizationLevel::Level3)
-        .unwrap()
-        .with_intra_threads(16)
-        .unwrap()
-        .commit_from_file(model_path)
-        .unwrap()
-}
-
 pub fn tag_image_wdv(
     session: &mut Session,
     image_path: &str,

@@ -2,8 +2,15 @@
 	import WindowTitlebar from '../../../component/Decoration/WindowTitlebar.svelte';
 	import type { PageProps } from './$types';
 	import '@alenaksu/json-viewer';
+	import '../../../fonts.css';
 
 	let { data }: PageProps = $props();
+
+	function getFileName(path: string): string {
+		let split = path.split('/');
+		let last = split[split.length - 1];
+		return last;
+	}
 </script>
 
 {#each data.sources as source}
@@ -11,37 +18,39 @@
 		<WindowTitlebar platform="gnome"></WindowTitlebar>
 	</div>
 
-	<div class="container">
-		<div class="innerContainer">
-			<json-viewer class="dataViewer" data={JSON.parse(source.raw_data)}></json-viewer>
+	<div class="mainContainer">
+		<div class="title">
+			Metadata for <span class="monospaced">{getFileName(JSON.parse(source.raw_data).path)}</span>
 		</div>
+
+		<json-viewer data={JSON.parse(source.raw_data)}></json-viewer>
 	</div>
 {/each}
 
 <style>
-	.dataViewer {
-		width: 100vw;
-		height: 100vh;
-	}
-	.innerContainer {
+	json-viewer {
+		--background-color: var(--background);
+		--font-family: 'UbuntuMono';
 		margin: 8px;
 		position: relative;
-		top: 20px;
-		overflow-y: scroll;
+		border: 1px solid var(--secondary-alt);
+		padding: 8px;
 	}
 
-	.tilebar {
-		position: absolute;
-		width: 100vw;
-	}
-
-	.container {
-		width: calc(100vw);
-		background-color: var(--background);
-		display: flex;
+	.mainContainer {
 		flex-direction: column;
+		background-color: var(--background);
+		height: calc(100vh - 36px);
+		overflow-y: auto;
+		position: relative;
 	}
-	.tilebarInsides {
-		width: calc(100vw);
+
+	.title {
+		margin: 8px;
+		color: var(--text);
+	}
+
+	.monospaced {
+		font-family: 'UbuntuMono';
 	}
 </style>

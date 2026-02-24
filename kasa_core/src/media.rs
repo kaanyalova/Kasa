@@ -198,7 +198,7 @@ pub async fn get_tags_grouped_by_source_categories_impl(
 }
 
 pub async fn get_tags_detailed_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<TagWithDetails> {
-    query_as("SELECT HashTagPair.*, TagDetail.*, COUNT(*) as count FROM HashTagPair, TagDetail where HashTagPair.tag_name = TagDetail.name AND HashTagPair.hash = ? GROUP BY HashTagPair.tag_name").bind(hash).fetch_all(pool).await.unwrap()
+    query_as("SELECT HashTagPair.*, TagDetail.*,  (SELECT COUNT(*) FROM HashTagPair h2 WHERE h2.tag_name = HashTagPair.tag_name) AS count FROM HashTagPair, TagDetail where HashTagPair.tag_name = TagDetail.name AND HashTagPair.hash = ? GROUP BY HashTagPair.tag_name ORDER BY count DESC").bind(hash).fetch_all(pool).await.unwrap()
 }
 
 pub async fn get_media_type_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
@@ -279,4 +279,5 @@ pub struct TagWithDetails {
     hash_tag_pair: HashTagPair,
     #[sqlx(flatten)]
     details: TagDetail,
+    count: i64,
 }

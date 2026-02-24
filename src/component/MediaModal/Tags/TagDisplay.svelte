@@ -6,7 +6,12 @@
 	import { onMount } from 'svelte';
 	import Clipboard from '../../Vector/Clipboard.svelte';
 	import { handleSelect } from '../../Sidebar/Search/HandleSelect';
-	import { commands, type TagDetail, type TagQueryOutput } from '$lib/tauri_bindings';
+	import {
+		commands,
+		type TagDetail,
+		type TagQueryOutput,
+		type TagWithDetails
+	} from '$lib/tauri_bindings';
 	import { getCursorPosition } from '$lib/getCaretPos';
 	import TagDropDown from './TagDropDown.svelte';
 	import Tag from './Tag.svelte';
@@ -135,13 +140,12 @@
 		}
 	}
 
-	function getTagColor(tagDetail: TagDetail): string {
+	function getTagColor(tagDetail: TagWithDetails): string {
 		// TODO decide on an actual order for group colors, count colors and overwritten colors
 		console.log(`count is ${tagDetail.count}`);
-		console.log(`color is ${tagDetail.color}`);
 
-		if (tagDetail.color !== null) {
-			return tagDetail.color;
+		if (tagDetail.details.color !== null) {
+			return tagDetail.details.color;
 		} else if (tagDetail.count) {
 			return getCountColor(tagDetail.count);
 		} else {
@@ -272,7 +276,7 @@
 				<Tag
 					name={tagWithCategory.hash_tag_pair.tag_name}
 					onDelete={async (name: string) => onDeleteTag(name)}
-					color={getTagColor(tagWithCategory.details)}
+					color={getTagColor(tagWithCategory)}
 				></Tag>
 			{/each}
 
@@ -292,7 +296,7 @@
 			{#each sourceCategoryGroupedTags.tags_without_source_categories as uncategorizedTag}
 				<!--Check if the tag exists in the main tag array, only display it if it does-->
 				<Tag
-					color={getTagColor(uncategorizedTag.details)}
+					color={getTagColor(uncategorizedTag)}
 					name={uncategorizedTag.hash_tag_pair.tag_name}
 					onDelete={async (name: string) => await onDeleteTag(name)}
 				></Tag>

@@ -59,7 +59,10 @@ pub async fn download_and_index(handle: AppHandle, url: String) {
                 &cfg.downloader.output_path,
                 db,
                 thumbs_db,
-                &|| handle.emit("media_updated", "").unwrap(),
+                &|| {
+                    handle.emit("media_updated", "").unwrap();
+                    handle.emit("tags_updated", "").unwrap()
+                },
                 extractors,
             )
             .await
@@ -74,7 +77,10 @@ pub async fn download_and_index(handle: AppHandle, url: String) {
                 &cfg.downloader.output_path,
                 db,
                 thumbs_db,
-                &|| handle.emit("media_updated", "").unwrap(),
+                &|| {
+                    handle.emit("media_updated", "").unwrap();
+                    handle.emit("tags_updated", "").unwrap()
+                },
                 &extractors,
             )
             .await

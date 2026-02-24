@@ -1,4 +1,6 @@
+use ort::execution_providers::CUDAExecutionProvider;
 use ort::execution_providers::ROCmExecutionProvider;
+
 use ort::session::Session;
 
 pub mod wdv_tagger;
@@ -7,7 +9,10 @@ pub fn prepare_session(model_path: &str) -> Session {
     let onnx_path = std::env::var("KASA_ONNX_RT_PATH").unwrap();
     ort::init_from(&onnx_path)
         .unwrap()
-        .with_execution_providers([ROCmExecutionProvider::default().build().error_on_failure()])
+        .with_execution_providers([
+            CUDAExecutionProvider::default().build(),
+            ROCmExecutionProvider::default().build(),
+        ])
         .commit();
 
     Session::builder()

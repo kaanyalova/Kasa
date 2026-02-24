@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 ort = { version = "2.0.0-rc.11", features = [
+    "cuda",
     "rocm",
     "load-dynamic",
 ] } # should we build it from source?

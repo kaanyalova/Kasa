@@ -18,7 +18,7 @@ pub async fn write_to_db(
 
     // Ignore any duplicate hashes
     let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
-        "INSERT OR IGNORE INTO Media(hash, media_type, thumb_path, filesize, mime, time_added, thumbnail_x, thumbnail_y, has_file_ref)",
+        "INSERT OR IGNORE INTO Media(hash, media_type, thumb_path, filesize, mime, time_added, thumbnail_x, thumbnail_y, has_file_ref, is_favorite)",
     );
 
     query_builder.push_values(inputs.generic_media_data.iter(), |mut b, data| {
@@ -30,7 +30,8 @@ pub async fn write_to_db(
             .push_bind(data.time_added)
             .push_bind(data.thumbnail_x)
             .push_bind(data.thumbnail_y)
-            .push_bind(true);
+            .push_bind(true)
+            .push_bind(false);
     });
 
     let query = query_builder.build();

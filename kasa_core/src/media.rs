@@ -11,7 +11,7 @@ use human_bytes::human_bytes;
 use itertools::Itertools;
 use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Sqlite, query_as, query_scalar};
+use sqlx::{Pool, Sqlite, query, query_as, query_scalar};
 
 use crate::db::schema::{
     HashTagPair, Image, Media, MediaSource, MediaType, RawTagsField, TagDetail,
@@ -161,6 +161,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         aspect_ratio,
         file_name,
         source_category_grouped_tags: source_grouped_tags,
+        is_favorite: media.is_favorite,
     }
 }
 
@@ -235,6 +236,15 @@ pub async fn get_media_sources_impl(hash: &str, pool: &Pool<Sqlite>) -> Vec<Medi
         .unwrap()
 }
 
+pub async fn set_media_favorite_impl(hash: &str, state: bool, pool: &Pool<Sqlite>) {
+    query("UPDATE Media SET is_favorite = ? WHERE hash = ?")
+        .bind(state)
+        .bind(&hash)
+        .execute(pool)
+        .await
+        .unwrap();
+}
+
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -249,6 +259,7 @@ pub struct MediaInfo {
     pub mime: Option<String>,
     pub aspect_ratio: f64,
     pub file_name: String,
+    pub is_favorite: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

@@ -83,7 +83,7 @@ async fn create_group(
                 .fetch_one(db)
                 .await?;
 
-        query("INSERT INTO Media(hash, media_type, time_added, has_file_ref, hide, thumbnail_x, thumbnail_y) VALUES (?,?,?,?,?,?,?)")
+        query("INSERT INTO Media(hash, media_type, time_added, has_file_ref, hide, thumbnail_x, thumbnail_y, is_favorite) VALUES (?,?,?,?,?,?,?,?)")
                 .bind(hash.to_string())
                 .bind(media_type_to_string(&MediaType::Group))
                 .bind(since_the_epoch.as_secs() as i64)
@@ -91,6 +91,7 @@ async fn create_group(
                 .bind(false)
                 .bind(thumbnail_sizes.thumbnail_x)
                 .bind(thumbnail_sizes.thumbnail_y)
+                .bind(false)
                 .execute(db)
                 .await?;
     }
@@ -150,6 +151,7 @@ async fn test_groups(pool: Pool<Sqlite>) {
         0,
         true,
         false,
+        false,
     )
     .await;
 
@@ -165,6 +167,7 @@ async fn test_groups(pool: Pool<Sqlite>) {
         0,
         true,
         false,
+        false,
     )
     .await;
 
@@ -179,6 +182,7 @@ async fn test_groups(pool: Pool<Sqlite>) {
         0,
         0,
         true,
+        false,
         false,
     )
     .await;

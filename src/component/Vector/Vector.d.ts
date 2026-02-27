@@ -4,3 +4,8 @@ type VectorProps = {
     //color: string;
 }
 
+type ColoredVectorProps = {
+    height: number;
+    width: number;
+    color: string;
+}

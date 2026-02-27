@@ -9,10 +9,22 @@
 	import FolderOpen from '../Vector/FolderOpen.svelte';
 	import { openFilePickerWithMultipleFolderSelection } from '$lib/openFilePicker';
 	import Heart from '../Vector/Heart.svelte';
+	import type { SidebarFooterProps } from './SidebarFooter';
+	import FavoriteFilled from '../Vector/FavoriteFilled.svelte';
+	import FavoriteOutlined from '../Vector/FavoriteOutlined.svelte';
+	import { emit } from '@tauri-apps/api/event';
 
 	let { data }: SidebarFooterProps = $props();
 
 	let showCopySuccessButton = $state(false);
+
+	let favoriteState = $state(data.isFavorite);
+
+	async function toggleFavorite() {
+		favoriteState = !favoriteState;
+		await commands.setMediaFavorite(data.hash, favoriteState);
+		await emit('media_updated');
+	}
 
 	async function onCopyButtonClicked() {
 		if (data.mediaType === 'Image') {
@@ -52,10 +64,16 @@
 	<button title="Open Externally" onclick={() => onOpenExternallyButtonClicked()}>
 		<ArrowUpRightFromSquare height={20} width={20}></ArrowUpRightFromSquare></button
 	>
-	<button title="Action" onclick={() => onShowOnFileManagerButtonClicked()}>
+	<button title="Open Folder" onclick={() => onShowOnFileManagerButtonClicked()}>
 		<FolderOpen height={20} width={20}></FolderOpen>
 	</button>
-	<button title="Action"> Act </button>
+	<button title="Favorite" onclick={async () => await toggleFavorite()}>
+		{#if favoriteState}
+			<FavoriteFilled height={20} width={20} color="#f14c45"></FavoriteFilled>
+		{:else}
+			<FavoriteOutlined height={20} width={20}></FavoriteOutlined>
+		{/if}
+	</button>
 	<button title="Action"> Act </button>
 </div>
 

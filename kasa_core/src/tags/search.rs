@@ -47,6 +47,7 @@ pub struct SearchCriteria {
     excludes_tags: Vec<String>,
     order_by: OrderCriteria,
     date_range: Option<DateRange>,
+    favorites_only: bool,
 }
 
 #[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
@@ -63,6 +64,7 @@ impl SearchCriteria {
         let mut contains_tags_or_group = vec![];
         let mut excludes_tags = vec![];
         let mut order_by_criteria: Option<OrderCriteria> = None;
+        let mut favorites_only = false;
 
         let or_separator_regex = Regex::new(r#"(?i)\|| or "#).unwrap();
 
@@ -123,6 +125,8 @@ impl SearchCriteria {
             // date range
             else if token.starts_with("from") {
                 todo!()
+            } else if token.to_lowercase() == "favorites" {
+                favorites_only = true
             } else {
                 contains_tags.push(token.to_string());
             }
@@ -135,6 +139,7 @@ impl SearchCriteria {
             excludes_tags,
             order_by: order_by_criteria.unwrap_or(OrderCriteria::OldestFirst),
             date_range: None,
+            favorites_only,
         }
     }
 
@@ -180,6 +185,14 @@ impl SearchCriteria {
                 query_builder = QueryBuilder::new("SELECT m.* FROM Media m");
             }
 
+            if self.favorites_only {
+                if !self.excludes_tags.is_empty() {
+                    query_builder.push(" AND m.is_favorite = true");
+                } else {
+                    query_builder.push(" WHERE m.is_favorite = true");
+                }
+            }
+
             self.apply_order_by(&mut query_builder);
             return query_builder;
         }
@@ -191,6 +204,10 @@ impl SearchCriteria {
         );
 
         query_builder.push("WHERE m.hash = htp.hash ");
+
+        if self.favorites_only {
+            query_builder.push("AND m.is_favorite = true");
+        }
         // hacky way of only querying for m.hash = htp.hash without any tags being searched
         //if !self.contains_tags.is_empty() && !self.contains_tags_or_group.is_empty() {
         //
@@ -301,6 +318,8 @@ impl SearchCriteria {
             .append(&mut other.contains_tags_or_group.clone());
         self.excludes_tags.append(&mut other.excludes_tags.clone());
 
+        self.favorites_only |= other.favorites_only;
+
         // ordering is not merged as it is a single value and should always prioritize the searchbar value
     }
 }
@@ -325,6 +344,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         has_file_ref: true,
         hide: false,
         is_valid: true,
+        is_favorite: false,
     };
 
     let media2 = Media {
@@ -339,6 +359,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         has_file_ref: true,
         hide: false,
         is_valid: true,
+        is_favorite: false,
     };
 
     let media3 = Media {
@@ -353,6 +374,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         has_file_ref: true,
         hide: false,
         is_valid: true,
+        is_favorite: false,
     };
 
     let media4 = Media {
@@ -367,6 +389,7 @@ async fn test_sql_query_gen(pool: Pool<Sqlite>) {
         has_file_ref: true,
         hide: false,
         is_valid: true,
+        is_favorite: false,
     };
 
     _insert_media_row(&pool, &media1).await;

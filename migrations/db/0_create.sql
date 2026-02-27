@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS Media (
     has_file_ref BOOLEAN,
     is_in_group BOOLEAN,
     hide BOOLEAN,
-    is_valid BOOLEAN
+    is_valid BOOLEAN,
+    is_favorite BOOLEAN
 );
 
 

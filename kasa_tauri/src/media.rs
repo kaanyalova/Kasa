@@ -4,7 +4,7 @@ use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{
     MediaInfo, SourceCategoryGroupedTags, TagWithDetails, get_info_impl, get_media_name_impl,
     get_media_sources_impl, get_media_type_impl, get_tags_detailed_impl,
-    get_tags_grouped_by_source_categories_impl,
+    get_tags_grouped_by_source_categories_impl, set_media_favorite_impl,
 };
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;
@@ -120,5 +120,18 @@ pub async fn get_media_sources(handle: AppHandle, hash: String) -> Vec<MediaSour
     } else {
         error!("No connection to database , could not get media source");
         vec![]
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn set_media_favorite(handle: AppHandle, hash: String, state: bool) {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await;
+
+    if let Some(pool) = connection_guard.as_ref() {
+        set_media_favorite_impl(&hash, state, pool).await;
+    } else {
+        error!("No connection to database , could not get media source");
     }
 }

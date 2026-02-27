@@ -31,6 +31,8 @@ pub async fn search(handle: AppHandle, input_raw: String) {
 
         search_criteria.merge(&search_guard);
 
+        trace!("Searching with criteria {:?}", search_criteria);
+
         let mut query = search_criteria.to_query();
         let media: Vec<Media> = query.build_query_as().fetch_all(pool).await.unwrap();
         //let media = (&input_raw, pool).await;

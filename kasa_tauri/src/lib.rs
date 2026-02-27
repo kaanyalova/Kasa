@@ -39,6 +39,7 @@ use media::get_media_type;
 use media::get_swf_resolution;
 use media::get_tags;
 use media::get_tags_grouped_by_source_categories;
+use media::set_media_favorite;
 use media_server::MediaServerStore;
 use media_server::close_server;
 use media_server::serve_media;
@@ -79,19 +80,23 @@ pub fn run() {
         // Updating webkitgtk seems to fix the brokenness
         // for now...
 
-        if std::env::var("XDG_SESSION_TYPE") == Ok("wayland".to_string()) {
-            std::env::set_var("GDK_BACKEND", "wayland");
-        }
+        //if std::env::var("XDG_SESSION_TYPE") == Ok("wayland".to_string()) {
+        //    std::env::set_var("GDK_BACKEND", "wayland");
+        //}
 
+        // webkit is completely fucking broken as of 2.50.1, especially if you are using nvidia,
+        // https://bugs.webkit.org/show_bug.cgi?id=180739
+        // https://bugs.webkit.org/buglist.cgi?quicksearch=WEBKIT_DISABLE_COMPOSITING_MODE
+        // also broken on gnome-web scrolling fast just crashes the browser??? wtf?
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
     }
 
     let dotenv = dotenvy::dotenv();
 
     #[cfg(debug_assertions)]
-    let default_log_level = LevelFilter::Debug;
+    let default_log_level = LevelFilter::Trace;
     #[cfg(not(debug_assertions))]
-    let default_log_level = LevelFilter::Warn;
+    let default_log_level = LevelFilter::Trace;
 
     let log_level_env = env::var("KASA_LOG")
         .unwrap_or("".to_string())
@@ -163,7 +168,8 @@ pub fn run() {
             set_thumbs_db_path,
             get_media_name,
             get_download_progress,
-            get_media_sources
+            get_media_sources,
+            set_media_favorite
         ]
     });
 
@@ -180,7 +186,14 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_log::Builder::new().level(log_level).build())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log_level)
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Stdout,
+                ))
+                .build(),
+        )
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_fs::init())
         //.plugin(tauri_plugin_theme::init(context.config_mut()))

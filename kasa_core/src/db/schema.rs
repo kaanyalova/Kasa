@@ -29,6 +29,8 @@ pub struct Media {
     pub is_valid: bool,
 
     pub hide: bool,
+
+    pub is_favorite: bool,
 }
 
 // Possible values of `media_type`

@@ -212,6 +212,7 @@ fn test_random_generation() {
                     has_file_ref: false,
                     hide: false,
                     is_valid: true,
+                    is_favorite: false,
                 }
             });
         }

@@ -14,12 +14,36 @@
 	import FilterAltOff from '../../Vector/FilterAltOff.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import TagPresets from './TagPresets.svelte';
+	import FavoriteFilled from '../../Vector/FavoriteFilled.svelte';
+	import FavoriteOutlined from '../../Vector/FavoriteOutlined.svelte';
+	import { canPlayHLSNatively } from 'vidstack';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
 	let checkedTags: Map<string, TagPickerCheckboxState> = $state(new SvelteMap());
 	let filterInput = $state('');
 	let textWidthCanvas: CanvasRenderingContext2D | null;
 	let virtualList: VirtualList;
+	let filterFavorites = $state(false);
+
+	async function toggleFavorites() {
+		filterFavorites = !filterFavorites;
+		// set actual filtering
+
+		await commands.setSearchStore({
+			contains_tags: Array.from(checkedTags.entries())
+				.filter(([_tag, state]) => state === 'selected')
+				.map(([tag, _state]) => tag),
+			contains_tags_or_group: [],
+			excludes_tags: Array.from(checkedTags.entries())
+				.filter(([_tag, state]) => state === 'exclude')
+				.map(([tag, _state]) => tag),
+			order_by: 'NewestFirst',
+			date_range: null,
+			favorites_only: filterFavorites
+		});
+
+		await commands.search(SearchStore.searchContents);
+	}
 
 	async function onCheck(state: TagPickerCheckboxState, tagName: string) {
 		if (state === 'unselected') {
@@ -36,7 +60,8 @@
 				.filter(([_tag, state]) => state === 'exclude')
 				.map(([tag, _state]) => tag),
 			order_by: 'NewestFirst',
-			date_range: null
+			date_range: null,
+			favorites_only: filterFavorites
 		});
 
 		trace('search via tag picker check');
@@ -116,8 +141,11 @@
 			contains_tags_or_group: [],
 			excludes_tags: [],
 			order_by: 'NewestFirst',
-			date_range: null
+			date_range: null,
+			favorites_only: false
 		});
+
+		filterFavorites = false;
 
 		trace('search via tag picker reset');
 		await commands.search(SearchStore.searchContents);
@@ -155,6 +183,19 @@
 			</button>
 		</div>
 		<input type="text" bind:value={filterInput} />
+
+		<button
+			class="favoritesButton"
+			class:favoritesButtonActive={filterFavorites}
+			onclick={async () => await toggleFavorites()}
+		>
+			{#if filterFavorites}
+				<FavoriteFilled height={24} width={24} color="#f14c45"></FavoriteFilled>
+			{:else}
+				<FavoriteOutlined height={24} width={24}></FavoriteOutlined>
+			{/if}
+			Favorites
+		</button>
 	</div>
 
 	<div class="tagPresets">
@@ -270,5 +311,21 @@
 
 	.tagPresetsText {
 		padding-left: 4px;
+	}
+
+	.favoritesButton {
+		border: 1px solid var(--secondary-alt);
+		padding: 2px;
+		margin: 4px;
+		margin-top: 8px;
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.favoritesButton:hover {
+		background-color: var(--secondary-alt);
+	}
+	.favoritesButtonActive {
+		background-color: var(--secondary-alt);
 	}
 </style>

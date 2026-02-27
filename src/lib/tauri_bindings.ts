@@ -183,6 +183,9 @@ async getDownloadProgress() : Promise<GalleryDlStatuses> {
 },
 async getMediaSources(hash: string) : Promise<MediaSource[]> {
     return await TAURI_INVOKE("get_media_sources", { hash });
+},
+async setMediaFavorite(hash: string, state: boolean) : Promise<void> {
+    await TAURI_INVOKE("set_media_favorite", { hash, state });
 }
 }
 
@@ -218,12 +221,12 @@ source_type: string | null }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean }
 export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 export type RawImage = { width: number; height: number; bytes: number[] }
-export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by: OrderCriteria; date_range: DateRange | null }
+export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by: OrderCriteria; date_range: DateRange | null; favorites_only: boolean }
 export type SourceCategoryGroupedTags = { tags_with_source_categories: { [key in string]: TagWithDetails[] }; tags_without_source_categories: TagWithDetails[] }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations

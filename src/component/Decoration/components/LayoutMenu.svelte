@@ -4,9 +4,12 @@
 	import Checkbox from '../../Shared/Checkbox.svelte';
 	import { InfiniteMediaStore } from '../../InfiniteMedia/InfiniteMediaStore.svelte';
 	import { emit } from '@tauri-apps/api/event';
+	import { commands } from '$lib/tauri_bindings';
+	import InfiniteMediaGP from '../../InfiniteMedia/InfiniteMediaGP.svelte';
 
-	function onChangeShowFileNamesOption(state: boolean) {
-		InfiniteMediaStore.setShowNames(state);
+	async function toggleShowFileNamesOption() {
+		InfiniteMediaStore.showNames = !InfiniteMediaStore.showNames;
+		await commands.setConfigValueBool('Layout', 'show_filenames', InfiniteMediaStore.showNames);
 	}
 
 	let thumbnailScaleDisplay = $state(InfiniteMediaStore.thumbnailScale);
@@ -15,8 +18,9 @@
 	function onChangeThumbnailScale(scale: number) {
 		thumbnailScaleDisplay = scale;
 		clearTimeout(thumbnailScaleTimer);
-		thumbnailScaleTimer = setTimeout(() => {
+		thumbnailScaleTimer = setTimeout(async () => {
 			InfiniteMediaStore.thumbnailScale = scale;
+			commands.setConfigValueF64('Layout', 'thumbnail_scale', scale);
 		}, 200);
 	}
 </script>
@@ -24,12 +28,15 @@
 <dialog class="layoutMenu" open>
 	<ul>
 		<li class="layoutMenuItem">
-			<Checkbox onCheck={onChangeShowFileNamesOption} state={InfiniteMediaStore.showNames}
+			<Checkbox
+				onCheck={async () => await toggleShowFileNamesOption()}
+				state={InfiniteMediaStore.showNames}
 			></Checkbox>
 			<button
 				class="layoutMenuItemDescription"
-				onclick={() => InfiniteMediaStore.setShowNames(!InfiniteMediaStore.showNames)}
-				>Show file names under media</button
+				onclick={async () => {
+					await toggleShowFileNamesOption();
+				}}>Show file names under media</button
 			>
 		</li>
 

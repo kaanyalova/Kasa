@@ -60,8 +60,8 @@ async getThumbnailFromDb(hash: string) : Promise<string | null> {
 async getThumbsDbInfo() : Promise<ThumbsDBInfo | null> {
     return await TAURI_INVOKE("get_thumbs_db_info");
 },
-async setConfigValue(category: string, key: string, valu: string) : Promise<void> {
-    await TAURI_INVOKE("set_config_value", { category, key, valu });
+async setConfigValueStr(category: string, key: string, valu: string) : Promise<void> {
+    await TAURI_INVOKE("set_config_value_str", { category, key, valu });
 },
 async setConfigResolutionValue(height: number, width: number) : Promise<void> {
     await TAURI_INVOKE("set_config_resolution_value", { height, width });
@@ -186,6 +186,15 @@ async getMediaSources(hash: string) : Promise<MediaSource[]> {
 },
 async setMediaFavorite(hash: string, state: boolean) : Promise<void> {
     await TAURI_INVOKE("set_media_favorite", { hash, state });
+},
+async setConfigValueBool(category: string, key: string, valu: boolean) : Promise<void> {
+    await TAURI_INVOKE("set_config_value_bool", { category, key, valu });
+},
+async setConfigValueF64(category: string, key: string, valu: number) : Promise<void> {
+    await TAURI_INVOKE("set_config_value_f64", { category, key, valu });
+},
+async setConfigValueStr(category: string, key: string, valu: string) : Promise<void> {
+    await TAURI_INVOKE("set_config_value_str", { category, key, valu });
 }
 }
 
@@ -209,7 +218,7 @@ export type DateRange = { start: number; end: number }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
 export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number }
 export type GalleryDlStatuses = { [key in string]: GalleryDlStatus }
-export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader }
+export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader; Layout: Layout }
 /**
  * File-tag pairs
  */
@@ -221,6 +230,7 @@ source_type: string | null }
 export type ImagePlacement = { x_relative: number; y_relative: number; width: number; height: number; hash: string }
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
+export type Layout = { show_filenames: boolean; thumbnail_scale: number }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean }
 export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }

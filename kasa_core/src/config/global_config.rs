@@ -35,6 +35,10 @@ output_path = ""
 
 # Optional: gallery_dl config path 
 # gdl_config_path = "
+
+[Layout]
+show_filenames = false
+thumbnail_scale = 1.5
 "#;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
@@ -87,6 +91,11 @@ pub enum ThumbnailFormat {
     JPEG,
     AVIF,
 }
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
+pub struct Layout {
+    show_filenames: bool,
+    thumbnail_scale: f32,
+}
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
 pub struct GlobalConfig {
@@ -96,6 +105,8 @@ pub struct GlobalConfig {
     pub thumbs: Thumbs,
     #[serde(rename = "Downloader")]
     pub downloader: Downloader,
+    #[serde(rename = "Layout")]
+    pub layout: Layout,
 }
 
 fn get_config_dir() -> PathBuf {
@@ -153,8 +164,7 @@ pub fn set_value_resolution(height: u32, width: u32) {
     fs::write(path, toml.to_string()).unwrap();
 }
 
-/// Sets a string value for given category and key
-pub fn set_value_str(category: &str, key: &str, val: &str) {
+pub fn set_value(category: &str, key: &str, val: impl Into<Value>) {
     let path = get_config_dir().join("config.toml");
 
     find_or_create_config(&path);

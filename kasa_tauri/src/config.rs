@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use kasa_core::config::global_config::{
-    GlobalConfig, get_config_impl, set_db_path_impl, set_thumbs_db_path_impl, set_value_resolution,
-    set_value_str,
+    GlobalConfig, get_config_impl, set_db_path_impl, set_thumbs_db_path_impl, set_value,
+    set_value_resolution,
 };
 
 #[tauri::command(async)]
@@ -13,8 +13,20 @@ pub fn get_config() -> GlobalConfig {
 
 #[tauri::command(async)]
 #[specta::specta]
-pub fn set_config_value(category: &str, key: &str, valu: &str) {
-    set_value_str(category, key, valu)
+pub fn set_config_value_f64(category: &str, key: &str, valu: f64) {
+    set_value(category, key, valu);
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub fn set_config_value_bool(category: &str, key: &str, valu: bool) {
+    set_value(category, key, valu);
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub fn set_config_value_str(category: &str, key: &str, valu: &str) {
+    set_value(category, key, valu);
 }
 
 #[tauri::command(async)]

@@ -60,6 +60,7 @@
 	});
 	onMount(async () => {
 		await commands.connectDbs();
+		await InfiniteMediaStore.loadSettings();
 
 		const initial_size = await getCurrentWindow().innerSize();
 		tauri_height = initial_size.height;

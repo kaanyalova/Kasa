@@ -2,7 +2,9 @@ use std::env;
 
 use config::get_config;
 use config::set_config_resolution_value;
-use config::set_config_value;
+use config::set_config_value_bool;
+use config::set_config_value_f64;
+use config::set_config_value_str;
 use config::set_db_path;
 use config::set_thumbs_db_path;
 use db::DbStore;
@@ -135,7 +137,7 @@ pub fn run() {
             connect_dbs,
             get_thumbnail_from_db,
             get_thumbs_db_info,
-            set_config_value,
+            set_config_value_str,
             set_config_resolution_value,
             search,
             serve_media,
@@ -169,7 +171,10 @@ pub fn run() {
             get_media_name,
             get_download_progress,
             get_media_sources,
-            set_media_favorite
+            set_media_favorite,
+            set_config_value_bool,
+            set_config_value_f64,
+            set_config_value_str
         ]
     });
 

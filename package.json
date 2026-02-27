@@ -46,6 +46,7 @@
     "@tauri-apps/plugin-fs": "^2.2.0",
     "@tauri-apps/plugin-log": "^2.3.1",
     "@tauri-apps/plugin-os": "^2.2.1",
+    "@tauri-apps/plugin-shell": "^2.3.5",
     "colorjs.io": "^0.5.2",
     "pdfjs-dist": "^5.4.54",
     "svelte-tiny-virtual-list": "^2.1.2",

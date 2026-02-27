@@ -204,6 +204,7 @@ pub fn run() {
         //.plugin(tauri_plugin_theme::init(context.config_mut()))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);

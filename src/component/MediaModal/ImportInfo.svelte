@@ -6,6 +6,7 @@
 	//let importInfo = commands.getMediaSource();
 	import '../../fonts.css';
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+	import { open } from '@tauri-apps/plugin-shell';
 
 	function formatSource(source: string): string {
 		return source.charAt(0).toUpperCase() + source.slice(1);
@@ -25,6 +26,10 @@
 			console.log(e);
 		});
 	}
+
+	async function onClickSourceLink(link: string) {
+		await open(link);
+	}
 </script>
 
 <div class="header">Import Info</div>
@@ -41,7 +46,9 @@
 			</li>
 			<li class="paddedLi linkContainer">
 				<span class="linkHeader">Link: </span>
-				<a href={source.link_or_path} class="link"> {source.link_or_path}</a>
+				<button class="link" onclick={async () => onClickSourceLink(source.link_or_path)}>
+					{source.link_or_path}</button
+				>
 			</li>
 
 			<li class="noColoredRow">
@@ -100,6 +107,7 @@
 
 	.link {
 		text-decoration: underline;
+		text-align: left;
 	}
 
 	.linkHeader {

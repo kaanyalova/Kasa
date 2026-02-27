@@ -37,6 +37,7 @@ specta-typescript = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
+tauri-plugin-shell = "2.0.0"
 
 image = { workspace = true }
 opener = "0.7.2"

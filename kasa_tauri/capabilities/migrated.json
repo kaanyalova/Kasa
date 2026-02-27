@@ -32,6 +32,7 @@
     },
     "clipboard-manager:allow-write-image",
     "dialog:allow-open",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "shell:allow-open"
   ]
 }

@@ -1,0 +1,3 @@
+type ImportInfoProps = {
+    hash: string
+}

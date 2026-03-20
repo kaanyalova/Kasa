@@ -11,7 +11,7 @@ use crate::db::DbStore;
 #[specta::specta]
 pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         update_tags_impl(&raw_input, hash, pool).await;
@@ -26,7 +26,7 @@ pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
 #[specta::specta]
 pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
     if let Some(pool) = connection_guard.as_ref() {
         remove_tags(tags, pool, Some(hash)).await;
         handle.emit("tags_updated", "").unwrap();
@@ -40,7 +40,7 @@ pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
 #[specta::specta]
 pub async fn get_tags_as_text(handle: AppHandle, hash: String) -> Option<String> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
     if let Some(pool) = connection_guard.as_ref() {
         let text = get_tags_as_text_impl(&hash, pool).await;
         Some(text)
@@ -57,7 +57,7 @@ pub async fn get_list_of_all_tags_with_details(
     ordering_criteria: AllTagsOrderingCriteria,
 ) -> Option<Vec<TagWithCount>> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
     if let Some(pool) = connection_guard.as_ref() {
         let tags = get_list_of_all_tags_with_details_impl(pool, ordering_criteria).await;
         Some(tags)

@@ -15,7 +15,7 @@ pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<Str
     //let dev_thumbs_path = fs::canonicalize("../__dev_thumbs").unwrap();
     let dev_thumbs_path = std::env::var("KASA_THUMBS_PATH").expect("KASA_THUMBS_PATH env variable was not set, it is required to provide the path for thumbnails for now!");
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         let thumbnail = get_thumbnail_from_file_impl(
@@ -38,8 +38,8 @@ pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<Str
 pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<String> {
     trace!("getting thumbnail for hash:{}", hash);
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
-    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await.clone();
 
     if let (Some(pool), Some(pool_thumbs)) =
         (connection_guard.as_ref(), connection_guard_thumbs.as_ref())

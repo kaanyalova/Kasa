@@ -26,7 +26,7 @@ async fn init_or_get_python(handle: &AppHandle) -> Arc<PyTrustMe> {
     let mut guard = python_state.interpreter.lock().await;
 
     if let Some(py) = guard.as_ref() {
-        return py.clone();
+        py.clone()
     } else {
         let new_interpreter = Arc::new(PyTrustMe(init_interpreter()));
         *guard = Some(new_interpreter.clone());
@@ -41,8 +41,8 @@ pub async fn download_and_index(handle: AppHandle, url: String) {
     let connection_state = handle.state::<DbStore>();
     let python_state = handle.state::<PythonStore>();
     let tag_extractor_state = handle.state::<ExtractorsStore>();
-    let connection_guard = connection_state.db.lock().await;
-    let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
+    let connection_guard_thumbs = connection_state.thumbs_db.lock().await.clone();
 
     let mut conection_guard_extractors = tag_extractor_state.extractors.lock().await;
 

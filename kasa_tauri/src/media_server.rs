@@ -26,7 +26,7 @@ pub async fn serve_media(handle: AppHandle, hash: String) {
     let state = handle.state::<MediaServerStore>();
 
     let db_state = handle.state::<DbStore>();
-    let db_guard = db_state.db.lock().await;
+    let db_guard = db_state.db.lock().await.clone();
 
     let Some(pool) = db_guard.as_ref() else {
         return;

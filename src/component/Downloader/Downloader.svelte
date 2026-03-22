@@ -3,46 +3,75 @@
 	import '../../fonts.css';
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
-	import { commands } from '$lib/tauri_bindings';
+	import { commands, type GalleryDlStatuses } from '$lib/tauri_bindings';
 	import { comma } from 'postcss/lib/list';
 	import { onMount } from 'svelte';
+	import Download from '../Vector/Download.svelte';
+	import { stat } from '@tauri-apps/plugin-fs';
 
-	let status = $state('');
+	let downloadStatuses: GalleryDlStatuses = $state({});
 	let downloadBox = $state('');
 
 	async function onDownload() {
-		const links = downloadBox.split('\n');
-
-		console.log(links);
-		links.forEach(async (link) => {
-			console.log('processing link!');
-
-			await commands.downloadAndIndex(link);
-			console.log('done');
-		});
+		await commands.downloadAndIndex(downloadBox);
+		downloadBox = '';
 	}
 
 	async function updateStatus() {
-		let newStatus = await commands.getDownloadProgress();
-		status = JSON.stringify(newStatus);
+		downloadStatuses = await commands.getDownloadProgress();
 	}
+
+	async function onOpenGalleryDlConfigFile() {}
+
+	setInterval(async () => {
+		await updateStatus();
+		console.log('update');
+	}, 500);
 </script>
 
 <div class="downloader">
-	<div class=""></div>
-
 	<div class="sections">
 		<div class="leftSide">
-			<textarea class="downloadInputBox borderedBox" bind:value={downloadBox}></textarea>
-		</div>
-		<div class="rightSide">
-			Enter the URLs you want to download using gallery-dl separated by newlines
+			<div class="downloadBar">
+				<div class="downloadIcon">
+					<Download height={12} width={12}></Download>
+				</div>
+				<input
+					type="text"
+					class="urlInput"
+					placeholder="URL to download"
+					bind:value={downloadBox}
+				/>
+			</div>
 
-			<HorizontalDivider height={DividerSizes.Small}></HorizontalDivider>
-			<button class="button" onclick={onDownload}> Download </button>
+			<div class="downloadStatusesTitle">Downloads</div>
+			<div class="downloadStatuses">
+				{#each Object.entries(downloadStatuses) as [key, status]}
+					<ul>
+						<li>bytes_downloaded {status.bytes_downloaded}</li>
+						<li>bytes_per_second {status.bytes_per_second}</li>
+						<li>bytes_total {status.bytes_total}</li>
+						<li>extractor {status.extractor}</li>
+						<li>url {status.url}</li>
+					</ul>
+				{/each}
+			</div>
+		</div>
+
+		<div class="rightSide">
+			<button class="downloadButton" onclick={onDownload}> Download </button>
+			<button class="galleryDlConfigButton" onclick={onOpenGalleryDlConfigFile}>
+				Open gallery_dl config
+			</button>
+
+			<div class="versions">
+				<span class="code">gallery_dl</span> version <span class="code"> 1.31.2</span>
+				<span class="code">rustpython</span> version <span class="code">0eddee5</span>
+			</div>
 		</div>
 	</div>
 
+	<!--
 	<div class="status">
 		<button
 			onclick={async () => {
@@ -53,26 +82,44 @@
 		>
 		{status}
 	</div>
+	-->
 </div>
 
 <style>
-	.button {
-		padding: 8px;
+	.downloadButton {
+		padding: 4px;
 		background-color: var(--accent);
 		width: 100%;
 		color: var(--text-opposite);
 		border-radius: 6px;
 		border: 1px solid color-mix(in srgb, var(--accent) 50%, black 50%);
+		font-weight: bold;
+		margin-top: 2px;
+		margin-bottom: 2px;
 	}
 
-	.button:hover {
+	.downloadButton:hover {
 		background-color: color-mix(in srgb, var(--accent) 80%, black 20%);
 	}
 
+	.galleryDlConfigButton {
+		padding: 4px;
+		color: var(--text);
+		border: 1px solid var(--secondary-alt);
+		width: 100%;
+		margin-top: 2px;
+		margin-bottom: 2px;
+		border-radius: 6px;
+	}
+
+	.galleryDlConfigButton:hover {
+		background-color: var(--secondary-alt);
+	}
+
 	.downloader {
-		margin: 6px;
 		display: flex;
-		flex-grow: 1;
+		flex-direction: column;
+		height: 100%;
 	}
 
 	.sections {
@@ -81,16 +128,21 @@
 	}
 
 	.rightSide {
+		display: flex;
+		flex-direction: column;
 		width: 30vw;
 		color: var(--text);
 		padding: 4px;
 		word-wrap: break-word;
 		font-size: small;
+		border-left: 1px solid var(--secondary-alt);
 	}
 
 	.leftSide {
 		flex-grow: 1;
 		display: flex;
+		flex-direction: column;
+		margin: 4px;
 	}
 
 	.downloadInputBox {
@@ -101,10 +153,6 @@
 		font-family: 'UbuntuMono';
 		font-size: small;
 		outline: none;
-		padding: 4px;
-	}
-	.downloadInputBox:focus {
-		border: 1px solid var(--accent);
 	}
 
 	.borderedBox {
@@ -113,6 +161,61 @@
 		width: 100%;
 	}
 	.status {
+		color: var(--text);
+	}
+
+	.urlInput {
+		background-color: var(--background);
+		outline: none;
+		border: 1px solid var(--secondary-alt);
+		color: var(--text);
+		padding-left: 4px;
+		padding-right: 4px;
+		flex-grow: 1;
+	}
+
+	.urlInput:focus {
+		border: 1px solid var(--accent);
+	}
+
+	.code {
+		font-family: 'UbuntuMono';
+		border: 1px solid var(--secondary-alt);
+		padding: 2px;
+	}
+
+	.versions {
+		font-size: 14px;
+		line-height: 24px;
+		padding: 4px;
+		border: 1px solid var(--secondary-alt);
+		margin-top: 2px;
+		margin-bottom: 2px;
+	}
+
+	.downloadBar {
+		display: flex;
+		width: 100%;
+		margin-top: 4px;
+		margin-bottom: 4px;
+	}
+
+	.downloadIcon {
+		background-color: var(--accent);
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		border: 1px solid color-mix(in srgb, var(--accent) 50%, black 50%);
+	}
+
+	.downloadStatuses {
+		display: flex;
+		flex-grow: 1;
+		border: 1px solid var(--secondary-alt);
+	}
+
+	.downloadStatusesTitle {
 		color: var(--text);
 	}
 </style>

@@ -162,6 +162,8 @@ pub struct GalleryDlStatus {
     pub bytes_total: i64,
     pub bytes_downloaded: i64,
     pub bytes_per_second: i64,
+    pub url: String,
+    pub extractor: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, specta::Type)]

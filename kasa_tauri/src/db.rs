@@ -28,7 +28,7 @@ pub struct MediaCache {
 #[specta::specta]
 pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()> {
     let pool = SqlitePoolOptions::new()
-        .max_connections(6)
+        .max_connections(32)
         .connect(&db_path)
         .await
         .unwrap();
@@ -44,7 +44,7 @@ pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()>
 pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<TagQueryOutput> {
     println!("querying tags!");
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         query_tags_impl(tag_name, count, pool).await
@@ -60,8 +60,8 @@ pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<
 pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
     let connection_state = handle.state::<DbStore>();
 
-    let db_connection_guard = connection_state.db.lock().await;
-    let thumbs_connection_guard = connection_state.thumbs_db.lock().await;
+    let db_connection_guard = connection_state.db.lock().await.clone();
+    let thumbs_connection_guard = connection_state.thumbs_db.lock().await.clone();
 
     db_connection_guard.as_ref().is_some() && thumbs_connection_guard.as_ref().is_some()
 }
@@ -90,13 +90,13 @@ pub async fn connect_dbs(handle: AppHandle) {
         .to_string();
 
     let pool_db = SqlitePoolOptions::new()
-        .max_connections(6)
+        .max_connections(32)
         .connect(&db_path_absolute)
         .await
         .unwrap();
 
     let pool_thumbs = SqlitePoolOptions::new()
-        .max_connections(6)
+        .max_connections(32)
         .connect(&thumbs_path_absolute)
         .await
         .unwrap();
@@ -129,7 +129,7 @@ pub async fn get_layout_from_cache(
 #[specta::specta]
 pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.thumbs_db.lock().await;
+    let connection_guard = connection_state.thumbs_db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         Some(get_thumbs_db_info_impl(pool).await)
@@ -142,7 +142,7 @@ pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
 #[specta::specta]
 pub async fn nuke_db_versioning(handle: AppHandle) {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.thumbs_db.lock().await;
+    let connection_guard = connection_state.thumbs_db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         query("DROP TABLE _sqlx_migrations")

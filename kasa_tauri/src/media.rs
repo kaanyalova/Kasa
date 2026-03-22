@@ -14,7 +14,7 @@ use tauri::{AppHandle, Manager};
 #[specta::specta]
 pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         let i = get_info_impl(&hash, pool).await;
@@ -28,7 +28,7 @@ pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
 #[specta::specta]
 pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<TagWithDetails>> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         let tags = get_tags_detailed_impl(&hash, pool).await;
@@ -42,7 +42,7 @@ pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<TagWithDeta
 #[specta::specta]
 pub async fn get_media_type(handle: AppHandle, hash: String) -> String {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         get_media_type_impl(&hash, pool).await
@@ -61,7 +61,7 @@ pub async fn get_swf_resolution(path: String) -> (u32, u32) {
 #[specta::specta]
 pub async fn get_group_info(handle: AppHandle, group_hash: String) -> Vec<MediaInfo> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         match get_group_info_impl(pool, &group_hash).await {
@@ -84,7 +84,7 @@ pub async fn get_tags_grouped_by_source_categories(
     hash: String,
 ) -> Option<SourceCategoryGroupedTags> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         let tags = get_tags_grouped_by_source_categories_impl(&hash, pool).await;
@@ -99,7 +99,7 @@ pub async fn get_tags_grouped_by_source_categories(
 #[specta::specta]
 pub async fn get_media_name(handle: AppHandle, hash: String) -> String {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         get_media_name_impl(&hash, pool).await
@@ -113,7 +113,7 @@ pub async fn get_media_name(handle: AppHandle, hash: String) -> String {
 #[specta::specta]
 pub async fn get_media_sources(handle: AppHandle, hash: String) -> Vec<MediaSource> {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         get_media_sources_impl(&hash, pool).await
@@ -127,7 +127,7 @@ pub async fn get_media_sources(handle: AppHandle, hash: String) -> Vec<MediaSour
 #[specta::specta]
 pub async fn set_media_favorite(handle: AppHandle, hash: String, state: bool) {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         set_media_favorite_impl(&hash, state, pool).await;

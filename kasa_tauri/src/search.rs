@@ -21,7 +21,7 @@ pub async fn search(handle: AppHandle, input_raw: String) {
     // TODO remove width and gaps
     //
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     let search_state = handle.state::<SearchState>();
     let search_guard = search_state.0.lock().await;
@@ -68,7 +68,7 @@ pub async fn new_or_update_preset(
     name: &str,
 ) {
     let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
+    let connection_guard = connection_state.db.lock().await.clone();
 
     if let Some(pool) = connection_guard.as_ref() {
         let result = new_or_update_preset_impl(includes, excludes, name, pool).await;

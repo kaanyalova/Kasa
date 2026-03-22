@@ -100,9 +100,9 @@ pub fn run() {
     let dotenv = dotenvy::dotenv();
 
     #[cfg(debug_assertions)]
-    let default_log_level = LevelFilter::Trace;
+    let default_log_level = LevelFilter::Debug;
     #[cfg(not(debug_assertions))]
-    let default_log_level = LevelFilter::Trace;
+    let default_log_level = LevelFilter::Warn;
 
     let log_level_env = env::var("KASA_LOG")
         .unwrap_or("".to_string())

@@ -11,7 +11,11 @@ use kasa_core::{
     },
     layout::google_photos::{ImageRow, calculate_layout},
 };
-use sqlx::{Pool, Sqlite, query, sqlite::SqlitePoolOptions};
+use sqlx::{
+    Pool, Sqlite, query,
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+};
+use std::str::FromStr;
 use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
@@ -27,9 +31,15 @@ pub struct MediaCache {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()> {
+    let options = SqliteConnectOptions::from_str(&db_path)
+        .unwrap()
+        .pragma("journal_mode", "WAL")
+        .pragma("synchronous", "NORMAL")
+        .pragma("busy_timeout", "5000");
+
     let pool = SqlitePoolOptions::new()
         .max_connections(32)
-        .connect(&db_path)
+        .connect_with(options)
         .await
         .unwrap();
 
@@ -89,15 +99,25 @@ pub async fn connect_dbs(handle: AppHandle) {
         .to_string_lossy()
         .to_string();
 
+    let db_options = SqliteConnectOptions::from_str(&db_path_absolute)
+        .unwrap()
+        .pragma("journal_mode", "WAL")
+        .pragma("synchronous", "NORMAL");
+
+    let thumbs_options = SqliteConnectOptions::from_str(&thumbs_path_absolute)
+        .unwrap()
+        .pragma("journal_mode", "WAL")
+        .pragma("synchronous", "NORMAL");
+
     let pool_db = SqlitePoolOptions::new()
         .max_connections(32)
-        .connect(&db_path_absolute)
+        .connect_with(db_options)
         .await
         .unwrap();
 
     let pool_thumbs = SqlitePoolOptions::new()
         .max_connections(32)
-        .connect(&thumbs_path_absolute)
+        .connect_with(thumbs_options)
         .await
         .unwrap();
 

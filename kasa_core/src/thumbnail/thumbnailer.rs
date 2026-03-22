@@ -136,31 +136,79 @@ pub async fn get_thumbnail_from_db_impl(
 
     let thumbnail = match _type {
         crate::db::schema::MediaType::Image => {
-            thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG)
+            let path = path.clone();
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            rayon::spawn(move || {
+                let result = std::panic::catch_unwind(|| {
+                    thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG)
+                });
+
+                let out = match result {
+                    Ok(res) => res,
+                    Err(_) => Err(anyhow::anyhow!("thumbnail_image_single panicked")),
+                };
+                let _ = tx.send(out);
+            });
+            rx.await.unwrap_or_else(|_| {
+                Err(anyhow::anyhow!(
+                    "Thumbnail generation thread failed/panicked"
+                ))
+            })
         }
         crate::db::schema::MediaType::Video => {
-            thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 5000)
+            let path = path.clone();
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            rayon::spawn(move || {
+                let result = std::panic::catch_unwind(|| {
+                    thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 5000)
+                });
+
+                let out = match result {
+                    Ok(res) => res,
+                    Err(_) => Err(anyhow::anyhow!("thumbnail_video panicked")),
+                };
+                let _ = tx.send(out);
+            });
+            rx.await.unwrap_or_else(|_| {
+                Err(anyhow::anyhow!(
+                    "Thumbnail generation thread failed/panicked"
+                ))
+            })
         }
         crate::db::schema::MediaType::Game => {
-            return "".to_string(); // Return empty string for unimplemented type
+            return "".to_string();
         }
         crate::db::schema::MediaType::Unknown => {
             error!(
                 "Unknown mime type {}, you have somehow managed to index a format that wasn't on the supported formats list.",
                 mime
             );
-            return "".to_string(); // Return empty string for unknown type
+            return "".to_string();
         }
         crate::db::schema::MediaType::Group => {
-            // Handle database query errors properly
             let hashes: Vec<String> =
                 query_scalar("SELECT hash FROM MediaGroupEntry WHERE group_hash = ?")
                     .bind(hash.to_string())
                     .fetch_all(pool)
                     .await
-                    .unwrap(); // how to handle this ?
+                    .unwrap_or_default();
 
-            thumbnail_group(hashes, Default::default())
+            let (tx, rx) = tokio::sync::oneshot::channel();
+            rayon::spawn(move || {
+                let result =
+                    std::panic::catch_unwind(|| thumbnail_group(hashes, Default::default()));
+
+                let out = match result {
+                    Ok(res) => res,
+                    Err(_) => Err(anyhow::anyhow!("thumbnail_group panicked")),
+                };
+                let _ = tx.send(out);
+            });
+            rx.await.unwrap_or_else(|_| {
+                Err(anyhow::anyhow!(
+                    "Thumbnail generation thread failed/panicked"
+                ))
+            })
         }
         crate::db::schema::MediaType::Flash => {
             thumbnail_flash(&path, (256, 256), &ThumbnailFormat::PNG).await

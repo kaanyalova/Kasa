@@ -33,6 +33,7 @@ pub struct ImageToThumbnail {
 ///
 /// Each images path is supplied in `ImageToThumbnail.in_path`
 /// Each thumbnail is outputted at ` {thumbnails_path}/{out_name}.{thumbnailer_format}`
+/// Unused, TODO remove
 pub fn thumbnail_image_batch(
     images: &Vec<ImageToThumbnail>,
     resolution: (u32, u32),
@@ -111,6 +112,7 @@ pub enum ThumbnailerError {
 
 /// Thumbnails a single image, returns the thumbnail size
 /// Saves the image to given path
+/// Unused, TODO remove
 pub fn thumbnail_image_single_to_file(
     path: &str,
     out_path: &str,

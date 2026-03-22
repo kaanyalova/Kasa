@@ -1,17 +1,32 @@
-use std::env;
+use std::{
+    env,
+    path::{Path, PathBuf},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use kasa_ai::{
-    prepare_session,
-    wdv_tagger::{prepare_labels, tag_image_wdv},
+    Session, prepare_session,
+    wdv_tagger::{TaggerThresholds, prepare_labels, tag_image_wdv},
 };
 use kasa_core::{config::global_config::get_config_impl, tags::insert_tags_with_source_types};
 use kasa_python::ExtractedTag;
-use sqlx::{query_as, query_scalar, sqlite::SqlitePoolOptions};
+use serde_json::json;
+use sqlx::{query, query_as, query_scalar, sqlite::SqlitePoolOptions};
 
 #[derive(sqlx::FromRow)]
 struct HashAndPath {
     hash: String,
     path: String,
+}
+
+fn get_model_name(session: &Session, model_file_name: &str) -> String {
+    let model_meta = session.metadata().unwrap();
+    let mut model_name = model_meta.name().unwrap_or(model_file_name.to_string());
+
+    if let Some(version) = model_meta.version() {
+        model_name = format!("{}-{}", model_name, version);
+    }
+    model_name
 }
 
 pub async fn ai_tag_images() {
@@ -38,6 +53,15 @@ pub async fn ai_tag_images() {
     let mut counter = 0;
     let hash_count = hashes_and_paths.len();
 
+    let model_path = env::var("KASA_WDV_MODEL_PATH").unwrap().to_string();
+    let model_path = PathBuf::from(model_path);
+
+    let model_file_name = model_path.file_prefix().unwrap().to_str().unwrap();
+
+    let model_name = get_model_name(&session, model_file_name);
+
+    let thresholds = TaggerThresholds::default();
+
     // insert_tags_with_source_types is clearly not optimized for batch inserts, this will take forever no matter how
     // good your gpu is
     for hash_and_path in hashes_and_paths {
@@ -49,7 +73,18 @@ pub async fn ai_tag_images() {
 
         let first_path = path.first().unwrap();
 
-        let tags = tag_image_wdv(&mut session, first_path, &labels, 0.85, 0.35);
+        let tags = tag_image_wdv(&mut session, first_path, &labels, &thresholds);
+
+        let start = SystemTime::now();
+        let since_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+
+        query("INSERT INTO AutoTaggerInfo(hash, tagged_on, tagger_model, thresholds, tag_count) VALUES (?,?,?,?,?)")
+        .bind(&hash_and_path.hash)
+        .bind(since_epoch.as_secs() as i64)
+        .bind(&model_file_name)
+        .bind(serde_json::to_string(&thresholds).unwrap())
+        .bind(tags.count())
+        .execute(&pool).await.unwrap();
 
         let characters: Vec<ExtractedTag> = tags
             .character

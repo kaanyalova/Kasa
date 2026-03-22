@@ -37,7 +37,7 @@ pub fn init_interpreter() -> Interpreter {
         .add_native_module(rust_side_module_def)
         .add_frozen_modules(py_freeze!(
             module_name = "gallery_dl",
-            dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.2"
+            dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.7"
         ))
         .add_frozen_modules(py_freeze!(
             module_name = "charset_normalizer",
@@ -59,6 +59,10 @@ pub fn init_interpreter() -> Interpreter {
             module_name = "urllib3",
             dir = "../py/dependencies/urllib3/urllib3-2.2.3/src"
         ))
+        //.add_frozen_modules(py_freeze!(
+        //    module_name = "yt_dlp",
+        //    dir = "../py/dependencies/yt-dlp/yt-dlp",
+        //))
         .add_frozen_modules(py_freeze!(dir = "../py/py_src"))
         .build();
 

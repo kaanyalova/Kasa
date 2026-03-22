@@ -76,7 +76,7 @@ fn main() {
 
     let sources = vec![
         Source::new(
-            "https://github.com/mikf/gallery-dl/releases/download/v1.31.2/gallery_dl-1.31.2.tar.gz",
+            "https://github.com/mikf/gallery-dl/releases/download/v1.31.7/gallery_dl-1.31.7.tar.gz",
             "gallery-dl",
         ),
         Source::new(
@@ -96,9 +96,9 @@ fn main() {
             "idna",
         ),
         Source::new(
-            "https://github.com/yt-dlp/yt-dlp/releases/download/2025.07.21/yt-dlp.tar.gz",
-            "yt-dlp"
-        )
+            "https://github.com/yt-dlp/yt-dlp/releases/download/2026.02.21/yt-dlp.tar.gz",
+            "yt-dlp",
+        ),
     ];
 
     for source in sources {
@@ -111,4 +111,3 @@ fn main() {
     //    patch.patch();
     //}
 }
-//

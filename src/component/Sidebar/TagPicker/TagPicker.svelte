@@ -10,7 +10,7 @@
 	import { error, trace } from '@tauri-apps/plugin-log';
 	import { comma } from 'postcss/lib/list';
 	import { SearchStore } from '../Search/SearchStore.svelte';
-	import { listen } from '@tauri-apps/api/event';
+	import { emit, listen } from '@tauri-apps/api/event';
 	import FilterAltOff from '../../Vector/FilterAltOff.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import TagPresets from './TagPresets.svelte';

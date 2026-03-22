@@ -145,3 +145,12 @@ pub struct TagPreset {
     pub name: String,
     pub preset: SqlxJson<TagPresetData>,
 }
+
+#[derive(FromRow, Clone, Serialize, Deserialize)]
+pub struct AutoTaggerInfo {
+    pub hash: String,
+    pub tagged_on: i64,
+    pub tagger_model: String,
+    pub thresholds: String,
+    pub tag_count: i64,
+}

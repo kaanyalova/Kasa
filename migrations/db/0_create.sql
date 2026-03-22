@@ -95,11 +95,20 @@ CREATE TABLE IF NOT EXISTS MediaSource (
     importer_type TEXT NOT NULL,
     link_or_path TEXT NOT NULL,
     source TEXT NOT NULL,
-    raw_data TEXT NOT NULL
+    raw_data TEXT NOT NULL,
+    UNIQUE(hash, link_or_path)
 );
 
 
 CREATE TABLE IF NOT EXISTS SearchPreset (
     name TEXT NOT NULL,
     preset JSON NOT NULL
-)
+);
+
+CREATE TABLE IF NOT EXISTS AutoTaggerInfo (
+    hash TEXT NOT NULL,
+    tagged_on NUMBER NOT NULL,
+    tagger_model TEXT NOT NULL,
+    thresholds TEXT NOT NULL,
+    tag_count NUMBER NOT NULL
+);

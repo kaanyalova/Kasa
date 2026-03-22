@@ -1,7 +1,7 @@
 use ort::execution_providers::CUDAExecutionProvider;
 use ort::execution_providers::ROCmExecutionProvider;
 
-use ort::session::Session;
+pub use ort::session::Session;
 
 pub mod wdv_tagger;
 

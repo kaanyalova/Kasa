@@ -5,6 +5,7 @@ use image::{Rgba, imageops};
 use ort::tensor::TensorElementType::Float32;
 use ort::value::Tensor;
 use ort::{execution_providers::ROCmExecutionProvider, session::Session};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct TaggerOutput {
@@ -13,18 +14,38 @@ pub struct TaggerOutput {
     pub ratings: TaggerTag,
 }
 
+impl TaggerOutput {
+    pub fn count(&self) -> i64 {
+        (self.character.len() + self.general.len() + 1) as i64
+    }
+}
+
 #[derive(Debug)]
 pub struct TaggerTag {
     pub name: String,
     pub confidence: f32,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaggerThresholds {
+    character: f32,
+    general: f32,
+}
+
+impl Default for TaggerThresholds {
+    fn default() -> Self {
+        Self {
+            character: 0.85,
+            general: 0.85,
+        }
+    }
+}
+
 pub fn tag_image_wdv(
     session: &mut Session,
     image_path: &str,
     tag_labels: &Labels,
-    character_thresh: f32,
-    general_thresh: f32,
+    thresholds: &TaggerThresholds,
 ) -> TaggerOutput {
     let (dim_x, dim_y) = match &session.inputs().first().unwrap().dtype() {
         ort::value::ValueType::Tensor {
@@ -97,12 +118,12 @@ pub fn tag_image_wdv(
 
     let mut general: Vec<TaggerTag> = general
         .into_iter()
-        .filter(|t| t.confidence > general_thresh)
+        .filter(|t| t.confidence > thresholds.general)
         .collect();
 
     let mut character: Vec<TaggerTag> = character
         .into_iter()
-        .filter(|t| t.confidence > character_thresh)
+        .filter(|t| t.confidence > thresholds.character)
         .collect();
 
     let rating = ratings

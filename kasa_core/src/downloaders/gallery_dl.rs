@@ -54,7 +54,7 @@ pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
         //dbg!(&extractor.get_tags());
 
         let raw_data = serde_json::to_string(&extractor)?;
-        query("INSERT INTO MediaSource(hash, importer_type, link_or_path, source, raw_data) VALUES (?, ?, ?, ?, ?)")
+        query("INSERT OR IGNORE INTO MediaSource(hash, importer_type, link_or_path, source, raw_data) VALUES (?, ?, ?, ?, ?)")
             .bind(&hash)
             .bind("gallery_dl")
             .bind(&url)

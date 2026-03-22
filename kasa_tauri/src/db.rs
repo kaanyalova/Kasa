@@ -28,7 +28,7 @@ pub struct MediaCache {
 #[specta::specta]
 pub async fn connect_to_db(db_path: String, handle: AppHandle) -> Result<(), ()> {
     let pool = SqlitePoolOptions::new()
-        .max_connections(6)
+        .max_connections(32)
         .connect(&db_path)
         .await
         .unwrap();
@@ -90,13 +90,13 @@ pub async fn connect_dbs(handle: AppHandle) {
         .to_string();
 
     let pool_db = SqlitePoolOptions::new()
-        .max_connections(6)
+        .max_connections(32)
         .connect(&db_path_absolute)
         .await
         .unwrap();
 
     let pool_thumbs = SqlitePoolOptions::new()
-        .max_connections(6)
+        .max_connections(32)
         .connect(&thumbs_path_absolute)
         .await
         .unwrap();

@@ -8,7 +8,7 @@ import json
 from kasa_download_job import KasaDownloadJob
 jobs = []
 
-def download(url: str, path: str, config_dir: str) -> str:
+def download(url: str, path: str, config_dir: str, on_progress = None) -> str:
     config.load(files=[config_dir])
     config.set(("extractor",), "base-directory", path)
     # config.set(("extractor", "reddit"), "client-id", "")
@@ -33,7 +33,7 @@ def download(url: str, path: str, config_dir: str) -> str:
     # config.set(key_tuple[:-1], key_tuple[-1], option["value"])
     # print(f"loaded config option, val= {option['value']}")
 
-    _job = KasaDownloadJob(url)
+    _job = KasaDownloadJob(url, on_progress=on_progress)
     jobs.append(_job)
 
     # TODO check the status

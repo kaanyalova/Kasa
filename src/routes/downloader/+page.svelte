@@ -17,8 +17,4 @@
 		height: var(--page-content-height);
 		width: var(--page-content-width);
 	}
-
-	.titlebarInsides {
-		color: var(--text);
-	}
 </style>

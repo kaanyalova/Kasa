@@ -5,7 +5,8 @@
   "local": true,
   "windows": [
     "main",
-    "settings"
+    "settings",
+    "download"
   ],
   "permissions": [
     "core:path:default",

@@ -27,6 +27,8 @@ toml = { workspace = true }
 specta = { workspace = true, features = ["derive"] }
 log = { workspace = true }
 dirs = { workspace = true }
+hex = "0.4.3"
+sha1 = "0.10.6"
 #kasa_core = { workspace = true }
 
 [build-dependencies]

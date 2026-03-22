@@ -1,14 +1,17 @@
 use std::{collections::HashMap, default};
 
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use extractors::configurable::{ExtractorConfig, extract_tags};
 use log::trace;
 use rustpython::{InterpreterBuilder, InterpreterBuilderExt};
 use rustpython_pylib::FROZEN_STDLIB;
-use rustpython_vm::{Interpreter, convert::ToPyObject, py_freeze, pymodule, vm};
-
+use rustpython_vm::{
+    Interpreter, convert::ToPyObject, function::PyMethodFlags, py_freeze, pymodule, vm,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha1::{Digest, Sha1};
+use std::result::Result::Ok;
 use thiserror::Error;
 pub mod extractors;
 
@@ -37,7 +40,7 @@ pub fn init_interpreter() -> Interpreter {
         .add_native_module(rust_side_module_def)
         .add_frozen_modules(py_freeze!(
             module_name = "gallery_dl",
-            dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.7"
+            dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.10"
         ))
         .add_frozen_modules(py_freeze!(
             module_name = "charset_normalizer",
@@ -74,24 +77,45 @@ pub fn gdl_download(
     url: &str,
     output_path: &str,
     gdl_config_path: Option<String>,
+    on_progress: impl Fn(GalleryDlStatus) + Send + Sync + 'static,
 ) -> Result<GalleryDlOutput> {
     interpreter.enter(|vm| {
         let module = vm.import("gdl", 0).map_err(|e| {
             PyError::PythonException(
-                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".into()),
+                e.to_pyobject(vm)
+                    .try_into_value::<String>(vm)
+                    .unwrap_or("Cannot get python error message!".into()),
             )
         })?;
         let func = module.get_attr("download", vm).map_err(|e| {
             PyError::PythonException(
-                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
+                e.to_pyobject(vm)
+                    .try_into_value::<String>(vm)
+                    .unwrap_or("Cannot get python error message!".to_string()),
             )
         })?;
+
+        let on_progress_wrapper =
+            move |status_json: String, _vm: &rustpython_vm::VirtualMachine| {
+                let parsed = serde_json::from_str(&status_json);
+
+                if let Ok(parsed) = parsed {
+                    on_progress(parsed)
+                }
+            };
+
+        let on_progress = vm.new_function("on_progress", on_progress_wrapper);
 
         dbg!(&gdl_config_path);
 
         let output = func
             .call(
-                (url, output_path, gdl_config_path.unwrap_or("".to_string())),
+                (
+                    url,
+                    output_path,
+                    gdl_config_path.unwrap_or("".to_string()),
+                    on_progress,
+                ),
                 vm,
             )
             .map_err(|e| {
@@ -101,7 +125,13 @@ pub fn gdl_download(
                 //    e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
                 //)
             })
-            .unwrap();
+            .map_err(|e| {
+                PyError::PythonException(
+                    e.to_pyobject(vm)
+                        .try_into_value::<String>(vm)
+                        .unwrap_or("Cannot get python error".to_string()), //.unwrap_or("Cannot get python error message!".to_string()),
+                )
+            })?;
 
         let output: String = output.try_into_value(vm).map_err(|e| {
             PyError::PythonException(
@@ -120,50 +150,34 @@ pub fn gdl_download(
     })
 }
 
-pub fn get_progress(interpreter: &Interpreter) -> Result<GalleryDlStatuses> {
-    interpreter.enter(|vm| {
-        let module = vm.import("gdl", 0).map_err(|e| {
-            PyError::PythonException(
-                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".into()),
-            )
-        })?;
-
-        let func = module.get_attr("get_jobs_status", vm).map_err(|e| {
-            PyError::PythonException(
-                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
-            )
-        })?;
-
-        let output = func
-            .call((), vm)
-            .map_err(|e| {
-                vm.print_exception(e)
-
-                //PyError::PythonException(
-                //    e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
-                //)
-            })
-            .unwrap();
-
-        let output: String = output.try_into_value(vm).map_err(|e| {
-            PyError::PythonException(
-                e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),
-            )
-        })?;
-
-        let gdl_output: GalleryDlStatuses = serde_json::from_str(&output)?;
-
-        Ok(gdl_output)
-    })
-}
-
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, Clone)]
 pub struct GalleryDlStatus {
     pub bytes_total: i64,
     pub bytes_downloaded: i64,
     pub bytes_per_second: i64,
+    pub url_hash: String,
     pub url: String,
     pub extractor: String,
+}
+
+impl GalleryDlStatus {
+    pub fn new_placeholder(url: &str) -> Self {
+        Self {
+            bytes_total: 0,
+            bytes_downloaded: 0,
+            bytes_per_second: 0,
+            url_hash: hash_url(url),
+            url: url.to_owned(),
+            extractor: "".to_string(),
+        }
+    }
+}
+
+pub fn hash_url(url: &str) -> String {
+    let mut hasher = Sha1::new();
+    hasher.update(url.as_bytes());
+    let result = hasher.finalize();
+    hex::encode(result)
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, specta::Type)]

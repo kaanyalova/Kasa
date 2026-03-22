@@ -59,6 +59,8 @@ ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
 ruffle_render_wgpu = { git = "https://github.com/ruffle-rs/ruffle", features = [
     "clap",
 ], optional = true, rev = "a2c3d5e7dd54ff9a50de1f2c6bf9011237c3b73c" }
+sha1 = "0.10.6"
+hex = "0.4.3"
 
 
 [dependencies.ffmpeg]

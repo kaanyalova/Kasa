@@ -1,10 +1,9 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use anyhow::Result;
-use kasa_python::{
-    GalleryDlStatus, GalleryDlStatuses, extractors::configurable::ExtractorConfig, get_progress,
-};
+use kasa_python::{GalleryDlStatus, GalleryDlStatuses, extractors::configurable::ExtractorConfig};
 use rustpython_vm::Interpreter;
+use sha1::{Digest, Sha1};
 use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;
 
@@ -21,13 +20,14 @@ unsafe impl Send for PyTrustMe {}
 unsafe impl Sync for PyTrustMe {}
 
 /// output_path should be an absolute path
-pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
-    interpreter: &PyTrustMe,
+pub async fn download_and_index_impl(
+    interpreter: Arc<PyTrustMe>,
     url: &str,
     output_path: &str,
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
-    when_done: F,
+    when_done: impl Fn(String) + Send + Sync,
+    on_progress: impl Fn(GalleryDlStatus) + Send + Sync + 'static,
     extractors: &HashMap<String, ExtractorConfig>,
 ) -> Result<()> {
     let config = get_config_impl();
@@ -36,12 +36,43 @@ pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
         return Err(DownloaderError::NotAnAbsolutePath.into());
     }
 
-    let downloader_output = kasa_python::gdl_download(
-        &interpreter.0,
-        url,
-        output_path,
-        config.downloader.gdl_config_path,
-    )?;
+    let url_owned = url.to_owned();
+
+    let output_path_owned = output_path.to_owned();
+
+    let (tx, rx) = tokio::sync::oneshot::channel();
+
+    // rustpython stack overflows on debug more with the default 4mbs of stack
+    std::thread::Builder::new()
+        .name("rustpython".to_string())
+        .stack_size(16 * 1024 * 1024)
+        .spawn(move || {
+            let result = kasa_python::gdl_download(
+                &interpreter.0,
+                &url_owned,
+                &output_path_owned,
+                config.downloader.gdl_config_path,
+                on_progress,
+            );
+
+            tx.send(result).unwrap();
+        })
+        .unwrap();
+
+    let downloader_output = rx.await??;
+
+    //let downloader_output = tokio::task::spawn_blocking(move || {
+    //    kasa_python::gdl_download(
+    //        &interpreter.0,
+    //        &url_owned,
+    //        &output_path_owned,
+    //        config.downloader.gdl_config_path,
+    //        on_progress,
+    //    )
+    //})
+    //.await
+    //.unwrap()
+    //.unwrap();
 
     for extractor in downloader_output.url_extractors {
         index(&extractor.path, pool, pool_thumbs).await;
@@ -67,12 +98,17 @@ pub async fn download_and_index_impl<F: Fn() + Send + Sync>(
             .await;
     }
 
-    when_done();
+    let url_hash = hash_url(url);
+    when_done(url_hash);
+
     Ok(())
 }
 
-pub async fn get_download_progress_impl(interpreter: &PyTrustMe) -> Result<GalleryDlStatuses> {
-    get_progress(&interpreter.0)
+pub fn hash_url(url: &str) -> String {
+    let mut hasher = Sha1::new();
+    hasher.update(url.as_bytes());
+    let result = hasher.finalize();
+    hex::encode(result)
 }
 
 #[derive(Error, Debug)]

@@ -3,30 +3,37 @@
 	import '../../fonts.css';
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
-	import { commands, type GalleryDlStatuses } from '$lib/tauri_bindings';
+	import { commands, type GalleryDlStatus } from '$lib/tauri_bindings';
 	import { comma } from 'postcss/lib/list';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import Download from '../Vector/Download.svelte';
 	import { stat } from '@tauri-apps/plugin-fs';
+	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
-	let downloadStatuses: GalleryDlStatuses = $state({});
+	let downloadStatuses: Record<string, GalleryDlStatus> = $state({});
 	let downloadBox = $state('');
+	let unlistenFn: UnlistenFn | undefined;
 
 	async function onDownload() {
-		await commands.downloadAndIndex(downloadBox);
+		await commands.queueDownloadJob(downloadBox);
 		downloadBox = '';
 	}
 
-	async function updateStatus() {
-		downloadStatuses = await commands.getDownloadProgress();
-	}
+	onMount(async () => {
+		unlistenFn = await listen('downloader_progress_updated', async () => {
+			downloadStatuses = await commands.getDownloaderStatuses();
+			console.log('updating download statuses');
+			console.log(downloadStatuses);
+		});
+	});
+
+	onDestroy(() => {
+		if (unlistenFn) {
+			unlistenFn();
+		}
+	});
 
 	async function onOpenGalleryDlConfigFile() {}
-
-	setInterval(async () => {
-		await updateStatus();
-		console.log('update');
-	}, 500);
 </script>
 
 <div class="downloader">
@@ -65,7 +72,7 @@
 			</button>
 
 			<div class="versions">
-				<span class="code">gallery_dl</span> version <span class="code"> 1.31.2</span>
+				<span class="code">gallery_dl</span> version <span class="code"> 1.31.10</span>
 				<span class="code">rustpython</span> version <span class="code">0eddee5</span>
 			</div>
 		</div>
@@ -213,6 +220,7 @@
 		display: flex;
 		flex-grow: 1;
 		border: 1px solid var(--secondary-alt);
+		color: var(--text);
 	}
 
 	.downloadStatusesTitle {

@@ -18,8 +18,8 @@ use db::nuke_db_versioning;
 use db::query_tags;
 use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
-use downloaders::download_and_index;
-use downloaders::get_download_progress;
+use downloaders::get_downloader_statuses;
+use downloaders::queue_download_job;
 use file_picker::new_linux_file_picker_dialog_file_select;
 use file_picker::new_linux_file_picker_dialog_multiple_folder_select;
 use file_picker::new_linux_file_picker_dialog_save_file;
@@ -54,10 +54,14 @@ use tags::delete_tags;
 use tags::get_list_of_all_tags_with_details;
 use tags::get_tags_as_text;
 use tags::update_tags;
+use tauri::Manager;
 use tauri_specta::{Builder, collect_commands};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
+
+use crate::downloaders::DownloaderStore;
+use kasa_python::GalleryDlStatus;
 
 mod db;
 mod image;
@@ -147,7 +151,6 @@ pub fn run() {
             remove_index_source,
             get_index_paths,
             index_all,
-            download_and_index,
             index_path,
             image_path_to_rgba_bytes,
             open_with_system_default_app,
@@ -169,17 +172,19 @@ pub fn run() {
             set_db_path,
             set_thumbs_db_path,
             get_media_name,
-            get_download_progress,
             get_media_sources,
             set_media_favorite,
             set_config_value_bool,
             set_config_value_f64,
-            set_config_value_str
+            set_config_value_str,
+            queue_download_job,
+            get_downloader_statuses,
         ]
     });
 
     #[cfg(all(not(target_os = "android"), debug_assertions))]
-    {
+    let builder = {
+        let builder = builder.typ::<GalleryDlStatus>();
         builder
             .export(
                 // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
@@ -187,7 +192,14 @@ pub fn run() {
                 "../src/lib/tauri_bindings.ts",
             )
             .unwrap();
-    }
+        builder
+    };
+
+    #[cfg(not(all(not(target_os = "android"), debug_assertions)))]
+    let builder = {
+        use kasa_python::GalleryDlStatus;
+        builder.typ::<GalleryDlStatus>()
+    };
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -206,15 +218,19 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(builder.invoke_handler())
-        .setup(move |app| {
-            builder.mount_events(app);
-            Ok(())
-        })
         .manage(DbStore::default())
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
-        .manage(PythonStore::default())
-        .manage(ExtractorsStore::default())
+        .manage(PythonStore::init_interpreter())
+        .manage(ExtractorsStore::init_from_files())
+        .setup(move |app| {
+            builder.mount_events(app);
+
+            let handle = app.handle().clone();
+            app.manage(DownloaderStore::init_queue(handle));
+
+            Ok(())
+        })
         .manage(SearchState::default())
         .run(context)
         .expect("error while running tauri application");

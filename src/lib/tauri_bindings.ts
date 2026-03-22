@@ -109,9 +109,6 @@ async indexAll() : Promise<Result<null, null>> {
     else return { status: "error", error: e  as any };
 }
 },
-async downloadAndIndex(url: string) : Promise<void> {
-    await TAURI_INVOKE("download_and_index", { url });
-},
 async indexPath(path: string) : Promise<void> {
     await TAURI_INVOKE("index_path", { path });
 },
@@ -178,9 +175,6 @@ async setThumbsDbPath(path: string) : Promise<void> {
 async getMediaName(hash: string) : Promise<string> {
     return await TAURI_INVOKE("get_media_name", { hash });
 },
-async getDownloadProgress() : Promise<GalleryDlStatuses> {
-    return await TAURI_INVOKE("get_download_progress");
-},
 async getMediaSources(hash: string) : Promise<MediaSource[]> {
     return await TAURI_INVOKE("get_media_sources", { hash });
 },
@@ -195,6 +189,12 @@ async setConfigValueF64(category: string, key: string, valu: number) : Promise<v
 },
 async setConfigValueStr(category: string, key: string, valu: string) : Promise<void> {
     await TAURI_INVOKE("set_config_value_str", { category, key, valu });
+},
+async queueDownloadJob(url: string) : Promise<void> {
+    await TAURI_INVOKE("queue_download_job", { url });
+},
+async getDownloaderStatuses() : Promise<{ [key in string]: GalleryDlStatus }> {
+    return await TAURI_INVOKE("get_downloader_statuses");
 }
 }
 
@@ -216,8 +216,7 @@ export type Database = { db_path: string }
  */
 export type DateRange = { start: number; end: number }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
-export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number }
-export type GalleryDlStatuses = { [key in string]: GalleryDlStatus }
+export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number; url_hash: string; url: string; extractor: string }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader; Layout: Layout }
 /**
  * File-tag pairs

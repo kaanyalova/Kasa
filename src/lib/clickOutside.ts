@@ -87,34 +87,35 @@ export function clickOutsideClass(node: Node, onEventFunction: any, _class: stri
 	};
 }
 
+export function clickOutsideDialogContents(node: Node, onEventFunction: any) {
+	clickOutsideClass(node, onEventFunction, "dialogContents")
+}
+
 export function clickOutsideClassExcluding(node: Node, onEventFunction: any, _class: string) {
-	const handleClick = (event: Event) => {
-		var path = event.composedPath();
+    const handleClick = (event: Event) => {
+        const path = event.composedPath();
 
-		// Needed so it doesn't exits from video players settings menu
+        const clickedInsideExcludedClass = path.some((el) => {
+            return el instanceof HTMLElement && el.classList.contains(_class);
+        });
 
-		//(event.target as HTMLElement).classList.forEach((v) => console.log(`Class: ${v}`))
-		if ((event.target as HTMLElement).classList.contains(_class)) {
-			return;
-		}
-		//trace(`Clicked outside of element with id ${(event.target as HTMLElement).tagName}`)
+        if (clickedInsideExcludedClass) {
+            return;
+        }
 
-		//console.log((event.target as HTMLElement).tagName);
+        if (!path.includes(node)) {
+            onEventFunction();
+        }
+    };
 
-		if (!path.includes(node)) {
-			onEventFunction();
-		}
-	};
+    document.addEventListener('click', handleClick);
 
-	document.addEventListener('click', handleClick);
-
-	return {
-		destroy() {
-			console.log('Destory called... Somewhere');
-
-			document.removeEventListener('click', handleClick);
-		}
-	};
+    return {
+        destroy() {
+            console.log('Destory called... Somewhere');
+            document.removeEventListener('click', handleClick);
+        }
+    };
 }
 
 //export function clickOutsideModal(node: Node, onEventFunction: any) {
@@ -155,4 +156,9 @@ export function clickOutsideModal(node: Node, callback: () => void): ActionRetur
 			document.removeEventListener('click', handleClick, true);
 		}
 	};
+}
+
+
+export function clickOutsideMediaModal(node: Node, callback: () => void): ActionReturn {
+ return clickOutsideClassExcluding(node, callback, "vds-settings-menu-items")
 }

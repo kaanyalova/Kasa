@@ -2,7 +2,11 @@
 	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 	import '../../fonts.css';
 	import { info, trace } from '@tauri-apps/plugin-log';
-	import { clickOutsideModal, clickOutsideTagName } from '$lib/clickOutside';
+	import {
+		clickOutsideMediaModal,
+		clickOutsideModal,
+		clickOutsideTagName
+	} from '$lib/clickOutside';
 	import Sidebar from './Sidebar.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';
@@ -95,9 +99,11 @@
 <!-- TODO keyboard navigation -->
 <dialog open={false}>
 	{#await getData() then data}
+		<div class="modalWrapper"></div>
+
 		<div
 			class="dialogContents"
-			use:clickOutsideModal={async () => {
+			use:clickOutsideMediaModal={async () => {
 				await onClose();
 				trace('click outside modal');
 			}}

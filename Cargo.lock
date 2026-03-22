@@ -4337,6 +4337,7 @@ dependencies = [
  "image",
  "ndarray",
  "ort",
+ "serde",
 ]
 
 [[package]]

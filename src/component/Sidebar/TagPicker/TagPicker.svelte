@@ -70,7 +70,7 @@
 
 	let filteredTags: Array<TagWithCount> = $derived(
 		tags?.filter((tag) => {
-			return tag.tag_name.startsWith(filterInput);
+			return tag.tag_name.includes(filterInput);
 		}) ?? []
 	);
 

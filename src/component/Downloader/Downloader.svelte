@@ -9,6 +9,7 @@
 	import Download from '../Vector/Download.svelte';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+	import DownloaderRow from './DownloaderRow.svelte';
 
 	let downloadStatuses: Record<string, GalleryDlStatus> = $state({});
 	let downloadBox = $state('');
@@ -33,7 +34,14 @@
 		}
 	});
 
-	async function onOpenGalleryDlConfigFile() {}
+	async function onOpenGalleryDlConfigFile() {
+		const config = await commands.getConfig();
+		const path = config.Downloader.gdl_config_path;
+
+		if (path) {
+			await commands.openWithSystemDefaultApp(path);
+		}
+	}
 </script>
 
 <div class="downloader">
@@ -53,15 +61,17 @@
 
 			<div class="downloadStatusesTitle">Downloads</div>
 			<div class="downloadStatuses">
-				{#each Object.entries(downloadStatuses) as [key, status]}
-					<ul>
-						<li>bytes_downloaded {status.bytes_downloaded}</li>
-						<li>bytes_per_second {status.bytes_per_second}</li>
-						<li>bytes_total {status.bytes_total}</li>
-						<li>extractor {status.extractor}</li>
-						<li>url {status.url}</li>
-					</ul>
-				{/each}
+				<ul class="multicolorRows downloaderRow">
+					{#each Object.entries(downloadStatuses) as [_, status]}
+						<DownloaderRow
+							downloadSpeed={status.bytes_per_second}
+							downloadedSize={status.bytes_downloaded}
+							fileSize={status.bytes_total}
+							extractorName={status.extractor}
+							url={status.url}
+						></DownloaderRow>
+					{/each}
+				</ul>
 			</div>
 		</div>
 
@@ -150,6 +160,7 @@
 		display: flex;
 		flex-direction: column;
 		margin: 4px;
+		min-width: 0;
 	}
 
 	.downloadInputBox {
@@ -179,6 +190,8 @@
 		padding-left: 4px;
 		padding-right: 4px;
 		flex-grow: 1;
+		min-width: 0;
+		box-sizing: border-box;
 	}
 
 	.urlInput:focus {
@@ -218,12 +231,19 @@
 
 	.downloadStatuses {
 		display: flex;
+		flex-direction: column;
 		flex-grow: 1;
 		border: 1px solid var(--secondary-alt);
 		color: var(--text);
+		overflow-y: auto;
+		min-width: 0;
 	}
 
 	.downloadStatusesTitle {
 		color: var(--text);
+	}
+
+	.multicolorRows :global(li:nth-child(2n)) {
+		background-color: var(--secondary-alt);
 	}
 </style>

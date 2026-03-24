@@ -1,0 +1,3 @@
+type ProgressBarProps = {
+	progress: number;
+};

@@ -4,7 +4,7 @@ pub mod search;
 use std::collections::HashSet;
 
 use itertools::Itertools;
-use kasa_python::ExtractedTag;
+use kasa_python::extractors::ExtractedTag;
 use log::trace;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, QueryBuilder, Sqlite, prelude::FromRow, query, query_scalar};
@@ -86,9 +86,9 @@ pub async fn insert_tags_with_source_types(
         for tag in &tags {
             query("INSERT INTO HashTagPair(hash, tag_name, source, source_type) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING")
                 .bind(&media_hash)
-                .bind(&tag.name)
+                .bind(&tag.tag)
                 .bind(&source)
-                .bind(&tag._type)
+                .bind(&tag.category)
                 .execute(&mut *tx)
                 .await
                  .unwrap();
@@ -97,7 +97,7 @@ pub async fn insert_tags_with_source_types(
 
     for tag in &tags {
         let does_tag_exist: Option<i64> = query_scalar("SELECT 1 FROM Tag WHERE name = ? ")
-            .bind(&tag.name)
+            .bind(&tag.tag)
             .fetch_optional(pool)
             .await
             .unwrap();
@@ -106,13 +106,13 @@ pub async fn insert_tags_with_source_types(
 
         if !does_tag_exist {
             query("INSERT INTO Tag(name) VALUES (?)")
-                .bind(&tag.name)
+                .bind(&tag.tag)
                 .execute(&mut *tx)
                 .await
                 .unwrap();
 
             query("INSERT INTO TagDetail(name) VALUES (?)")
-                .bind(&tag.name)
+                .bind(&tag.tag)
                 .execute(&mut *tx)
                 .await
                 .unwrap();

@@ -1,23 +1,31 @@
 use std::{collections::HashMap, default};
 
-use anyhow::Result;
-use extractors::configurable::{ExtractorConfig, extract_tags};
+use anyhow::{Result, anyhow};
+use extractors::configurable::ExtractorConfig;
 use log::trace;
 use rustpython::{InterpreterBuilder, InterpreterBuilderExt};
 use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{
-    Interpreter, convert::ToPyObject, function::PyMethodFlags, py_freeze, pymodule, vm,
+    Interpreter, Settings, convert::ToPyObject, function::PyMethodFlags, py_freeze, pymodule, vm,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha1::{Digest, Sha1};
-use std::result::Result::Ok;
 use thiserror::Error;
+
+use crate::extractors::{ExtractedTag, ExtractedTags, TagExtractor};
 pub mod extractors;
 
 const CERT_BYTES: &[u8] = include_bytes!("../cacert.pem");
 
 pub fn init_interpreter() -> Interpreter {
+    InterpreterBuilder::new()
+        .init_stdlib()
+        .add_frozen_modules(FROZEN_STDLIB)
+        .build()
+}
+
+pub fn init_interpreter_with_gallery_dl() -> Interpreter {
     // There is no easy way of setting the cert bytes in requests library of python so we have to write it to a file
     // TODO: Error handling
     let data_dir = dirs::data_dir().unwrap();
@@ -203,27 +211,26 @@ pub struct URLExtractor {
 }
 
 impl URLExtractor {
-    pub fn get_tags(
+    pub fn extract_tags(
         &self,
-        extractors: &HashMap<String, ExtractorConfig>,
+        extractors: &Vec<&(dyn TagExtractor + Send + Sync)>,
     ) -> Result<Vec<ExtractedTag>> {
         match &self.meta {
-            Meta::Other(value) => extract_tags(extractors, value),
-        }
-    }
-}
+            Meta::Other(value) => {
+                let gdl_extractor = value["extractor"]
+                    .as_str()
+                    .ok_or(anyhow!("no extractor field found on the gallery_dl data"))?;
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct ExtractedTag {
-    pub _type: String,
-    pub name: String,
-}
+                let extractions = extractors
+                    .iter()
+                    .map(|e| e.extract_tags(gdl_extractor, value))
+                    .collect::<Result<Vec<_>>>()?
+                    .into_iter()
+                    .flat_map(|e| e.flatten())
+                    .collect::<Vec<_>>();
 
-impl ExtractedTag {
-    pub fn new(_type: &str, name: &str) -> Self {
-        Self {
-            _type: _type.to_string(),
-            name: name.to_string(),
+                Ok(extractions)
+            }
         }
     }
 }
@@ -262,3 +269,8 @@ mod rust_side {
         cert_path.to_str().unwrap().to_string()
     }
 }
+
+// fuck...
+pub struct PyTrustMe(pub Interpreter);
+unsafe impl Send for PyTrustMe {}
+unsafe impl Sync for PyTrustMe {}

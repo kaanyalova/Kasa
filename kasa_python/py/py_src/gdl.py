@@ -6,11 +6,16 @@ from gallery_dl.extractor.message import Message
 import logging
 import json
 from kasa_download_job import KasaDownloadJob
+
 jobs = []
 
-def download(url: str, path: str, config_dir: str, on_progress = None) -> str:
+
+def download(url: str, path: str, config_dir: str, on_progress=None) -> str:
     config.load(files=[config_dir])
     config.set(("extractor",), "base-directory", path)
+
+    # set this so the progress callbacks start instantly
+    config.set(("downloader",), "progress", 0.0)
     # config.set(("extractor", "reddit"), "client-id", "")
     # config.set(
     #    ("extractor", "reddit"),
@@ -100,4 +105,3 @@ def get_jobs_status() -> str:
         jobs_output[job.url_hash] = job.out.state
 
     return json.dumps(jobs_output)
-        

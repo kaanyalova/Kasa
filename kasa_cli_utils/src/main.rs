@@ -13,7 +13,7 @@ use dump_random_gi_layout::dump_random_gi_layout;
 use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
-use kasa_core::config::global_config::get_configurable_tag_extractor_path;
+use kasa_core::config::global_config::get_tag_extractors_dir;
 use kasa_python::extractors::configurable::get_extractors_from_path;
 use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
@@ -93,7 +93,7 @@ struct ThumbnailArgs {
 
 #[tokio::main]
 async fn main() {
-    let extractor_path = get_configurable_tag_extractor_path().unwrap();
+    let extractor_path = get_tag_extractors_dir().unwrap();
     let extractors = get_extractors_from_path(&extractor_path.to_string_lossy()).unwrap();
 
     env_logger::init();

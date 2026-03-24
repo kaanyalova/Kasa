@@ -1,14 +1,20 @@
+use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use ashpd::zvariant::Str;
-use kasa_core::config::global_config::get_configurable_tag_extractor_path;
-use kasa_core::downloaders::gallery_dl::PyTrustMe;
+use env_logger::fmt::ConfigurableFormat;
+use kasa_core::config::global_config::get_tag_extractors_dir;
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
-use kasa_python::extractors::configurable::{ExtractorConfig, get_extractors_from_path};
-use kasa_python::{GalleryDlStatus, GalleryDlStatuses, init_interpreter};
+use kasa_python::extractors::TagExtractor;
+use kasa_python::extractors::configurable::{ConfigurableExtractor, ExtractorConfig};
+use kasa_python::extractors::scriptable::PythonTagExtractor;
+use kasa_python::{
+    GalleryDlStatus, GalleryDlStatuses, PyTrustMe, init_interpreter,
+    init_interpreter_with_gallery_dl,
+};
 use log::{error, trace};
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::{Mutex, mpsc};
@@ -17,13 +23,18 @@ use crate::db::DbStore;
 use std::sync::Mutex as SyncMutex;
 
 pub struct PythonStore {
-    interpreter: Arc<PyTrustMe>,
+    // not thread safe, obviously
+    pub downloader_interpreter: Arc<PyTrustMe>,
+    // locking this with a mutex is fine?, tag extraction shouldn't take that long
+    // i might implement a proper queue though
+    pub tagger_interpreter: Arc<SyncMutex<PyTrustMe>>,
 }
 
 impl PythonStore {
     pub fn init_interpreter() -> Self {
         Self {
-            interpreter: Arc::new(PyTrustMe(init_interpreter())),
+            downloader_interpreter: Arc::new(PyTrustMe(init_interpreter_with_gallery_dl())),
+            tagger_interpreter: Arc::new(SyncMutex::new(PyTrustMe(init_interpreter()))),
         }
     }
 }
@@ -71,10 +82,7 @@ impl DownloaderStore {
                 let connection_guard = connection_state.db.lock().await.clone();
                 let connection_guard_thumbs = connection_state.thumbs_db.lock().await.clone();
 
-                let extractors_cloned = {
-                    let locked = tag_extractor_state.extractors.lock().await;
-                    locked.clone()
-                };
+                let extractors_cloned = tag_extractor_state.extractors.clone();
 
                 process_download_job(
                     &handle,
@@ -104,7 +112,7 @@ async fn process_download_job(
     python_state: &tauri::State<'_, PythonStore>,
     connection_guard: &Option<sqlx::Pool<sqlx::Sqlite>>,
     connection_guard_thumbs: &Option<sqlx::Pool<sqlx::Sqlite>>,
-    extractors: HashMap<String, ExtractorConfig>,
+    extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
     job: DownloadJob,
 ) {
     // create the dummy status until the progress actually updates it
@@ -138,7 +146,6 @@ async fn process_download_job(
         handle_cloned_on_progress
             .emit("downloader_progress_updated", "")
             .unwrap();
-        dbg!("download progress...");
     };
 
     if let (Some(db), Some(thumbs_db)) =
@@ -146,15 +153,20 @@ async fn process_download_job(
     {
         dbg!("downloading url:{}", &job.url);
 
+        let extractors_refs: Vec<&(dyn TagExtractor + Send + Sync)> = extractors
+            .iter()
+            .map(|e| e.as_ref() as &(dyn TagExtractor + Send + Sync))
+            .collect();
+
         let download_status = download_and_index_impl(
-            python_state.interpreter.clone(),
+            python_state.downloader_interpreter.clone(),
             &job.url,
             &cfg.downloader.output_path,
             db,
             thumbs_db,
             on_download_done,
             on_progress,
-            &extractors,
+            &extractors_refs,
         )
         .await;
 
@@ -170,18 +182,26 @@ async fn process_download_job(
     }
 }
 
-#[derive(Debug, Default)]
 pub struct ExtractorsStore {
-    extractors: Mutex<HashMap<String, ExtractorConfig>>,
+    extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
 }
 
 impl ExtractorsStore {
-    pub fn init_from_files() -> Self {
-        let extractors_path = get_configurable_tag_extractor_path().unwrap();
-        let extractors = get_extractors_from_path(&extractors_path.to_string_lossy()).unwrap();
+    pub fn init(handle: AppHandle) -> Self {
+        let extractors_path = get_tag_extractors_dir().unwrap();
+
+        let interpreter = &handle.state::<PythonStore>().tagger_interpreter;
+        let python_extractor =
+            PythonTagExtractor::init(interpreter.clone(), &extractors_path).unwrap();
+
+        let configurable_extractor = ConfigurableExtractor::init(&extractors_path).unwrap();
+        //let extractors = get_extractors_from_path(&extractors_path.to_string_lossy()).unwrap();
 
         Self {
-            extractors: Mutex::new(extractors),
+            extractors: Arc::new(vec![
+                Box::new(python_extractor),
+                Box::new(configurable_extractor),
+            ]),
         }
     }
 }

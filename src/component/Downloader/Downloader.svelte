@@ -137,17 +137,21 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		min-height: 0;
+		overflow: hidden;
 	}
 
 	.sections {
 		display: flex;
 		flex-grow: 1;
+		min-height: 0;
+		overflow: hidden;
 	}
 
 	.rightSide {
 		display: flex;
 		flex-direction: column;
-		width: 30vw;
+		flex: 0 0 30vw;
 		color: var(--text);
 		padding: 4px;
 		word-wrap: break-word;
@@ -156,11 +160,12 @@
 	}
 
 	.leftSide {
-		flex-grow: 1;
+		flex: 1 1 0;
 		display: flex;
 		flex-direction: column;
 		margin: 4px;
 		min-width: 0;
+		min-height: 0;
 	}
 
 	.downloadInputBox {
@@ -236,7 +241,9 @@
 		border: 1px solid var(--secondary-alt);
 		color: var(--text);
 		overflow-y: auto;
+		overflow-x: hidden;
 		min-width: 0;
+		min-height: 0;
 	}
 
 	.downloadStatusesTitle {

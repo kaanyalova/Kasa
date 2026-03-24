@@ -1,7 +1,10 @@
 use std::{collections::HashMap, path::Path, sync::Arc};
 
 use anyhow::Result;
-use kasa_python::{GalleryDlStatus, GalleryDlStatuses, extractors::configurable::ExtractorConfig};
+use kasa_python::{
+    GalleryDlStatus, GalleryDlStatuses, PyTrustMe,
+    extractors::{TagExtractor, configurable::ExtractorConfig},
+};
 use rustpython_vm::Interpreter;
 use sha1::{Digest, Sha1};
 use sqlx::{Pool, Sqlite, query_scalar};
@@ -14,11 +17,6 @@ use crate::{
     tags::insert_tags_with_source_types,
 };
 
-// fuck...
-pub struct PyTrustMe(pub Interpreter);
-unsafe impl Send for PyTrustMe {}
-unsafe impl Sync for PyTrustMe {}
-
 /// output_path should be an absolute path
 pub async fn download_and_index_impl(
     interpreter: Arc<PyTrustMe>,
@@ -28,7 +26,7 @@ pub async fn download_and_index_impl(
     pool_thumbs: &Pool<Sqlite>,
     when_done: impl Fn(String) + Send + Sync,
     on_progress: impl Fn(GalleryDlStatus) + Send + Sync + 'static,
-    extractors: &HashMap<String, ExtractorConfig>,
+    extractors: &Vec<&(dyn TagExtractor + Send + Sync)>,
 ) -> Result<()> {
     let config = get_config_impl();
 
@@ -74,17 +72,17 @@ pub async fn download_and_index_impl(
     //.unwrap()
     //.unwrap();
 
-    for extractor in downloader_output.url_extractors {
-        index(&extractor.path, pool, pool_thumbs).await;
+    for url_extractor in downloader_output.url_extractors {
+        index(&url_extractor.path, pool, pool_thumbs).await;
 
         let hash: String = query_scalar("SELECT * FROM Path WHERE path = ?")
-            .bind(&extractor.path)
+            .bind(&url_extractor.path)
             .fetch_one(pool)
             .await?;
 
         //dbg!(&extractor.get_tags());
 
-        let raw_data = serde_json::to_string(&extractor)?;
+        let raw_data: String = serde_json::to_string(&url_extractor)?;
         query("INSERT OR IGNORE INTO MediaSource(hash, importer_type, link_or_path, source, raw_data) VALUES (?, ?, ?, ?, ?)")
             .bind(&hash)
             .bind("gallery_dl")
@@ -94,8 +92,13 @@ pub async fn download_and_index_impl(
             .execute(pool)
             .await?;
 
-        insert_tags_with_source_types(extractor.get_tags(extractors)?, pool, Some(hash), None)
-            .await;
+        insert_tags_with_source_types(
+            url_extractor.extract_tags(extractors)?,
+            pool,
+            Some(hash),
+            None,
+        )
+        .await;
     }
 
     let url_hash = hash_url(url);

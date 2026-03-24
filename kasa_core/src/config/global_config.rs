@@ -109,7 +109,7 @@ pub struct GlobalConfig {
     pub layout: Layout,
 }
 
-fn get_config_dir() -> PathBuf {
+pub fn get_config_dir() -> PathBuf {
     // Use config from env variables if present
     let from_env = env::var_os("KASA_CONFIG_DIR");
 
@@ -132,7 +132,7 @@ pub fn get_config_impl() -> GlobalConfig {
     config
 }
 
-pub fn get_configurable_tag_extractor_path() -> Result<PathBuf> {
+pub fn get_tag_extractors_dir() -> Result<PathBuf> {
     let config_dir = get_config_dir();
     let extractor_dir = config_dir.join("extractors");
 

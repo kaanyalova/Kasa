@@ -31,6 +31,8 @@ use index::index_path;
 use index::nuke_all_indexes;
 use index::nuke_selected_index;
 use index::*;
+use kasa_python::extractors::scriptable::PythonTagExtractor;
+use kasa_python::extractors::scriptable::ScriptableTagExtractor;
 use log::LevelFilter;
 use log::warn;
 use media::get_group_info;
@@ -61,6 +63,7 @@ use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
 
 use crate::downloaders::DownloaderStore;
+use crate::tags::ScriptableTagExtractorStore;
 use kasa_python::GalleryDlStatus;
 
 mod db;
@@ -222,12 +225,13 @@ pub fn run() {
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
         .manage(PythonStore::init_interpreter())
-        .manage(ExtractorsStore::init_from_files())
         .setup(move |app| {
             builder.mount_events(app);
 
-            let handle = app.handle().clone();
-            app.manage(DownloaderStore::init_queue(handle));
+            let handle = app.handle();
+            app.manage(DownloaderStore::init_queue(handle.clone()));
+            app.manage(ScriptableTagExtractorStore::init(handle.clone()));
+            app.manage(ExtractorsStore::init(handle.clone()));
 
             Ok(())
         })

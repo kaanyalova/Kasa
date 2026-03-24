@@ -1,11 +1,17 @@
-use kasa_core::tags::{
-    AllTagsOrderingCriteria, TagWithCount, get_list_of_all_tags_with_details_impl,
-    get_tags_as_text_impl, remove_tags, update_tags_impl,
+use std::sync::Arc;
+
+use kasa_core::{
+    config::global_config::get_tag_extractors_dir,
+    tags::{
+        AllTagsOrderingCriteria, TagWithCount, get_list_of_all_tags_with_details_impl,
+        get_tags_as_text_impl, remove_tags, update_tags_impl,
+    },
 };
+use kasa_python::extractors::scriptable::{PythonTagExtractor, ScriptableTagExtractor};
 use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::db::DbStore;
+use crate::{db::DbStore, downloaders::PythonStore};
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -64,5 +70,16 @@ pub async fn get_list_of_all_tags_with_details(
     } else {
         println!("DB connection wasn't initialized yet!");
         None
+    }
+}
+
+pub struct ScriptableTagExtractorStore(PythonTagExtractor);
+
+impl ScriptableTagExtractorStore {
+    pub async fn init(handle: AppHandle) -> Self {
+        let extractors_dir = get_tag_extractors_dir().unwrap();
+        let interpreter = handle.state::<PythonStore>().tagger_interpreter.clone();
+
+        ScriptableTagExtractorStore(PythonTagExtractor::init(interpreter, &extractors_dir).unwrap())
     }
 }

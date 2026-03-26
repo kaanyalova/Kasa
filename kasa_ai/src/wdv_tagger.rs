@@ -2,6 +2,7 @@ use std::iter::zip;
 
 use image::{Rgba, imageops};
 
+use anyhow::Result;
 use ort::tensor::TensorElementType::Float32;
 use ort::value::Tensor;
 use ort::{execution_providers::ROCmExecutionProvider, session::Session};
@@ -34,9 +35,12 @@ pub struct TaggerThresholds {
 
 impl Default for TaggerThresholds {
     fn default() -> Self {
+        // values from reference implementation
+        // https://github.com/SmilingWolf/wdv3-jax/blob/a7f1f6c9fc2d31eaaf327b9168e86d81d7d3e455/wdv3_jax.py#L206
+        // where did the onnx implementation go?
         Self {
-            character: 0.85,
-            general: 0.85,
+            character: 0.75,
+            general: 0.35,
         }
     }
 }
@@ -46,7 +50,7 @@ pub fn tag_image_wdv(
     image_path: &str,
     tag_labels: &Labels,
     thresholds: &TaggerThresholds,
-) -> TaggerOutput {
+) -> Result<TaggerOutput> {
     let (dim_x, dim_y) = match &session.inputs().first().unwrap().dtype() {
         ort::value::ValueType::Tensor {
             ty,
@@ -64,15 +68,13 @@ pub fn tag_image_wdv(
     let input_dims = (dim_x as u32, dim_y as u32);
 
     let image: ndarray::ArrayBase<ndarray::OwnedRepr<f32>, ndarray::Dim<[usize; 4]>> =
-        prepare_image(image_path, input_dims);
+        prepare_image(image_path, input_dims)?;
 
     // any way to not use ndarray for this?
 
-    let outputs = session
-        .run(ort::inputs!["input" => Tensor::from_array(image).unwrap()])
-        .unwrap();
+    let outputs = session.run(ort::inputs!["input" => Tensor::from_array(image)?])?;
 
-    let (_, flattened) = outputs["output"].try_extract_tensor::<f32>().unwrap();
+    let (_, flattened) = outputs["output"].try_extract_tensor::<f32>()?;
 
     let tags = tag_labels;
     let labels: Vec<(String, f32)> = zip(tags.tag_names.to_owned(), flattened.to_owned()).collect();
@@ -149,11 +151,11 @@ pub fn tag_image_wdv(
     general.reverse();
     character.reverse();
 
-    TaggerOutput {
+    Ok(TaggerOutput {
         character,
         general,
         ratings: rating,
-    }
+    })
 }
 
 pub struct Labels {
@@ -163,51 +165,49 @@ pub struct Labels {
     character_indexes: Vec<usize>,
 }
 
-pub fn prepare_labels(labels_path: &str) -> Labels {
-    let mut csv = csv::Reader::from_path(labels_path).unwrap();
+pub fn prepare_labels(labels_path: &str) -> Result<Labels> {
+    let mut csv = csv::Reader::from_path(labels_path)?;
 
-    let records: Vec<_> = csv.records().collect();
+    let records: Result<Vec<_>, _> = csv.records().collect();
+    let records = records?;
 
     // collect the indexes of tags with the category "rating"
     let rating_indexes: Vec<usize> = records
         .iter()
         .enumerate()
-        .filter(|(_, r)| r.as_ref().unwrap()[2] == *"9")
-        .map(|(i, _)| i.to_owned())
+        .filter(|(_, r)| r[2] == *"9")
+        .map(|(i, _)| i)
         .collect();
 
     let general_indexes: Vec<usize> = records
         .iter()
         .enumerate()
-        .filter(|(_, r)| r.as_ref().unwrap()[2] == *"0")
+        .filter(|(_, r)| r[2] == *"0")
         .map(|(i, _)| i)
         .collect();
 
     let character_indexes: Vec<usize> = records
         .iter()
         .enumerate()
-        .filter(|(_, r)| r.as_ref().unwrap()[2] == *"4")
+        .filter(|(_, r)| r[2] == *"4")
         .map(|(i, _)| i)
         .collect();
 
-    Labels {
-        tag_names: records
-            .into_iter()
-            .map(|r| r.unwrap()[1].to_string())
-            .collect(),
+    Ok(Labels {
+        tag_names: records.into_iter().map(|r| r[1].to_string()).collect(),
         rating_indexes,
         general_indexes,
         character_indexes,
-    }
+    })
 }
 
-fn prepare_image(path: &str, size: (u32, u32)) -> ndarray::Array4<f32> {
+fn prepare_image(path: &str, size: (u32, u32)) -> Result<ndarray::Array4<f32>> {
     let mut canvas = image::RgbaImage::new(size.0, size.1);
     for p in canvas.pixels_mut() {
         *p = Rgba([255, 255, 255, 255]);
     }
 
-    let inp = image::open(path).unwrap();
+    let inp = image::open(path)?;
 
     let (inp_target_x, inp_target_y) =
         calculate_aspect_ratio(inp.width(), inp.height(), size.0, size.1);
@@ -245,7 +245,7 @@ fn prepare_image(path: &str, size: (u32, u32)) -> ndarray::Array4<f32> {
         }
     }
 
-    converted
+    Ok(converted)
 }
 
 /// https://stackoverflow.com/a/14731922

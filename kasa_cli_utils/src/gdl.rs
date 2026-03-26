@@ -1,17 +1,37 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    vec,
+};
 
 use kasa_core::{
-    config::global_config::get_config_impl, db::migrations::prepare_dbs,
+    config::global_config::{get_config_impl, get_tag_extractors_dir},
+    db::migrations::prepare_dbs,
     downloaders::gallery_dl::download_and_index_impl,
 };
 use kasa_python::{
-    PyTrustMe, extractors::configurable::ExtractorConfig, init_interpreter_with_gallery_dl,
+    PyTrustMe,
+    extractors::{
+        TagExtractor,
+        configurable::{ConfigurableExtractor, ExtractorConfig},
+        scriptable::{PythonTagExtractor, ScriptableTagExtractor},
+    },
+    init_interpreter, init_interpreter_with_gallery_dl,
 };
 use sqlx::sqlite::SqlitePoolOptions;
 
-pub async fn gdl(url: &str, extractors: HashMap<String, ExtractorConfig>) {
+pub async fn gdl(url: &str) {
     let config = get_config_impl();
-    let interpreter = init_interpreter_with_gallery_dl();
+    let interpreter_gdl = Arc::new(PyTrustMe(init_interpreter_with_gallery_dl()));
+    let interpreter_extractor = Arc::new(Mutex::new(PyTrustMe(init_interpreter())));
+
+    let extractors_dir = get_tag_extractors_dir().unwrap();
+    let python_extractor =
+        PythonTagExtractor::init(interpreter_extractor.clone(), &extractors_dir).unwrap();
+    let configurable_extractor = ConfigurableExtractor::init(&extractors_dir).unwrap();
+
+    let extractors: Vec<&(dyn TagExtractor + Send + Sync)> =
+        vec![&python_extractor, &configurable_extractor];
 
     prepare_dbs(&config).await;
     let pool = SqlitePoolOptions::new()
@@ -27,7 +47,7 @@ pub async fn gdl(url: &str, extractors: HashMap<String, ExtractorConfig>) {
         .unwrap();
 
     download_and_index_impl(
-        Arc::new(PyTrustMe(interpreter)),
+        interpreter_gdl,
         url,
         &config.downloader.output_path,
         &pool,

@@ -9,7 +9,7 @@ use kasa_ai::{
     wdv_tagger::{TaggerThresholds, prepare_labels, tag_image_wdv},
 };
 use kasa_core::{config::global_config::get_config_impl, tags::insert_tags_with_source_types};
-use kasa_python::ExtractedTag;
+use kasa_python::extractors::ExtractedTag;
 use serde_json::json;
 use sqlx::{query, query_as, query_scalar, sqlite::SqlitePoolOptions};
 
@@ -39,7 +39,7 @@ pub async fn ai_tag_images() {
         .unwrap();
 
     let hashes_and_paths: Vec<HashAndPath> = query_as(
-        "SELECT m.hash ,path FROM Media m JOIN Path p ON p.hash = m.hash WHERE media_type = 'Image' GROUP BY p.hash",
+        "SELECT m.hash, MIN(p.path) as path FROM Media m JOIN Path p ON p.hash = m.hash LEFT JOIN AutoTaggerInfo a ON a.hash = m.hash WHERE m.media_type = 'Image' AND a.hash IS NULL GROUP BY m.hash",
     )
     .fetch_all(&pool)
     .await
@@ -48,7 +48,7 @@ pub async fn ai_tag_images() {
     println!("{} Hashes found", hashes_and_paths.len());
 
     let mut session = prepare_session(&env::var("KASA_WDV_MODEL_PATH").unwrap());
-    let labels = prepare_labels(&env::var("KASA_WDV_LABEL_PATH").unwrap());
+    let labels = prepare_labels(&env::var("KASA_WDV_LABEL_PATH").unwrap()).unwrap();
 
     let mut counter = 0;
     let hash_count = hashes_and_paths.len();
@@ -73,7 +73,17 @@ pub async fn ai_tag_images() {
 
         let first_path = path.first().unwrap();
 
-        let tags = tag_image_wdv(&mut session, first_path, &labels, &thresholds);
+        let tags_result = tag_image_wdv(&mut session, first_path, &labels, &thresholds);
+        let tags = match tags_result {
+            Ok(t) => t,
+            Err(e) => {
+                println!(
+                    "Failed to tag image {}, skipping... Error: {}",
+                    first_path, e
+                );
+                continue;
+            }
+        };
 
         let start = SystemTime::now();
         let since_epoch = start.duration_since(UNIX_EPOCH).unwrap();
@@ -90,22 +100,22 @@ pub async fn ai_tag_images() {
             .character
             .iter()
             .map(|t| ExtractedTag {
-                _type: "Character".to_string(),
-                name: t.name.to_string(),
+                category: Some("Character".to_string()),
+                tag: t.name.to_string(),
             })
             .collect();
         let general: Vec<ExtractedTag> = tags
             .general
             .iter()
             .map(|t| ExtractedTag {
-                _type: "General".to_string(),
-                name: t.name.to_string(),
+                category: Some("General".to_string()),
+                tag: t.name.to_string(),
             })
             .collect();
 
         let ratings: Vec<ExtractedTag> = vec![ExtractedTag {
-            _type: "Rating".to_string(),
-            name: tags.ratings.name,
+            category: Some("Rating".to_string()),
+            tag: tags.ratings.name,
         }];
 
         insert_tags_with_source_types(

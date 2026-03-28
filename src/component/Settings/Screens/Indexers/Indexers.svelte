@@ -18,13 +18,17 @@
 	import { commands } from '$lib/tauri_bindings';
 	import { error, info, trace } from '@tauri-apps/plugin-log';
 	import { openFilePickerWithMultipleFolderSelection } from '$lib/openFilePicker';
-	import { clickOutside, clickOutsideModal } from '$lib/clickOutside';
+	import { clickOutside, clickOutsideClassExcluding, clickOutsideModal } from '$lib/clickOutside';
 	import Heart from '../../../Vector/Heart.svelte';
 
 	let entriesPromise = $state();
 	let selectedEntries: Array<number> = $state([]);
 	let entries: Array<string> = $state([]);
 	let isCTRLBeingHeld = $state(false);
+
+	function clickOutsideRightPanel(node: Node, callback: () => void) {
+		return clickOutsideClassExcluding(node, callback, 'rightPanel');
+	}
 
 	onDestroy(() => {
 		ConfirmationScreenStore.close();
@@ -34,7 +38,6 @@
 		const paths = await openFilePickerWithMultipleFolderSelection();
 
 		paths.forEach((path) => {
-			console.log(`indexing path: ${path}`);
 			commands.addIndexSource(path);
 			commands.indexPath(path);
 		});
@@ -61,9 +64,7 @@
 	}
 
 	async function onNukeSelected() {
-		console.log(selectedEntries);
 		selectedEntries.forEach(async (entryIdx) => {
-			console.log(`${entries[entryIdx]}`);
 			await commands.nukeSelectedIndex(entries[entryIdx]);
 		});
 
@@ -102,7 +103,7 @@
 <div class="indexers">
 	<div class="leftPanel">
 		<BorderedBox padding={4}>
-			<div use:clickOutsideModal={() => (selectedEntries = [])}>
+			<div use:clickOutsideRightPanel={() => (selectedEntries = [])}>
 				{#await updateSelectedIndexes() then}
 					<ul>
 						{#each entries as entry, i}

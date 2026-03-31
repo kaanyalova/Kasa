@@ -138,7 +138,10 @@ async fn remove_group(group_id: &str, db: &Pool<Sqlite>) -> Result<()> {
 #[sqlx::test]
 async fn test_groups(pool: Pool<Sqlite>) {
     use crate::test_util::db_utils::insert_media_row;
-    sqlx::migrate!("../migrations/db").run(&pool).await.unwrap();
+    sqlx::migrate!("../../migrations/db")
+        .run(&pool)
+        .await
+        .unwrap();
     insert_media_row(
         &pool,
         "1",

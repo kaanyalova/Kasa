@@ -29,15 +29,25 @@ pub fn create_or_get_extractor_contents_impl(
     Ok(fs::read_to_string(&path)?)
 }
 
-pub fn get_existing_extractor_names_impl() -> Result<Vec<PathBuf>> {
+pub async fn get_existing_extractor_names_impl(pool: &Pool<Sqlite>) -> Result<Vec<String>> {
     let extractors_dir = get_tag_extractors_dir()?;
-    let paths = fs::read_dir(extractors_dir)?
+    let paths: Vec<String> = fs::read_dir(extractors_dir)?
         .filter_map(|f| f.ok())
-        .map(|f| f.path())
-        .filter(|p| p.extension().is_some_and(|ext| ext == "py"))
+        .filter(|f| f.path().extension().is_some_and(|ext| ext == "py"))
+        .filter_map(|f| f.file_name().into_string().ok())
         .collect();
 
-    Ok(paths)
+    let found_in_db: Vec<String> = query_scalar("SELECT source FROM MediaSource GROUP BY source")
+        .fetch_all(pool)
+        .await?;
+
+    let mut all = paths;
+
+    all.extend(found_in_db);
+    all.sort();
+    all.dedup();
+
+    Ok(all)
 }
 
 pub async fn get_example_metadata_for_extractor_impl(
@@ -45,7 +55,7 @@ pub async fn get_example_metadata_for_extractor_impl(
     name: &str,
 ) -> Result<String> {
     let example_metadata: Option<String> =
-        query_scalar("SELECT * FROM MediaSource WHERE source = ?")
+        query_scalar("SELECT raw_data FROM MediaSource WHERE source = ?")
             .bind(name)
             .fetch_optional(pool)
             .await?;

@@ -74,12 +74,15 @@ pub fn create_or_get_extractor_contents(extractor_name: &str, file_extension: &s
 
 #[tauri::command(async)]
 #[specta::specta]
-pub fn get_existing_extractor_names() -> Vec<String> {
-    get_existing_extractor_names_impl()
-        .unwrap()
-        .iter()
-        .map(|path| path.to_str().unwrap().to_string())
-        .collect()
+pub async fn get_existing_extractor_names(handle: AppHandle) -> Vec<String> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await.clone();
+
+    if let Some(pool) = connection_guard.as_ref() {
+        get_existing_extractor_names_impl(pool).await.unwrap()
+    } else {
+        vec![]
+    }
 }
 
 #[tauri::command(async)]

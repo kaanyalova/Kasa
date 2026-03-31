@@ -3,6 +3,7 @@ use ort::execution_providers::ROCmExecutionProvider;
 
 pub use ort::session::Session;
 
+pub mod image_embeddings;
 pub mod wdv_tagger;
 
 pub fn prepare_session(model_path: &str) -> Session {

@@ -7,13 +7,16 @@ mod nuke_db_versioning;
 mod populate_tags;
 mod thumbnail;
 
+use std::path::PathBuf;
+
 use ai_tag_images::ai_tag_images;
 use clap::Parser;
 use dump_random_gi_layout::dump_random_gi_layout;
 use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
-use kasa_core::config::global_config::get_tag_extractors_dir;
+use kasa_ai::image_embeddings::generate_embeddings;
+use kasa_core::{config::global_config::get_tag_extractors_dir, db::schema::Path};
 use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
 //use thumbnail::thumbnail;
@@ -37,6 +40,14 @@ enum KasaCli {
     /// KASA_WDV_MODEL_PATH: Path to the WDV Model https://huggingface.co/SmilingWolf
     /// KASA_WDV_LABEL_PATH: Path to the WDV Model labels
     TagUsingAi,
+    #[command(alias = "embed")]
+    GenerateImageEmbedding(ImageEmbeddingArgs),
+}
+
+#[derive(clap::Args)]
+#[command(version, about, long_about = None)]
+struct ImageEmbeddingArgs {
+    path: PathBuf,
 }
 
 #[derive(clap::Args)]
@@ -105,5 +116,6 @@ async fn main() {
         KasaCli::GalleryDL(args) => gdl(&args.url).await,
         KasaCli::NukeDBVersioning => nuke_db_versioning().await,
         KasaCli::TagUsingAi => ai_tag_images().await,
+        KasaCli::GenerateImageEmbedding(args) => generate_embeddings(&args.path),
     }
 }

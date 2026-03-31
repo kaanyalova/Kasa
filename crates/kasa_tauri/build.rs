@@ -9,7 +9,7 @@ fn main() {
         .unwrap();
 
     let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
-    archive.extract("../static/ruffle").unwrap();
+    archive.extract("../../static/ruffle").unwrap();
 
     const PDFJS_PACKAGE_URL: &str =
         "https://github.com/mozilla/pdf.js/releases/download/v5.4.54/pdfjs-5.4.54-dist.zip";
@@ -20,7 +20,7 @@ fn main() {
         .unwrap();
 
     let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
-    archive.extract("../static/pdfjs").unwrap();
+    archive.extract("../../static/pdfjs").unwrap();
 
     tauri_build::build()
 }

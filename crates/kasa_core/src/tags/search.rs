@@ -327,7 +327,7 @@ impl SearchCriteria {
 #[sqlx::test]
 async fn test_sql_query_gen(pool: Pool<Sqlite>) {
     use sqlx::migrate;
-    migrate!("../migrations/db").run(&pool).await.unwrap();
+    migrate!("../../migrations/db").run(&pool).await.unwrap();
 
     let q = SearchCriteria::parse_from_str("foo, bar, python OR javascript, -csharp");
     let mut q = q.to_query();

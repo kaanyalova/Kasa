@@ -99,10 +99,13 @@ pub async fn connect_dbs(handle: AppHandle) {
         .to_string_lossy()
         .to_string();
 
-    let db_options = SqliteConnectOptions::from_str(&db_path_absolute)
-        .unwrap()
-        .pragma("journal_mode", "WAL")
-        .pragma("synchronous", "NORMAL");
+    let db_options = unsafe {
+        SqliteConnectOptions::from_str(&db_path_absolute)
+            .unwrap()
+            .pragma("journal_mode", "WAL")
+            .pragma("synchronous", "NORMAL")
+            .extension_with_entrypoint(extension_name, entry_point)
+    };
 
     let thumbs_options = SqliteConnectOptions::from_str(&thumbs_path_absolute)
         .unwrap()

@@ -8,12 +8,13 @@ edition = "2024"
 exclude = ["py_build"]
 
 members = [
-    "kasa_core",
-    "kasa_cli_utils",
-    "kasa_tauri",
-    "kasa_bench",
-    "kasa_python",
-    "kasa_ai",
+    "crates/kasa_core",
+    "crates/kasa_cli_utils",
+    "crates/kasa_tauri",
+    "crates/kasa_bench",
+    "crates/kasa_python",
+    "crates/kasa_ai", 
+    "crates/sqlx_sqlite_vec",
     #"kasa_gpui",
 
     # "kasa_gtk_experiment",
@@ -28,7 +29,7 @@ members = [
 #opt-level = "s"   # Optimize for binary size
 
 [workspace.dependencies]
-kasa_python = { path = "./kasa_python" }
+kasa_python = { path = "./crates/kasa_python" }
 anyhow = "1.0.91"
 async-walkdir = "2.0.0"
 axum = "0.7.5"

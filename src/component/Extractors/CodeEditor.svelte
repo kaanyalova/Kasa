@@ -54,5 +54,6 @@
 	.codeEditor {
 		display: flex;
 		flex-grow: 1;
+		font-family: 'UbuntuMono';
 	}
 </style>

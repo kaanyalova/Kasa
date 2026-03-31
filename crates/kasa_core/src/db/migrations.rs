@@ -84,12 +84,12 @@ pub async fn prepare_dbs(config: &GlobalConfig) {
 
     // run migrations
     // TODO show that migrations are running to users
-    sqlx::migrate!("../migrations/db")
+    sqlx::migrate!("../../migrations/db")
         .run(&pool_db)
         .await
         .unwrap();
 
-    sqlx::migrate!("../migrations/thumbs")
+    sqlx::migrate!("../../migrations/thumbs")
         .run(&pool_thumbs)
         .await
         .unwrap();

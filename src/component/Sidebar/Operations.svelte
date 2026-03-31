@@ -16,7 +16,8 @@
 		const webView = new WebviewWindow('extractor_code_editor', {
 			title: 'Extractors',
 			url: 'extractor_code_editor',
-			decorations: false
+			decorations: false,
+			maximized: true
 		});
 	}
 </script>

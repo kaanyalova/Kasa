@@ -1,4 +1,6 @@
+use libsqlite3_sys::sqlite3_auto_extension;
 use log::{error, info};
+use sqlite_vec::sqlite3_vec_init;
 use tokio::sync::Mutex;
 
 use kasa_core::{
@@ -12,7 +14,7 @@ use kasa_core::{
     layout::google_photos::{ImageRow, calculate_layout},
 };
 use sqlx::{
-    Pool, Sqlite, query,
+    ConnectOptions, Pool, Sqlite, query,
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
 use std::str::FromStr;
@@ -82,6 +84,10 @@ pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
 pub async fn connect_dbs(handle: AppHandle) {
     let config = get_config_impl();
 
+    unsafe {
+        sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
+    }
+
     prepare_dbs(&config).await;
 
     // WARNING ON DEVELOPMENT this causes different path outputs when using the cli and
@@ -99,13 +105,10 @@ pub async fn connect_dbs(handle: AppHandle) {
         .to_string_lossy()
         .to_string();
 
-    let db_options = unsafe {
-        SqliteConnectOptions::from_str(&db_path_absolute)
-            .unwrap()
-            .pragma("journal_mode", "WAL")
-            .pragma("synchronous", "NORMAL")
-            .extension_with_entrypoint(extension_name, entry_point)
-    };
+    let db_options = SqliteConnectOptions::from_str(&db_path_absolute)
+        .unwrap()
+        .pragma("journal_mode", "WAL")
+        .pragma("synchronous", "NORMAL");
 
     let thumbs_options = SqliteConnectOptions::from_str(&thumbs_path_absolute)
         .unwrap()

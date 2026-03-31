@@ -13,8 +13,8 @@ edition = "2024"
 [build-dependencies]
 reqwest = { workspace = true, features = ["blocking"] }
 tauri-build = { workspace = true, features = [] }
-zip = "2.1.1"
-zip-extensions = "0.8.0"
+zip = "8.4.0"
+zip-extensions = "0.14.1"
 
 [dependencies]
 serde_json = { workspace = true }
@@ -45,6 +45,8 @@ ashpd = { version = "0.6.8", optional = true }
 zbus = { version = "5.5.0", features = ["bus-impl"] }
 zbus_macros = "5.5.0"
 env_logger.workspace = true
+sqlite-vec = "0.1.9"
+libsqlite3-sys = "0.35.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

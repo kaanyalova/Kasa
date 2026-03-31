@@ -14,8 +14,8 @@ members = [
     "crates/kasa_bench",
     "crates/kasa_python",
     "crates/kasa_ai", 
-    "crates/sqlx_sqlite_vec",
     #"kasa_gpui",
+
 
     # "kasa_gtk_experiment",
 ]

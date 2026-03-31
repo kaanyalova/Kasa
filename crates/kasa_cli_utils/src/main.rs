@@ -15,7 +15,7 @@ use dump_random_gi_layout::dump_random_gi_layout;
 use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
-use kasa_ai::image_embeddings::generate_embeddings;
+use kasa_ai::image_embeddings::generate_image_embedding_single;
 use kasa_core::{config::global_config::get_tag_extractors_dir, db::schema::Path};
 use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
@@ -116,6 +116,6 @@ async fn main() {
         KasaCli::GalleryDL(args) => gdl(&args.url).await,
         KasaCli::NukeDBVersioning => nuke_db_versioning().await,
         KasaCli::TagUsingAi => ai_tag_images().await,
-        KasaCli::GenerateImageEmbedding(args) => generate_embeddings(&args.path),
+        KasaCli::GenerateImageEmbedding(args) => generate_image_embedding_single(&args.path),
     }
 }

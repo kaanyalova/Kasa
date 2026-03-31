@@ -124,7 +124,22 @@ impl ScriptableTagExtractor for PythonTagExtractor {
                 ScriptableTagExtractorError::PythonError(format!("Execution error: {:?}", err))
             })?;
 
-            let output = result
+            let json_module = vm.import("json", 0).map_err(|err| {
+                ScriptableTagExtractorError::PythonError(format!(
+                    "Failed to import json module: {:?}",
+                    err
+                ))
+            })?;
+
+            let dumps_function = json_module.get_attr("dumps", vm).map_err(|err| {
+                ScriptableTagExtractorError::PythonError(format!("json.dumps not found: {:?}", err))
+            })?;
+
+            let json_result = dumps_function.call((result,), vm).map_err(|err| {
+                ScriptableTagExtractorError::PythonError(format!("Serialization error: {:?}", err))
+            })?;
+
+            let output = json_result
                 .str(vm)
                 .map_err(|_| {
                     ScriptableTagExtractorError::PythonError(

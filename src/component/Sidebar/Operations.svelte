@@ -11,6 +11,14 @@
 			decorations: false
 		});
 	}
+
+	function onClickExtractors() {
+		const webView = new WebviewWindow('extractor_code_editor', {
+			title: 'Extractors',
+			url: 'extractor_code_editor',
+			decorations: false
+		});
+	}
 </script>
 
 <div class="operations sidebarContent">
@@ -23,14 +31,15 @@
 				<Heart height={20} width={20}></Heart>
 			</SidebarButton>
 		</li>
+
 		<li>
-			<SidebarButton text="Convert">
+			<SidebarButton text="Download" onClick={onClickDownload}>
 				<Heart height={20} width={20}></Heart>
 			</SidebarButton>
 		</li>
 
 		<li>
-			<SidebarButton text="Download" onClick={onClickDownload}>
+			<SidebarButton text="Extractors" onClick={onClickExtractors}>
 				<Heart height={20} width={20}></Heart>
 			</SidebarButton>
 		</li>

@@ -195,6 +195,18 @@ async queueDownloadJob(url: string) : Promise<void> {
 },
 async getDownloaderStatuses() : Promise<{ [key in string]: GalleryDlStatus }> {
     return await TAURI_INVOKE("get_downloader_statuses");
+},
+async createOrGetPathForExtractor(extractorName: string, fileExtension: string) : Promise<string> {
+    return await TAURI_INVOKE("create_or_get_path_for_extractor", { extractorName, fileExtension });
+},
+async createOrGetExtractorContents(extractorName: string, fileExtension: string) : Promise<string> {
+    return await TAURI_INVOKE("create_or_get_extractor_contents", { extractorName, fileExtension });
+},
+async getExistingExtractorNames() : Promise<string[]> {
+    return await TAURI_INVOKE("get_existing_extractor_names");
+},
+async getExampleMetadataForExtractor(name: string) : Promise<string> {
+    return await TAURI_INVOKE("get_example_metadata_for_extractor", { name });
 }
 }
 

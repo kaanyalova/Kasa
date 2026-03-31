@@ -1,6 +1,12 @@
 use std::env;
 
+use crate::downloaders::DownloaderStore;
+use crate::tags::ScriptableTagExtractorStore;
+use config::create_or_get_extractor_contents;
+use config::create_or_get_path_for_extractor;
 use config::get_config;
+use config::get_example_metadata_for_extractor;
+use config::get_existing_extractor_names;
 use config::set_config_resolution_value;
 use config::set_config_value_bool;
 use config::set_config_value_f64;
@@ -31,6 +37,7 @@ use index::index_path;
 use index::nuke_all_indexes;
 use index::nuke_selected_index;
 use index::*;
+use kasa_python::GalleryDlStatus;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
 use kasa_python::extractors::scriptable::ScriptableTagExtractor;
 use log::LevelFilter;
@@ -61,10 +68,6 @@ use tauri_specta::{Builder, collect_commands};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
 use utils::open_with_system_default_app;
-
-use crate::downloaders::DownloaderStore;
-use crate::tags::ScriptableTagExtractorStore;
-use kasa_python::GalleryDlStatus;
 
 mod db;
 mod image;
@@ -182,6 +185,10 @@ pub fn run() {
             set_config_value_str,
             queue_download_job,
             get_downloader_statuses,
+            create_or_get_path_for_extractor,
+            create_or_get_extractor_contents,
+            get_existing_extractor_names,
+            get_example_metadata_for_extractor
         ]
     });
 

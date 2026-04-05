@@ -112,3 +112,14 @@ CREATE TABLE IF NOT EXISTS AutoTaggerInfo (
     thresholds TEXT NOT NULL,
     tag_count NUMBER NOT NULL
 );
+
+
+CREATE TABLE IF NOT EXISTS MediaEmbeddingsMeta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hash TEXT NOT NULL UNIQUE
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS MediaEmbedding USING vec0 (
+    id INTEGER PRIMARY KEY,
+    embedding FLOAT[768]
+);

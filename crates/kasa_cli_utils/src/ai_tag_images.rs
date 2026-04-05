@@ -14,9 +14,9 @@ use serde_json::json;
 use sqlx::{query, query_as, query_scalar, sqlite::SqlitePoolOptions};
 
 #[derive(sqlx::FromRow)]
-struct HashAndPath {
-    hash: String,
-    path: String,
+pub struct HashAndPath {
+    pub hash: String,
+    pub path: String,
 }
 
 fn get_model_name(session: &Session, model_file_name: &str) -> String {
@@ -89,12 +89,12 @@ pub async fn ai_tag_images() {
         let since_epoch = start.duration_since(UNIX_EPOCH).unwrap();
 
         query("INSERT INTO AutoTaggerInfo(hash, tagged_on, tagger_model, thresholds, tag_count) VALUES (?,?,?,?,?)")
-        .bind(&hash_and_path.hash)
-        .bind(since_epoch.as_secs() as i64)
-        .bind(&model_file_name)
-        .bind(serde_json::to_string(&thresholds).unwrap())
-        .bind(tags.count())
-        .execute(&pool).await.unwrap();
+            .bind(&hash_and_path.hash)
+            .bind(since_epoch.as_secs() as i64)
+            .bind(&model_file_name)
+            .bind(serde_json::to_string(&thresholds).unwrap())
+            .bind(tags.count())
+            .execute(&pool).await.unwrap();
 
         let characters: Vec<ExtractedTag> = tags
             .character

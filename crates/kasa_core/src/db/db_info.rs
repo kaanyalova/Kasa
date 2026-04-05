@@ -1,7 +1,7 @@
 use std::{os::unix::fs::MetadataExt, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
-use sqlx::{query_scalar, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, query_scalar};
 
 use crate::config::global_config::get_config_impl;
 

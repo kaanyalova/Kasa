@@ -1,12 +1,12 @@
 mod ai_tag_images;
 mod dump_random_gi_layout;
+mod embeddings;
 mod gdl;
 mod index_all_ai_images;
 mod index_folder;
 mod nuke_db_versioning;
 mod populate_tags;
 mod thumbnail;
-
 use std::path::PathBuf;
 
 use ai_tag_images::ai_tag_images;
@@ -20,6 +20,11 @@ use kasa_core::{config::global_config::get_tag_extractors_dir, db::schema::Path}
 use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
 //use thumbnail::thumbnail;
+
+#[cfg(feature = "qwen3")]
+use kasa_ai::image_embeddings::qwen3_generate_image_embeddings_single;
+
+use crate::embeddings::generate_all_image_embeddings;
 
 #[derive(Parser)] // requires `derive` feature
 enum KasaCli {
@@ -42,6 +47,10 @@ enum KasaCli {
     TagUsingAi,
     #[command(alias = "embed")]
     GenerateImageEmbedding(ImageEmbeddingArgs),
+    #[command(alias = "embed-all")]
+    GenerateAllImageEmbeddings,
+    #[cfg(feature = "qwen3")]
+    GenerateImageEmbeddingQwen3(ImageEmbeddingArgs),
 }
 
 #[derive(clap::Args)]
@@ -117,5 +126,10 @@ async fn main() {
         KasaCli::NukeDBVersioning => nuke_db_versioning().await,
         KasaCli::TagUsingAi => ai_tag_images().await,
         KasaCli::GenerateImageEmbedding(args) => generate_image_embedding_single(&args.path),
+        #[cfg(feature = "qwen3")]
+        KasaCli::GenerateImageEmbeddingQwen3(args) => {
+            qwen3_generate_image_embeddings_single(&args.path)
+        }
+        KasaCli::GenerateAllImageEmbeddings => generate_all_image_embeddings().await,
     }
 }

@@ -14,3 +14,6 @@ kasa_ai = { path = "../kasa_ai" }
 rand = { workspace = true }
 dotenvy = { workspace = true }
 env_logger = { workspace = true }
+
+[features]
+qwen3 = ["kasa_ai/qwen3"]

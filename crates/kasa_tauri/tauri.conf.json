@@ -3,7 +3,7 @@
 	"build": {
 		"beforeBuildCommand": "bun run build",
 		"beforeDevCommand": "bun run dev",
-		"frontendDist": "../build",
+		"frontendDist": "../../build",
 		"devUrl": "http://localhost:5173"
 	},
 	"bundle": {

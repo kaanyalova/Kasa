@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use sqlx::{Pool, Sqlite};
+use tokio::{sync::mpsc, task::spawn_blocking};
 
 use crate::{
     index::{
@@ -50,16 +51,19 @@ const CHUNK_SIZE: usize = 1000;
 ///
 /// In that case second_pass should only return Vec<MediaTypeWithData>
 pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
-    let mut walkdir = WalkDir::new(path)
-        .into_iter()
-        .filter_map(|p| p.ok())
-        //.filter(|p| p.file_type().is_file())
-        //.filter_map(|p| p.path().to_str().map(String::from))
-        .peekable();
+    let (tx, mut rx) = mpsc::channel(5);
+    let path = path.to_owned();
+    let path_cloned = path.clone();
 
-    while walkdir.peek().is_some() {
+    let _ = spawn_blocking(move || {
+        let mut walkdir = WalkDir::new(path)
+            .into_iter()
+            .filter_map(|p| p.ok())
+            //.filter(|p| p.file_type().is_file())
+            //.filter_map(|p| p.path().to_str().map(String::from))
+            .peekable();
+
         let chunk: Chunk = walkdir.by_ref().take(CHUNK_SIZE).collect();
-
         let first_passes = index_first_batch(chunk);
 
         let first_pass_groups = first_passes
@@ -69,9 +73,19 @@ pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) 
 
         for (_type, group) in first_pass_groups {
             let batch = indexer_second_batch(_type, group);
+            let send = tx.blocking_send((batch, _type));
 
-            write_to_db(batch, _type, pool, pool_thumbs, path).await;
+            match send {
+                Ok(_) => {}
+                Err(_) => {
+                    break;
+                }
+            }
         }
+    });
+
+    while let Some((batch, _type)) = rx.recv().await {
+        write_to_db(batch, _type, pool, pool_thumbs, &path_cloned).await;
     }
 }
 

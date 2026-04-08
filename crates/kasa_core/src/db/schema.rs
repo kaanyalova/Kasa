@@ -91,6 +91,13 @@ pub struct Image {
     pub resolution_y: i64,
 }
 
+/// Additional information about `Video` media type
+#[derive(Debug, FromRow, Clone)]
+pub struct Video {
+    pub hash: String,
+    pub length: i64,
+}
+
 /// Raw user input of the tags field
 #[derive(Debug, FromRow, Clone)]
 pub struct RawTagsField {

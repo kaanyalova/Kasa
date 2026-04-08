@@ -18,10 +18,16 @@ CREATE TABLE IF NOT EXISTS Media (
 
 
 CREATE TABLE IF NOT EXISTS Image (
-    hash NOT NULL,
+    hash TEXT NOT NULL,
     -- format TEXT NOT NULL,
     resolution_x INT NOT NULL,
     resolution_y INT NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS Video (
+    hash TEXT NOT NULL,
+    length INT
 );
 
 

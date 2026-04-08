@@ -101,6 +101,10 @@ pub fn run() {
         // https://bugs.webkit.org/buglist.cgi?quicksearch=WEBKIT_DISABLE_COMPOSITING_MODE
         // also broken on gnome-web scrolling fast just crashes the browser??? wtf?
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+
+        // this at least makes it launch but the text is blurry and the canvas calculations are broken
+        // (tag list doesn't work properly)
+        //std::env::set_var("__NV_DISABLE_EXPLICIT_SYNC", "1");
     }
 
     let dotenv = dotenvy::dotenv();

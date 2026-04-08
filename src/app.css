@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+@plugin "@iconify/tailwind4";
 
 html {
     font-family: "Ubuntu";

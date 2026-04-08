@@ -1,0 +1,8 @@
+[[dependencies]]
+url = "https://github.com/mikf/gallery-dl/releases/download/v1.31.10/gallery_dl-1.31.10.tar.gz"
+path = "gallery-dl"
+module_name = "gallery_dl"
+module_path = "gallery_dl-1.31.10"
+version = ""
+
+[[dependencies]]

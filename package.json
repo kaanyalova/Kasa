@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@babel/runtime": "^7.29.2",
+    "@iconify/tailwind4": "^1.2.3",
     "@sveltejs/adapter-auto": "^3.3.1",
     "@sveltejs/adapter-static": "^3.0.8",
     "@sveltejs/kit": "^2.19.2",
@@ -42,6 +43,7 @@
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.2",
     "@codemirror/lang-python": "^6.2.1",
+    "@iconify-json/material-symbols": "^1.2.65",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
     "@tauri-apps/plugin-dialog": "^2.6.0",

@@ -12,10 +12,14 @@ pub fn index_image_batch(first_passes: &Vec<FirstPass>) -> Vec<MediaTypeWithData
         .into_par_iter()
         .map(|img| {
             //  if let resolution = imagesize::size(&img.path);
-            let Ok(resolution) = imagesize::size(&img.path) else {
-                error!("Failed to get image size for {}", &img.path);
-                return MediaTypeWithData::Invalid(img.hash.clone());
+            let resolution = match imagesize::size(&img.path) {
+                Ok(res) => res,
+                Err(e) => {
+                    error!("Failed to get image size for {}: {}", &img.path, e);
+                    return MediaTypeWithData::Invalid(img.hash.clone());
+                }
             };
+
             let image_data = Image {
                 resolution_x: resolution.width.try_into().unwrap(),
                 resolution_y: resolution.height.try_into().unwrap(),

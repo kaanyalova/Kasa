@@ -1,5 +1,6 @@
 mod index_image;
 pub mod index_sources;
+pub mod index_video;
 pub mod indexer;
 pub mod indexer_first;
 mod indexer_second;

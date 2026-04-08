@@ -13,6 +13,7 @@
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import ImportInfo from './ImportInfo.svelte';
+	import VideoInfo from './VideoInfo.svelte';
 
 	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
 
@@ -86,6 +87,8 @@
 				</li>
 			{/each}
 		</ul>
+
+		<VideoInfo></VideoInfo>
 
 		<div class="separator"></div>
 

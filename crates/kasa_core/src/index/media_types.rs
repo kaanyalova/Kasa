@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 
-use crate::db::schema::{Image, MediaType};
+use crate::db::schema::{Image, MediaType, Video};
 
 #[derive(Debug)]
 pub struct DbWritableMediaDataBatch {
@@ -42,7 +42,7 @@ pub struct ImageData {
 #[derive(Debug, Clone)]
 pub enum MediaTypeWithData {
     Image(Image),
-    Video, // TODO add metadata
+    Video(Video), // TODO add metadata
     Invalid(String),
 }
 

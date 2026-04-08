@@ -71,7 +71,10 @@
 
 		<div class="separator"></div>
 
-		<div class="header">Meta</div>
+		<div class="header">
+			<span class="icon-[material-symbols--data-table-rounded] relative top-0.25 w-5 h-5"></span>
+			Metadata
+		</div>
 		<ul class="details multicolorRows">
 			{#each data.meta as meta_entry}
 				<li class="metaEntry paddedLi">
@@ -143,6 +146,9 @@
 	.header {
 		padding-left: 4px;
 		padding-right: 4px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	.separator {

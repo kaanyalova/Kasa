@@ -2,51 +2,70 @@
 	let isExpanded = $state(false);
 </script>
 
-<div class="header">Video Details</div>
 <div class="videoInfo">
-	<button class="expandableHeader" onclick={() => (isExpanded = !isExpanded)}>
-		{#if isExpanded}
-			▲ Collapse
-		{:else}
-			▼ More Details
-		{/if}
-	</button>
+	<div class="header">
+		<span class="w-5 h-5 icon-[material-symbols--movie-info]"></span> Video Details
+	</div>
 
-	<ul class="details" class:multicolorRows={!isExpanded}>
-		{#if isExpanded}
-			<li class="categoryContainer">
-				<div class="categoryHeader">Video 📹</div>
-				<ul class="categoryInner multicolorRows">
-					<li>detailentry</li>
-					<li>detailentry</li>
-					<li>detailentry</li>
-					<li>detailentry</li>
-				</ul>
-			</li>
+	<div class="inner">
+		<button class="expandableHeader" onclick={() => (isExpanded = !isExpanded)}>
+			{#if isExpanded}
+				▲ Collapse
+			{:else}
+				▼ More Details
+			{/if}
+		</button>
 
-			<li class="categoryContainer">
-				<div class="categoryHeader">
-					Audio <span class="icon-[material-symbols--audio-file]"></span>
-				</div>
-				<ul class="categoryInner multicolorRows">
-					<li>detailentry</li>
-					<li>detailentry</li>
-					<li>detailentry</li>
-					<li>detailentry</li>
-				</ul>
-			</li>
-		{:else}
-			<li>stuff</li>
-			<li>stuff</li>
-		{/if}
-	</ul>
+		<ul class="details" class:multicolorRows={!isExpanded}>
+			{#if isExpanded}
+				<li class="categoryContainer">
+					<div class="categoryHeader">
+						<span class="categoryHeaderIcon icon-[material-symbols--movie]"></span> Video
+					</div>
+					<ul class="categoryInner multicolorRows">
+						<li>detailentry</li>
+						<li>detailentry</li>
+						<li>detailentry</li>
+						<li>detailentry</li>
+					</ul>
+				</li>
+
+				<li class="categoryContainer">
+					<div class="categoryHeader noGaps">
+						<span class="categoryHeaderIcon icon-[material-symbols--music-note]"></span> Audio
+					</div>
+					<ul class="categoryInner multicolorRows">
+						<li>detailentry</li>
+						<li>detailentry</li>
+						<li>detailentry</li>
+						<li>detailentry</li>
+					</ul>
+				</li>
+			{:else}
+				<li>stuff</li>
+				<li>stuff</li>
+			{/if}
+		</ul>
+	</div>
 </div>
 
 <style>
+	.noGaps {
+		gap: 0 !important;
+	}
+
+	.categoryHeaderIcon {
+		width: 18px;
+		height: 18px;
+	}
+
 	.categoryHeader {
 		margin-left: 4px;
 		margin-right: 4px;
 		font-weight: bold;
+		display: flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	.categoryInner {
@@ -54,7 +73,7 @@
 		border: 1px solid var(--secondary-alt);
 	}
 
-	.videoInfo {
+	.inner {
 		margin: 4px;
 	}
 
@@ -68,6 +87,9 @@
 	.header {
 		padding-left: 4px;
 		padding-right: 4px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	.expandableHeader {
@@ -82,6 +104,7 @@
 		font-weight: bold;
 		border: 1px solid var(--accent-border);
 		border-bottom: none;
+		cursor: pointer;
 	}
 
 	.multicolorRows > li:nth-child(2n) {

@@ -50,6 +50,7 @@ use media::get_media_type;
 use media::get_swf_resolution;
 use media::get_tags;
 use media::get_tags_grouped_by_source_categories;
+use media::get_video_length;
 use media::set_media_favorite;
 use media_server::MediaServerStore;
 use media_server::close_server;
@@ -184,6 +185,7 @@ pub fn run() {
             get_media_name,
             get_media_sources,
             set_media_favorite,
+            get_video_length,
             set_config_value_bool,
             set_config_value_f64,
             set_config_value_str,
@@ -203,7 +205,7 @@ pub fn run() {
             .export(
                 // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
                 Typescript::default().bigint(BigIntExportBehavior::Number),
-                "../src/lib/tauri_bindings.ts",
+                "../../src/lib/tauri_bindings.ts",
             )
             .unwrap();
         builder

@@ -181,6 +181,9 @@ async getMediaSources(hash: string) : Promise<MediaSource[]> {
 async setMediaFavorite(hash: string, state: boolean) : Promise<void> {
     await TAURI_INVOKE("set_media_favorite", { hash, state });
 },
+async getVideoLength(hash: string) : Promise<number | null> {
+    return await TAURI_INVOKE("get_video_length", { hash });
+},
 async setConfigValueBool(category: string, key: string, valu: boolean) : Promise<void> {
     await TAURI_INVOKE("set_config_value_bool", { category, key, valu });
 },
@@ -242,7 +245,7 @@ export type ImagePlacement = { x_relative: number; y_relative: number; width: nu
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type Layout = { show_filenames: boolean; thumbnail_scale: number }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean; videoMetadata: VideoMetadata | null }
 export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
 export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
@@ -268,6 +271,9 @@ export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail; c
 export type ThumbnailFormat = "png" | "jpeg" | "avif"
 export type Thumbs = { resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
 export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }
+export type VideoAudioStreamMetadata = { codec: string; codec_long_name: string | null; bit_rate: number; max_rate: number; delay: number; rate: number; channels: number; format: string; frames: number; align: number; channel_layout: string }
+export type VideoMetadata = { duration: number; bit_rate: number; audio_meta: VideoAudioStreamMetadata | null; video_meta: VideoVideoStreamMeta | null }
+export type VideoVideoStreamMeta = { codec: string; codec_long_name: string | null; bit_rate: number; max_rate: number; delay: number; width: number; height: number; format: string; has_b_frames: boolean; aspect_ratio: string; color_space: string; color_range: string; color_primaries: string; color_transfer_characteristic: string; chroma_location: string; references: number; intra_dc_precision: number }
 
 /** tauri-specta globals **/
 

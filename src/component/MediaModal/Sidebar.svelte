@@ -14,6 +14,7 @@
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import ImportInfo from './ImportInfo.svelte';
 	import VideoInfo from './VideoInfo.svelte';
+	import type { SidebarProps } from './MediaModal';
 
 	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
 
@@ -93,10 +94,11 @@
 			{/each}
 		</ul>
 
-		<VideoInfo></VideoInfo>
-
 		<div class="separator"></div>
 
+		{#if data.mediaType === 'Video'}
+			<VideoInfo metadata={data.videoMetadata!!}></VideoInfo>
+		{/if}
 		<ImportInfo hash={data.hash}></ImportInfo>
 
 		<div class="separator"></div>

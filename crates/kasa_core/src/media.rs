@@ -13,8 +13,11 @@ use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite, query, query_as, query_scalar};
 
-use crate::db::schema::{
-    HashTagPair, Image, Media, MediaSource, MediaType, RawTagsField, TagDetail,
+use crate::{
+    db::schema::{
+        HashTagPair, Image, Media, MediaSource, MediaType, RawTagsField, TagDetail, Video,
+    },
+    index::index_video::VideoMetadata,
 };
 
 /// Gets all the info to show to user in the sidebar for a piece of media
@@ -71,6 +74,8 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         is_one_line: true,
     });
 
+    let mut video_metadata = None;
+
     // Meta entries for specific formats
     match _type {
         MediaType::Image => {
@@ -89,7 +94,31 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
                 is_one_line: true,
             })
         }
-        MediaType::Video => { /* TODO implement video meta */ }
+        MediaType::Video => {
+            let query: Video = query_as("SELECT * FROM Video WHERE hash = ?")
+                .bind(hash)
+                .fetch_one(pool)
+                .await
+                .unwrap();
+
+            let video_meta = query.metadata.0;
+
+            let resolution = if let Some(video_stream) = &video_meta.video_meta {
+                format!("{} x {}", video_stream.width, video_stream.height)
+            } else {
+                "Unknown".to_string()
+            };
+
+            // just to be consistent
+            meta.push(MetaEntry {
+                name: "Resolution".to_string(),
+                value: resolution,
+                is_value_monospaced: true,
+                is_one_line: true,
+            });
+
+            video_metadata = Some(video_meta);
+        }
         MediaType::Game => unimplemented!(),
         MediaType::Unknown => unimplemented!(),
         MediaType::Group => unimplemented!(),
@@ -162,6 +191,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         file_name,
         source_category_grouped_tags: source_grouped_tags,
         is_favorite: media.is_favorite,
+        video_metadata: video_metadata,
     }
 }
 
@@ -245,6 +275,16 @@ pub async fn set_media_favorite_impl(hash: &str, state: bool, pool: &Pool<Sqlite
         .unwrap();
 }
 
+pub async fn get_video_length_impl(hash: &str, pool: &Pool<Sqlite>) -> Option<f64> {
+    let result: Option<(f64,)> = query_as("SELECT video_length FROM Video WHERE hash = ?")
+        .bind(hash)
+        .fetch_optional(pool)
+        .await
+        .unwrap_or(None);
+
+    result.map(|(len,)| len)
+}
+
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -260,6 +300,7 @@ pub struct MediaInfo {
     pub aspect_ratio: f64,
     pub file_name: String,
     pub is_favorite: bool,
+    pub video_metadata: Option<VideoMetadata>,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

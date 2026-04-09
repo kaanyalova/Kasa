@@ -5,7 +5,7 @@ use strum::EnumString;
 
 use sqlx::types::Json as SqlxJson;
 
-use crate::tags::presets::TagPresetData;
+use crate::{index::index_video::VideoMetadata, tags::presets::TagPresetData};
 
 /// Info about Media of all types
 #[derive(FromRow, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -95,7 +95,8 @@ pub struct Image {
 #[derive(Debug, FromRow, Clone)]
 pub struct Video {
     pub hash: String,
-    pub length: i64,
+    pub video_length: f64,
+    pub metadata: Json<VideoMetadata>,
 }
 
 /// Raw user input of the tags field

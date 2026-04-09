@@ -1,7 +1,5 @@
-use core::hash;
-
-use log::trace;
-use sqlx::{Execute, Pool, QueryBuilder, Sqlite, query as sqlx_query};
+use log::{error, trace};
+use sqlx::{Pool, QueryBuilder, Sqlite, query as sqlx_query};
 
 use crate::db::schema::{MediaType, media_type_to_string};
 
@@ -9,7 +7,6 @@ use super::media_types::{DbWritableMediaDataBatch, MediaTypeWithData};
 
 pub async fn write_to_db(
     inputs: DbWritableMediaDataBatch,
-    media_type: MediaType,
     pool: &Pool<Sqlite>,
     _pool_thumbs: &Pool<Sqlite>, // TODO delete this unused
     path: &str,
@@ -23,7 +20,7 @@ pub async fn write_to_db(
 
     query_builder.push_values(inputs.generic_media_data.iter(), |mut b, data| {
         b.push_bind(&data.hash)
-            .push_bind(media_type_to_string(&media_type))
+            .push_bind(media_type_to_string(&inputs.media_type_identifier))
             .push_bind(&data.thumb_path)
             .push_bind(data.size as i64)
             .push_bind(&data.mime)
@@ -53,7 +50,7 @@ pub async fn write_to_db(
 
     let mut invalid_media_to_be_tagged = vec![];
 
-    match media_type {
+    match inputs.media_type_identifier {
         MediaType::Image => {
             let mut query_builder: QueryBuilder<Sqlite> =
                 QueryBuilder::new("INSERT INTO Image(resolution_x, resolution_y, hash) ");
@@ -77,7 +74,27 @@ pub async fn write_to_db(
             let query = query_builder.build();
             query.execute(pool).await.unwrap();
         }
-        MediaType::Video => { /* TODO implement video meta */ }
+        MediaType::Video => {
+            let mut query_builder: QueryBuilder<Sqlite> =
+                QueryBuilder::new("INSERT INTO Video(hash, video_length, metadata) ");
+
+            query_builder.push_values(inputs.media_data.into_iter(), |mut b, data| {
+                if let MediaTypeWithData::Video(d) = data {
+                    b.push_bind(d.hash)
+                        .push_bind(d.video_length)
+                        .push_bind(d.metadata);
+                } else if let MediaTypeWithData::Invalid(hash) = data {
+                    error!("Invalid media with hash {}", hash);
+                    b.push_bind(hash.clone())
+                        .push_bind(Some(0.0_f64))
+                        .push_bind("{}");
+                    invalid_media_to_be_tagged.push(hash);
+                }
+            });
+
+            let query = query_builder.build();
+            query.execute(pool).await.unwrap();
+        }
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),
@@ -126,7 +143,7 @@ pub async fn write_to_db(
     let thumbnail_max_x = 256;
     let thumbnail_max_y = 256;
 
-    match media_type {
+    match inputs.media_type_identifier {
         MediaType::Image => {
             let mut query_builder: QueryBuilder<Sqlite> =
                 QueryBuilder::new("INSERT OR IGNORE INTO Thumbs(hash, x, y, x_max, y_max) ");

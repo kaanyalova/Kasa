@@ -14,6 +14,7 @@
 		clickOutsideExcludingTagName,
 		clickOutsideTagName
 	} from '$lib/clickOutside';
+	import { formatDurationShort } from '$lib/formatDuration';
 
 	let { hash, width, height, offset_x, offset_y }: ImageProps = $props();
 
@@ -102,8 +103,14 @@
 	/>
 
 	{#if mediaType === 'Video'}
-		<div class="mediaTypeIcon" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
-			<VideoReel height={32} width={32}></VideoReel>
+		<div class="videoLength" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
+			{#await commands.getVideoLength(hash) then length}
+				{#if length}
+					<span>
+						{formatDurationShort(length)}
+					</span>
+				{/if}
+			{/await}
 		</div>
 	{:else if mediaType === 'Flash'}
 		<div class="mediaTypeIcon" style="transform: translate3d({offset_x + 8}px, 0px, 0px);">
@@ -190,5 +197,15 @@
 		padding: 4px;
 		padding-bottom: 0px !important;
 		overflow: hidden;
+	}
+
+	.videoLength {
+		position: absolute;
+		padding: 4px;
+		border-radius: 4px;
+		top: 8px;
+		fill: var(--text);
+		background-color: color-mix(in srgb, black 60%, transparent 40%);
+		color: var(--text);
 	}
 </style>

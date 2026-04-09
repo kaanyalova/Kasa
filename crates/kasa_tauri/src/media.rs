@@ -135,3 +135,17 @@ pub async fn set_media_favorite(handle: AppHandle, hash: String, state: bool) {
         error!("No connection to database , could not get media source");
     }
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_video_length(handle: AppHandle, hash: String) -> Option<f64> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await.clone();
+
+    if let Some(pool) = connection_guard.as_ref() {
+        kasa_core::media::get_video_length_impl(&hash, pool).await
+    } else {
+        error!("No connection to database, could not get video length");
+        None
+    }
+}

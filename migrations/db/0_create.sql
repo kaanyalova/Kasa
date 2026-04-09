@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS Image (
 
 CREATE TABLE IF NOT EXISTS Video (
     hash TEXT NOT NULL,
-    length INT
+    video_length REAL,
+    metadata JSON
 );
 
 

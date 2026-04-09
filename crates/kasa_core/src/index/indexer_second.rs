@@ -3,7 +3,10 @@ use std::{fs, os::unix::fs::MetadataExt};
 use chrono::Utc;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{db::schema::MediaType, index::index_image::index_image_batch};
+use crate::{
+    db::schema::MediaType,
+    index::{index_image::index_image_batch, index_video::index_video_batch},
+};
 
 use super::{
     media_types::{DbWritableMediaDataBatch, FirstPass, GenericMediaData, PathData},
@@ -26,9 +29,7 @@ pub fn indexer_second_batch(
     // Any new MediaTypes can be added here along with their batch processing functions
     let media_data = match media_type {
         MediaType::Image => index_image_batch(&first_passes),
-        MediaType::Video => {
-            vec![] // TODO video meta
-        }
+        MediaType::Video => index_video_batch(&first_passes),
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),

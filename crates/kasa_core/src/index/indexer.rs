@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use log::error;
 use sqlx::{Pool, Sqlite};
 use tokio::{sync::mpsc, task::spawn_blocking};
 
@@ -63,29 +64,32 @@ pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) 
             //.filter_map(|p| p.path().to_str().map(String::from))
             .peekable();
 
-        let chunk: Chunk = walkdir.by_ref().take(CHUNK_SIZE).collect();
-        let first_passes = index_first_batch(chunk);
+        while walkdir.peek().is_some() {
+            let chunk: Chunk = walkdir.by_ref().take(CHUNK_SIZE).collect();
+            let first_passes = index_first_batch(chunk);
 
-        let first_pass_groups = first_passes
-            .into_iter()
-            .map(|p| (get_type(&p.mime), p))
-            .into_group_map();
+            let first_pass_groups = first_passes
+                .into_iter()
+                .map(|p| (get_type(&p.mime), p))
+                .into_group_map();
 
-        for (_type, group) in first_pass_groups {
-            let batch = indexer_second_batch(_type, group);
-            let send = tx.blocking_send((batch, _type));
+            for (_type, group) in first_pass_groups {
+                let batch = indexer_second_batch(_type, group);
+                let send = tx.blocking_send((batch, _type));
 
-            match send {
-                Ok(_) => {}
-                Err(_) => {
-                    break;
+                match send {
+                    Ok(_) => {}
+                    Err(_) => {
+                        error!("Failed to send batch for type: {:?}", _type);
+                        break;
+                    }
                 }
             }
         }
     });
 
     while let Some((batch, _type)) = rx.recv().await {
-        write_to_db(batch, _type, pool, pool_thumbs, &path_cloned).await;
+        write_to_db(batch, pool, pool_thumbs, &path_cloned).await;
     }
 }
 

@@ -4,18 +4,14 @@
 
 <div class="videoInfo">
 	<div class="header">
-		<span class="w-5 h-5 icon-[material-symbols--movie-info]"></span> Video Details
+		Video Details
+
+		<!--
+		<span class="w-5 h-5 icon-[material-symbols--movie-info]"></span>
+		-->
 	</div>
 
 	<div class="inner">
-		<button class="expandableHeader" onclick={() => (isExpanded = !isExpanded)}>
-			{#if isExpanded}
-				▲ Collapse
-			{:else}
-				▼ More Details
-			{/if}
-		</button>
-
 		<ul class="details" class:multicolorRows={!isExpanded}>
 			{#if isExpanded}
 				<li class="categoryContainer">
@@ -46,6 +42,14 @@
 				<li>stuff</li>
 			{/if}
 		</ul>
+
+		<button class="expandableHeader" onclick={() => (isExpanded = !isExpanded)}>
+			{#if isExpanded}
+				▲ Collapse
+			{:else}
+				▼ More Details
+			{/if}
+		</button>
 	</div>
 </div>
 
@@ -81,7 +85,7 @@
 		font-size: small;
 		border: var(--secondary-alt) 1px solid;
 		padding: 2px;
-		border-radius: 2px;
+		border-radius: 2px 2px 0 0;
 	}
 
 	.header {
@@ -93,8 +97,8 @@
 	}
 
 	.expandableHeader {
-		background-color: var(--accent);
-		color: var(--text-opposite);
+		background-color: var(--background);
+		color: var(--text);
 		padding-left: 4px;
 		padding-right: 4px;
 		font-size: small;
@@ -102,8 +106,9 @@
 		text-align: start;
 		width: 100%;
 		font-weight: bold;
-		border: 1px solid var(--accent-border);
-		border-bottom: none;
+		border: 1px solid var(--secondary-alt);
+		border-top: none;
+		border-radius: 0 0 2px 2px;
 		cursor: pointer;
 	}
 

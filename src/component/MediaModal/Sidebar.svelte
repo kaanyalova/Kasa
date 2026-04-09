@@ -72,7 +72,9 @@
 		<div class="separator"></div>
 
 		<div class="header">
-			<span class="icon-[material-symbols--data-table-rounded] relative top-0.25 w-5 h-5"></span>
+			<!--
+			<span class="icon-[material-symbols--data-table-rounded] w-5 h-5"></span>
+			-->
 			Metadata
 		</div>
 		<ul class="details multicolorRows">

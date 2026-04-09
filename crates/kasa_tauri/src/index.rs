@@ -43,12 +43,10 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
     let connection_guard = connection_state.db.lock().await;
     let connection_guard_thumbs = connection_state.thumbs_db.lock().await;
 
-    if let (Some(_db), Some(_thumbs_db)) =
+    if let (Some(db), Some(thumbs_db)) =
         (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
     {
-        let p: Pool<Sqlite> = PoolOptions::new().connect("").await.unwrap();
-        index_all_impl(&p, &p).await;
-        //index_all_impl(db, thumbs_db).await;
+        index_all_impl(db, thumbs_db).await;
 
         handle.emit("media_updated", "").unwrap()
     }

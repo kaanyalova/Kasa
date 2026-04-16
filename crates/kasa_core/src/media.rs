@@ -162,6 +162,8 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         .to_string_lossy()
         .to_string();
 
+    let path_that_exists = paths.iter().find(|p| Path::new(p).exists()).cloned();
+
     // Group the tags according to their `source_category`s
     let source_grouped_tags = group_tags_by_source_category(&tags).await;
 
@@ -192,6 +194,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         source_category_grouped_tags: source_grouped_tags,
         is_favorite: media.is_favorite,
         video_metadata: video_metadata,
+        path_that_exists,
     }
 }
 
@@ -301,6 +304,7 @@ pub struct MediaInfo {
     pub file_name: String,
     pub is_favorite: bool,
     pub video_metadata: Option<VideoMetadata>,
+    pub path_that_exists: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

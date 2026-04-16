@@ -112,7 +112,7 @@
 				<!-- svelte-ignore a11y_img_redundant_alt -->
 				{#if data!.mediaType === 'Image'}
 					<img
-						src={convertFileSrc(data!.paths[0])}
+						src={convertFileSrc(data!.pathThatExists!)}
 						alt="An image provided by user"
 						style="aspect-ratio: {data!.aspectRatio};"
 					/>

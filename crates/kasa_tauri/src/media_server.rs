@@ -32,10 +32,16 @@ pub async fn serve_media(handle: AppHandle, hash: String) {
         return;
     };
 
-    let path: String = query_scalar("SELECT path FROM Path WHERE hash = ? LIMIT 1")
+    let paths: Vec<String> = query_scalar("SELECT path FROM Path WHERE hash = ?")
         .bind(&hash)
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await
+        .unwrap();
+
+    // get the first file that exists
+    let path = paths
+        .into_iter()
+        .find(|p| std::path::Path::new(p).exists())
         .unwrap();
 
     // return if we are tying to serve the same file

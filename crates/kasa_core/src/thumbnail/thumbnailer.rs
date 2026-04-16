@@ -52,11 +52,16 @@ pub async fn get_thumbnail_from_file_impl(
         .join(hash)
         .with_extension(thumbnail_format.to_string().to_lowercase());
 
-    let path: String = query_scalar("SELECT path FROM Path WHERE hash = ?")
+    let paths: Vec<String> = query_scalar("SELECT path FROM Path WHERE hash = ?")
         .bind(hash)
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await
         .unwrap();
+
+    let path = paths
+        .into_iter()
+        .find(|p| std::path::Path::new(p).exists())
+        .unwrap_or_default();
 
     match thumbnail_image_single_to_file(
         &path,
@@ -118,11 +123,16 @@ pub async fn get_thumbnail_from_db_impl(
     }
 
     // get the file path for the image to thumbnail
-    let path: String = query_scalar("SELECT path FROM Path WHERE hash = ?")
+    let paths: Vec<String> = query_scalar("SELECT path FROM Path WHERE hash = ?")
         .bind(hash)
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await
         .unwrap();
+
+    let path = paths
+        .into_iter()
+        .find(|p| std::path::Path::new(p).exists())
+        .unwrap_or_default();
 
     // TODO un hardcode these
 

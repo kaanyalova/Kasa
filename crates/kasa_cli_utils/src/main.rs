@@ -16,7 +16,6 @@ use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
 use kasa_ai::image_embeddings::generate_image_embedding_single;
-use kasa_core::{config::global_config::get_tag_extractors_dir, db::schema::Path};
 use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
 //use thumbnail::thumbnail;

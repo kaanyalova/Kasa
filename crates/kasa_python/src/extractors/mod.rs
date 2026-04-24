@@ -60,7 +60,7 @@ impl ExtractedTags {
                     tag: t.tag,
                 })
                 .collect(),
-            ExtractedTags::NoTags(no_tags_info) => vec![],
+            ExtractedTags::NoTags(_no_tags_info) => vec![],
         }
     }
 }

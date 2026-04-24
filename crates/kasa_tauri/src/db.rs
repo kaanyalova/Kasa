@@ -14,7 +14,7 @@ use kasa_core::{
     layout::google_photos::{ImageRow, calculate_layout},
 };
 use sqlx::{
-    ConnectOptions, Pool, Sqlite, query,
+    Pool, Sqlite, query,
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
 use std::str::FromStr;

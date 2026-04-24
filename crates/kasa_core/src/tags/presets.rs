@@ -55,9 +55,9 @@ pub async fn get_preset_list_impl(pool: &Pool<Sqlite>) -> Result<Vec<PresetListE
         .fetch_all(pool)
         .await?;
 
-    let mut result = vec![];
+    let result = vec![];
 
-    let preset_list: Vec<PresetListEntry> = entries
+    let _preset_list: Vec<PresetListEntry> = entries
         .iter()
         .map(|e| PresetListEntry {
             name: e.name.clone(),

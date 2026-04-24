@@ -5,7 +5,6 @@ use kasa_core::index::{
     },
     indexer::index,
 };
-use sqlx::{Pool, Sqlite, pool::PoolOptions};
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::DbStore;

@@ -1,11 +1,10 @@
-use std::{collections::HashMap, path::Path, sync::Arc};
+use std::{path::Path, sync::Arc};
 
 use anyhow::Result;
 use kasa_python::{
-    GalleryDlStatus, GalleryDlStatuses, PyTrustMe,
-    extractors::{TagExtractor, configurable::ExtractorConfig},
+    GalleryDlStatus, PyTrustMe,
+    extractors::TagExtractor,
 };
-use rustpython_vm::Interpreter;
 use sha1::{Digest, Sha1};
 use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;

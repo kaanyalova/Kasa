@@ -1,4 +1,3 @@
-use std::sync::Arc;
 
 use kasa_core::{
     config::global_config::get_tag_extractors_dir,
@@ -7,7 +6,7 @@ use kasa_core::{
         get_tags_as_text_impl, remove_tags, update_tags_impl,
     },
 };
-use kasa_python::extractors::scriptable::{PythonTagExtractor, ScriptableTagExtractor};
+use kasa_python::extractors::scriptable::PythonTagExtractor;
 use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
 

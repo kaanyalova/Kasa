@@ -38,8 +38,6 @@ use index::nuke_all_indexes;
 use index::nuke_selected_index;
 use index::*;
 use kasa_python::GalleryDlStatus;
-use kasa_python::extractors::scriptable::PythonTagExtractor;
-use kasa_python::extractors::scriptable::ScriptableTagExtractor;
 use log::LevelFilter;
 use log::warn;
 use media::get_group_info;

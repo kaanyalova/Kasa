@@ -1,23 +1,20 @@
-use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use ashpd::zvariant::Str;
-use env_logger::fmt::ConfigurableFormat;
 use kasa_core::config::global_config::get_tag_extractors_dir;
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
 use kasa_python::extractors::TagExtractor;
-use kasa_python::extractors::configurable::{ConfigurableExtractor, ExtractorConfig};
+use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
 use kasa_python::{
-    GalleryDlStatus, GalleryDlStatuses, PyTrustMe, init_interpreter,
+    GalleryDlStatus, PyTrustMe, init_interpreter,
     init_interpreter_with_gallery_dl,
 };
-use log::{error, trace};
+use log::error;
 use tauri::{AppHandle, Emitter, Manager};
-use tokio::sync::{Mutex, mpsc};
+use tokio::sync::mpsc;
 
 use crate::db::DbStore;
 use std::sync::Mutex as SyncMutex;

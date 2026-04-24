@@ -5,7 +5,7 @@ use image::{Rgba, imageops};
 use anyhow::Result;
 use ort::tensor::TensorElementType::Float32;
 use ort::value::Tensor;
-use ort::{execution_providers::ROCmExecutionProvider, session::Session};
+use ort::session::Session;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]

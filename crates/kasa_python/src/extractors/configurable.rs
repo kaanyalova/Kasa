@@ -12,10 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::{
-    ExtractedTag,
-    extractors::{ExtractedTagWithCategory, ExtractedTags, TagExtractor},
-};
+use crate::extractors::{ExtractedTagWithCategory, ExtractedTags, TagExtractor};
 
 pub struct ConfigurableExtractor {
     extractors: HashMap<String, ExtractorConfig>,

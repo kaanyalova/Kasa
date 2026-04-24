@@ -1,8 +1,8 @@
 use anyhow::Result;
-use sqlx::{Pool, Sqlite, query, query_scalar};
+use sqlx::{Pool, Sqlite, query_scalar};
 use std::{fs, path::PathBuf};
 
-use crate::config::global_config::{get_config_dir, get_tag_extractors_dir};
+use crate::config::global_config::get_tag_extractors_dir;
 
 const DEFAULT_PYTHON_EXTRACTOR: &str = include_str!("default_extractor_script.py");
 

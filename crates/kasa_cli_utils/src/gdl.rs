@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     sync::{Arc, Mutex},
     vec,
 };
@@ -13,8 +12,8 @@ use kasa_python::{
     PyTrustMe,
     extractors::{
         TagExtractor,
-        configurable::{ConfigurableExtractor, ExtractorConfig},
-        scriptable::{PythonTagExtractor, ScriptableTagExtractor},
+        configurable::ConfigurableExtractor,
+        scriptable::PythonTagExtractor,
     },
     init_interpreter, init_interpreter_with_gallery_dl,
 };

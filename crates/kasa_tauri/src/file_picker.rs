@@ -1,5 +1,5 @@
 use ashpd::desktop::file_chooser::{FileFilter, OpenFileRequest, SaveFileRequest};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use zbus::Connection;
 use zbus_macros::proxy;
 #[tauri::command]

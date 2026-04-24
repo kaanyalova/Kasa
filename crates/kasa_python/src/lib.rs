@@ -1,19 +1,18 @@
-use std::{collections::HashMap, default};
+use std::collections::HashMap;
 
 use anyhow::{Result, anyhow};
-use extractors::configurable::ExtractorConfig;
 use log::trace;
 use rustpython::{InterpreterBuilder, InterpreterBuilderExt};
 use rustpython_pylib::FROZEN_STDLIB;
 use rustpython_vm::{
-    Interpreter, Settings, convert::ToPyObject, function::PyMethodFlags, py_freeze, pymodule, vm,
+    Interpreter, convert::ToPyObject, py_freeze, pymodule,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha1::{Digest, Sha1};
 use thiserror::Error;
 
-use crate::extractors::{ExtractedTag, ExtractedTags, TagExtractor};
+use crate::extractors::{ExtractedTag, TagExtractor};
 pub mod extractors;
 
 const CERT_BYTES: &[u8] = include_bytes!("../cacert.pem");

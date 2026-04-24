@@ -6,7 +6,6 @@ use std::{
 };
 
 use chrono::{DateTime, Local, TimeZone, Utc};
-use ffmpeg::media;
 use human_bytes::human_bytes;
 use itertools::Itertools;
 use rustpython_vm::common::str;

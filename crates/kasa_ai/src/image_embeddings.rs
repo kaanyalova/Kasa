@@ -1,7 +1,7 @@
 use anyhow::{Ok, Result};
 use std::{
     path::Path,
-    time::{Instant, SystemTime, UNIX_EPOCH},
+    time::Instant,
 };
 
 use fastembed::{ImageEmbedding, ImageInitOptions, InitOptions, TextEmbedding};

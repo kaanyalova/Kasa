@@ -1,20 +1,17 @@
-use core::error;
 use std::{
     collections::HashMap,
-    fs::{self, FileType},
+    fs::{self},
     path::Path,
     sync::{Arc, Mutex},
 };
 
 use crate::{
-    ExtractedTag, PyTrustMe,
+    PyTrustMe,
     extractors::TagExtractor,
     extractors::{ExtractedTags, NoTagsInfo},
 };
 use anyhow::{Ok, Result};
-use rustpython::Interpreter;
-use rustpython_vm::{compiler, py_compile, vm};
-use serde::{Deserialize, Serialize};
+use rustpython_vm::compiler;
 use serde_json::Value;
 use thiserror::Error;
 

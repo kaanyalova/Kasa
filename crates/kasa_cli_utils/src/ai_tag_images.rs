@@ -1,6 +1,6 @@
 use std::{
     env,
-    path::{Path, PathBuf},
+    path::PathBuf,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -10,7 +10,6 @@ use kasa_ai::{
 };
 use kasa_core::{config::global_config::get_config_impl, tags::insert_tags_with_source_types};
 use kasa_python::extractors::ExtractedTag;
-use serde_json::json;
 use sqlx::{query, query_as, query_scalar, sqlite::SqlitePoolOptions};
 
 #[derive(sqlx::FromRow)]
@@ -58,7 +57,7 @@ pub async fn ai_tag_images() {
 
     let model_file_name = model_path.file_prefix().unwrap().to_str().unwrap();
 
-    let model_name = get_model_name(&session, model_file_name);
+    let _model_name = get_model_name(&session, model_file_name);
 
     let thresholds = TaggerThresholds::default();
 

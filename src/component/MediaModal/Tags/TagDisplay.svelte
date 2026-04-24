@@ -60,8 +60,8 @@
 
 		// on editMode -> viewMode, save the tags
 		if (editModeState === true) {
-			info('updating tags');
-			commands.updateTags(tagsTextLocal!!, data.hash);
+			info(`updating tags with the raw text ${tagsTextLocal}`);
+			await commands.updateTags(tagsTextLocal!!, data.hash);
 		}
 
 		// on viewMode -> editMode, update the tagText

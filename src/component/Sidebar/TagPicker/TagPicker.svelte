@@ -145,6 +145,7 @@
 			favorites_only: false
 		});
 
+		SearchStore.searchContents = '';
 		filterFavorites = false;
 
 		trace('search via tag picker reset');

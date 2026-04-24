@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { commands } from '$lib/tauri_bindings';
+	import { SearchStore } from '../../Sidebar/Search/SearchStore.svelte';
 	import Cross from '../../Vector/Cross.svelte';
 	import CrossFilled from '../../Vector/CrossFilled.svelte';
 	import Trash from '../../Vector/Trash.svelte';
 	import TrashGnome from '../../Vector/TrashGnome.svelte';
 	import TrashWithQuestionMark from '../../Vector/TrashWithQuestionMark.svelte';
+	import { MediaModalStatusStore } from '../MediaModalStatusStore.svelte';
 
 	let { name, color, onDelete }: TagProps = $props();
 
@@ -25,13 +28,24 @@
 			clickCount = 0;
 		}, 2000);
 	}
+
+	// TODO: show the user when they are Ctrl+hovering,
+	function onCtrlClick() {
+		SearchStore.searchContents = name;
+		commands.search(name);
+		MediaModalStatusStore.close();
+	}
 </script>
 
 {#if !_delete}
 	<button
 		class="tag"
-		onclick={() => {
-			onClick();
+		onclick={(e) => {
+			if (e.ctrlKey) {
+				onCtrlClick();
+			} else {
+				onClick();
+			}
 		}}
 	>
 		<div class="tagButton">
@@ -63,6 +77,7 @@
 		justify-content: center;
 		margin: 4px;
 		border-radius: 0px 2px 2px 0px;
+		cursor: pointer;
 	}
 
 	.tag:hover {

@@ -96,7 +96,7 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 		margin-bottom: 1px;
 	}
 	button.selected {
-		background-color: #6b819b;
+		background-color: var(--secondary-alt);
 		border-radius: 5px;
 	}
 </style>

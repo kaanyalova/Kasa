@@ -23,39 +23,23 @@
 </script>
 
 <div class="entry">
-	<div class=""></div>
-	<div class="count">
-		<div style="color: #ffffff" class="insides">
-			<div style="background-color: {getCountColor(count)};" class="tagCount">
-				{formatCount(count)}
-			</div>
-			<div class="tagName">
-				{name}
-			</div>
-		</div>
+	<div class="left">{name}</div>
+
+	<div class="right">
+		<div class="count">{count}</div>
+		<div class="coloredPart" style="background-color: {getCountColor(count)};"></div>
 	</div>
 </div>
 
 <style>
-	.insides {
-		display: flex;
-		flex-grow: 1;
-		border-radius: 5px;
+	.coloredPart {
+		width: 8px;
+		height: 20px;
+		border-radius: 0px 4px 4px 0px;
 	}
 
-	.tagCount {
-		min-width: 40px;
+	.right {
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		background-color: var(--background);
-		border-radius: 5px 0px 0px 5px;
-		color: black;
-	}
-
-	.tagName {
-		flex-grow: 1;
-		padding-left: 5px;
 	}
 
 	.entry {
@@ -63,14 +47,21 @@
 		flex-grow: 1;
 		border: 1px solid var(--border);
 		border-radius: 5px;
+		display: flex;
+		justify-content: space-between;
 	}
 
 	.entry:hover {
-		background-color: var(--secondary-alt);
+		background-color: var(--secondary-alt); /* color-mix with current color?*/
 	}
 
-	.entry.selected {
-		background-color: #6b819b;
-		border-radius: 5px;
+	.count {
+		padding-left: 8px;
+		padding-right: 8px;
+	}
+
+	.left {
+		padding-right: 4px;
+		padding-left: 4px;
 	}
 </style>

@@ -11,30 +11,32 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentcolor);
+	}
 }
 
 html {
-    font-family: "Ubuntu";
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-
+	font-family: 'Ubuntu';
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
 }
 
 img {
-    -webkit-user-select: none;
-    user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
 }
 
 svg {
-    display: inline-block;
-    margin: 0 auto;
+	display: inline-block;
+	margin: 0 auto;
+}
+button {
+	cursor: pointer;
 }

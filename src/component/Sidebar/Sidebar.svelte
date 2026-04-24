@@ -107,11 +107,11 @@
 		top: 0px;
 		left: 1px;
 		z-index: 2;
+		border-right: 1px solid var(--border-on-secondary-alt);
 	}
 
 	.searchContainer {
 		z-index: 3;
 		position: relative;
-		border-right: 1px solid var(--border-on-secondary-alt);
 	}
 </style>

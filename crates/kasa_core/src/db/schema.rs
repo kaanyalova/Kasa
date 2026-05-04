@@ -89,6 +89,7 @@ pub struct Image {
     pub hash: String,
     pub resolution_x: i64,
     pub resolution_y: i64,
+    pub pixels: i64,
 }
 
 /// Additional information about `Video` media type

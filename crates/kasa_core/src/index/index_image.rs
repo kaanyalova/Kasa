@@ -24,6 +24,7 @@ pub fn index_image_batch(first_passes: &Vec<FirstPass>) -> Vec<MediaTypeWithData
                 resolution_x: resolution.width.try_into().unwrap(),
                 resolution_y: resolution.height.try_into().unwrap(),
                 hash: img.hash.clone(),
+                pixels: (resolution.width * resolution.height).try_into().unwrap(),
             };
             MediaTypeWithData::Image(image_data)
         })

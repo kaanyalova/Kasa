@@ -45,17 +45,26 @@ pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
     excludes_tags: Vec<String>,
-    order_by: OrderCriteria,
+    order_by_date: DateOrderCriteria,
+    order_by_resolution: ResolutionOrderCriteria,
     date_range: Option<DateRange>,
     favorites_only: bool,
 }
 
 #[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
-enum OrderCriteria {
+enum DateOrderCriteria {
     #[default]
     NewestFirst,
     OldestFirst,
     None,
+}
+
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
+enum ResolutionOrderCriteria {
+    #[default]
+    None,
+    HighestFirst,
+    LowestFirst,
 }
 
 impl SearchCriteria {
@@ -63,7 +72,9 @@ impl SearchCriteria {
         let mut contains_tags = vec![];
         let mut contains_tags_or_group = vec![];
         let mut excludes_tags = vec![];
-        let mut order_by_criteria: Option<OrderCriteria> = None;
+        let mut order_by_criteria_date: DateOrderCriteria = DateOrderCriteria::None;
+        let mut order_by_criteria_resolution = ResolutionOrderCriteria::None;
+
         let mut favorites_only = false;
 
         let or_separator_regex = Regex::new(r#"(?i)\|| or "#).unwrap();
@@ -99,28 +110,33 @@ impl SearchCriteria {
             }
             // order by
             else if token.to_lowercase().contains("order by") {
-                let ordering_criteria_date_string = token.strip_prefix("order by").unwrap().trim();
+                let ordering_criteria_string = token.strip_prefix("order by").unwrap().trim();
 
-                let ordering_criteria_date_parsed = match ordering_criteria_date_string {
+                let ordering_criteria_date_parsed = match ordering_criteria_string {
                     // sort by date in order
-                    "date" => OrderCriteria::NewestFirst,
-                    "time" => OrderCriteria::NewestFirst,
-                    "added" => OrderCriteria::NewestFirst,
+                    "date" => DateOrderCriteria::NewestFirst,
+                    "time" => DateOrderCriteria::NewestFirst,
+                    "added" => DateOrderCriteria::NewestFirst,
 
                     // sort by date in reverse order
-                    "date descending" => OrderCriteria::OldestFirst,
-                    "date reverse" => OrderCriteria::OldestFirst,
-                    "time descending" => OrderCriteria::OldestFirst,
-                    "time reverse" => OrderCriteria::OldestFirst,
-                    "added reverse" => OrderCriteria::OldestFirst,
-                    "added descending" => OrderCriteria::OldestFirst,
-                    _ => {
-                        error!("Invalid order criteria entered on the search box");
-                        OrderCriteria::None
-                    }
+                    "date descending" => DateOrderCriteria::OldestFirst,
+                    "date reverse" => DateOrderCriteria::OldestFirst,
+                    "time descending" => DateOrderCriteria::OldestFirst,
+                    "time reverse" => DateOrderCriteria::OldestFirst,
+                    "added reverse" => DateOrderCriteria::OldestFirst,
+                    "added descending" => DateOrderCriteria::OldestFirst,
+
+                    _ => DateOrderCriteria::None,
                 };
 
-                order_by_criteria = Some(ordering_criteria_date_parsed);
+                order_by_criteria_resolution = match ordering_criteria_string {
+                    "resolution" => ResolutionOrderCriteria::HighestFirst,
+                    "resolution reverse" => ResolutionOrderCriteria::LowestFirst,
+                    "resolution descending" => ResolutionOrderCriteria::LowestFirst,
+                    _ => ResolutionOrderCriteria::None,
+                };
+
+                order_by_criteria_date = ordering_criteria_date_parsed;
             }
             // date range
             else if token.starts_with("from") {
@@ -137,7 +153,8 @@ impl SearchCriteria {
             contains_tags,
             contains_tags_or_group,
             excludes_tags,
-            order_by: order_by_criteria.unwrap_or(OrderCriteria::OldestFirst),
+            order_by_date: order_by_criteria_date,
+            order_by_resolution: order_by_criteria_resolution,
             date_range: None,
             favorites_only,
         }
@@ -167,12 +184,18 @@ impl SearchCriteria {
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
         // Handle cases where we are searching for "all tags" (empty query) or "only excludes"
         if self.contains_tags.is_empty() && self.contains_tags_or_group.is_empty() {
-            let mut query_builder: QueryBuilder<Sqlite>;
+            let mut query_builder = QueryBuilder::new("SELECT m.* FROM Media m");
+
+            if self.order_by_resolution != ResolutionOrderCriteria::None {
+                query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");
+            }
+
+            let mut has_where = false;
 
             // Handle case where we only want to exclude tags
             if !self.excludes_tags.is_empty() {
-                query_builder = QueryBuilder::new(
-                    "SELECT m.* FROM Media m WHERE m.hash NOT IN (
+                query_builder.push(
+                    " WHERE m.hash NOT IN (
                      SELECT htp.hash FROM HashTagPair htp WHERE htp.tag_name IN (",
                 );
 
@@ -181,12 +204,11 @@ impl SearchCriteria {
                     separated.push_bind(tag);
                 }
                 query_builder.push("))");
-            } else {
-                query_builder = QueryBuilder::new("SELECT m.* FROM Media m");
+                has_where = true;
             }
 
             if self.favorites_only {
-                if !self.excludes_tags.is_empty() {
+                if has_where {
                     query_builder.push(" AND m.is_favorite = true");
                 } else {
                     query_builder.push(" WHERE m.is_favorite = true");
@@ -197,13 +219,14 @@ impl SearchCriteria {
             return query_builder;
         }
 
-        let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
-            "
-            SELECT m.* FROM HashTagPair htp, Media m
-            ",
-        );
+        let mut query_builder: QueryBuilder<Sqlite> =
+            QueryBuilder::new("SELECT m.* FROM HashTagPair htp, Media m");
 
-        query_builder.push("WHERE m.hash = htp.hash ");
+        if self.order_by_resolution != ResolutionOrderCriteria::None {
+            query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");
+        }
+
+        query_builder.push(" WHERE m.hash = htp.hash ");
 
         if self.favorites_only {
             query_builder.push("AND m.is_favorite = true");
@@ -305,11 +328,24 @@ impl SearchCriteria {
 
     // Add this method to implement the ordering functionality
     fn apply_order_by(&self, query_builder: &mut QueryBuilder<Sqlite>) {
-        match self.order_by {
-            OrderCriteria::NewestFirst => query_builder.push(" ORDER BY m.time_added DESC"),
-            OrderCriteria::OldestFirst => query_builder.push(" ORDER BY m.time_added ASC"),
-            OrderCriteria::None => query_builder.push(""),
+        let mut order_parts = vec![];
+
+        match self.order_by_resolution {
+            ResolutionOrderCriteria::HighestFirst => order_parts.push("img.pixels DESC"),
+            ResolutionOrderCriteria::LowestFirst => order_parts.push("img.pixels ASC"),
+            ResolutionOrderCriteria::None => {}
+        }
+
+        match self.order_by_date {
+            DateOrderCriteria::NewestFirst => order_parts.push("m.time_added DESC"),
+            DateOrderCriteria::OldestFirst => order_parts.push("m.time_added ASC"),
+            DateOrderCriteria::None => {}
         };
+
+        if !order_parts.is_empty() {
+            query_builder.push(" ORDER BY ");
+            query_builder.push(order_parts.join(", "));
+        }
     }
 
     pub fn merge(&mut self, other: &Self) {

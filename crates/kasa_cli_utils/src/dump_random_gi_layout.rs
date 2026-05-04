@@ -12,6 +12,7 @@ pub fn dump_random_gi_layout() {
             hash: "".to_string(),
             resolution_x: x,
             resolution_y: y,
+            pixels: x * y,
         };
 
         images.push(data);

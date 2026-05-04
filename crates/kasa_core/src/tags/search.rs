@@ -184,7 +184,7 @@ impl SearchCriteria {
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
         // Handle cases where we are searching for "all tags" (empty query) or "only excludes"
         if self.contains_tags.is_empty() && self.contains_tags_or_group.is_empty() {
-            let mut query_builder = QueryBuilder::new("SELECT m.* FROM Media m");
+            let mut query_builder = QueryBuilder::new("SELECT DISTINCT m.* FROM Media m");
 
             if self.order_by_resolution != ResolutionOrderCriteria::None {
                 query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");
@@ -220,7 +220,7 @@ impl SearchCriteria {
         }
 
         let mut query_builder: QueryBuilder<Sqlite> =
-            QueryBuilder::new("SELECT m.* FROM HashTagPair htp, Media m");
+            QueryBuilder::new("SELECT DISTINCT m.* FROM HashTagPair htp, Media m");
 
         if self.order_by_resolution != ResolutionOrderCriteria::None {
             query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");

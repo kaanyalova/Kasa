@@ -27,7 +27,14 @@ const LAST_ROW_HEIGHT: u64 = 250;
 /// TODO check if svelte-tiny-list works with
 ///
 /// TODO `max_height` is not used remove it
-pub fn calculate_layout(images: Vec<Media>, scale: f64, width: f64, gaps: u64) -> Vec<ImageRow> {
+/// 
+pub struct MediaLayoutData {
+    pub hash: String,
+    pub thumbnail_x: i64,
+    pub thumbnail_y: i64,
+}
+
+pub fn calculate_layout(images: Vec<MediaLayoutData>, scale: f64, width: f64, gaps: u64) -> Vec<ImageRow> {
     let mut row_index = 0;
     /*
     let min_aspect_ratio = match width {
@@ -200,19 +207,10 @@ fn test_random_generation() {
             let rand_y = rand::thread_rng().gen_range(1..=2000);
 
             media.push({
-                Media {
+                MediaLayoutData {
                     hash: "hash".to_string(),
-                    media_type: "".to_string(),
-                    thumb_path: Some("".to_string()),
                     thumbnail_x: rand_x,
                     thumbnail_y: rand_y,
-                    filesize: 100,
-                    mime: None,
-                    time_added: 0,
-                    has_file_ref: false,
-                    hide: false,
-                    is_valid: true,
-                    is_favorite: false,
                 }
             });
         }

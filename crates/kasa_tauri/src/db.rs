@@ -11,7 +11,7 @@ use kasa_core::{
         schema::Media,
         {TagQueryOutput, query_tags_impl},
     },
-    layout::google_photos::{ImageRow, calculate_layout},
+    layout::google_photos::{calculate_layout, ImageRow, MediaLayoutData},
 };
 use sqlx::{
     Pool, Sqlite, query,
@@ -144,7 +144,12 @@ pub async fn get_layout_from_cache(
     let cache = handle.state::<MediaCache>().media.lock().await.clone(); // TODO: lots of clones here , somehow remove them?
 
     if let Some(media) = cache {
-        Some(calculate_layout(media, scale, width, gaps))
+        let layout_data = media.into_iter().map(|m| MediaLayoutData {
+            hash: m.hash,
+            thumbnail_x: m.thumbnail_x as i64,
+            thumbnail_y: m.thumbnail_y as i64,
+        }).collect();
+        Some(calculate_layout(layout_data, scale, width, gaps))
     } else {
         info!("No media found on cache!");
         None

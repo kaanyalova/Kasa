@@ -17,7 +17,7 @@ use super::thumbnail_image::{
 };
 
 // Returns the frame and (width, height)
-fn extract_frame(input_path: &str, timestamp: i64) -> Result<(Video, (u32, u32))> {
+pub fn extract_frame(input_path: &str, timestamp: i64) -> Result<(Video, (u32, u32))> {
     ffmpeg::init().unwrap();
 
     let mut ictx = input(&input_path)?;
@@ -81,7 +81,7 @@ fn save_frame(frame: &Video, output_path: &str) -> Result<()> {
     Ok(())
 }
 
-fn get_buffer(frame: &Video) -> Result<ImageBuffer<Rgb<u8>, Vec<u8>>> {
+pub fn get_buffer(frame: &Video) -> Result<ImageBuffer<Rgb<u8>, Vec<u8>>> {
     //std::fs::write("data.bin", frame.data(0).to_vec()).unwrap();
     let image = RgbImage::from_raw(frame.width(), frame.height(), frame.data(0).to_vec());
     match image {

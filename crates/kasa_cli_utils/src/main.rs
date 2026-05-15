@@ -112,7 +112,7 @@ struct ThumbnailArgs {
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    dotenvy::dotenv().unwrap();
+    let _ = dotenvy::dotenv();
     let args = KasaCli::parse();
     match args {
         KasaCli::PopulateTags(args) => populate_tags(args).await,

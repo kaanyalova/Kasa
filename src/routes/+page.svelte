@@ -9,6 +9,28 @@
 	import MediaModal from '../component/MediaModal/MediaModal.svelte';
 	import { MediaModalStatusStore } from '../component/MediaModal/MediaModalStatusStore.svelte';
 	import MainPageTitlebarInsides from '../component/Decoration/MainPageTitlebarInsides.svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+
+	let unlistenOpenMediaModal: UnlistenFn;
+	let unlistenCloseMediaModal: UnlistenFn;
+
+	onMount(async () => {
+		unlistenOpenMediaModal = await listen('open_media_modal', (e) => {
+			MediaModalStatusStore.open((e.payload as any).hash);
+			console.log(`open modal called with hash ${(e.payload as any).hash}`);
+		});
+
+		unlistenCloseMediaModal = await listen('close_media_modal', () => {
+			MediaModalStatusStore.close();
+			console.log('close modal called');
+		});
+	});
+
+	onDestroy(() => {
+		if (unlistenOpenMediaModal) unlistenOpenMediaModal();
+		if (unlistenCloseMediaModal) unlistenCloseMediaModal();
+	});
 </script>
 
 <Sidebar>

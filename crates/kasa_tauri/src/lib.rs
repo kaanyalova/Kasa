@@ -48,6 +48,7 @@ use media::get_media_type;
 use media::get_swf_resolution;
 use media::get_tags;
 use media::get_tags_grouped_by_source_categories;
+use media::get_top_n_closest_for_media;
 use media::get_video_length;
 use media::set_media_favorite;
 use media_server::MediaServerStore;
@@ -192,7 +193,8 @@ pub fn run() {
             create_or_get_path_for_extractor,
             create_or_get_extractor_contents,
             get_existing_extractor_names,
-            get_example_metadata_for_extractor
+            get_example_metadata_for_extractor,
+            get_top_n_closest_for_media
         ]
     });
 

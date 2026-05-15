@@ -169,7 +169,7 @@
 		overscanCount={Math.round(8 * InfiniteMediaStore.thumbnailScale)}
 		bind:this={virtualList}
 	>
-		<div slot="item" let:index let:style {style}>
+		<div class="mediaRow" slot="item" let:index let:style {style}>
 			{#each values[index].images as image}
 				<MediaThumbnail
 					isSelected={false}

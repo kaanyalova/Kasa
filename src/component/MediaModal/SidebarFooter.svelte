@@ -13,6 +13,7 @@
 	import FavoriteFilled from '../Vector/FavoriteFilled.svelte';
 	import FavoriteOutlined from '../Vector/FavoriteOutlined.svelte';
 	import { emit } from '@tauri-apps/api/event';
+	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 	let { data }: SidebarFooterProps = $props();
 
@@ -51,6 +52,13 @@
 	async function onShowOnFileManagerButtonClicked() {
 		await commands.openFileManagerWithFileSelected(data.paths[0]);
 	}
+
+	async function onClickShowSimilarButtonClicked() {
+		const window = new WebviewWindow('source_data_viewer', {
+			url: `/show_similar/${data.hash}/`,
+			decorations: false
+		});
+	}
 </script>
 
 <div class="sidebarFooter">
@@ -74,7 +82,9 @@
 			<FavoriteOutlined height={20} width={20}></FavoriteOutlined>
 		{/if}
 	</button>
-	<button title="Action"> Act </button>
+	<button title="Show Similar" onclick={async () => onClickShowSimilarButtonClicked()}>
+		Sim
+	</button>
 </div>
 
 <style>

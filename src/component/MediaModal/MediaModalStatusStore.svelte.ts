@@ -19,8 +19,9 @@ function createMediaModalStatusStore() {
         get tagsEditModeActive() { return tagsEditModeActive },
 
         open: (hash: string) => {
+            selectedHash = hash;
+            
             if (!isOpen) {
-                selectedHash = hash;
                 isOpen = true;
             }
 

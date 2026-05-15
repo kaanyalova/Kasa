@@ -210,6 +210,9 @@ async getExistingExtractorNames() : Promise<string[]> {
 },
 async getExampleMetadataForExtractor(name: string) : Promise<string> {
     return await TAURI_INVOKE("get_example_metadata_for_extractor", { name });
+},
+async getTopNClosestForMedia(hash: string, n: number) : Promise<EmbeddingDistance[]> {
+    return await TAURI_INVOKE("get_top_n_closest_for_media", { hash, n });
 }
 }
 
@@ -225,12 +228,14 @@ async getExampleMetadataForExtractor(name: string) : Promise<string> {
 
 export type AllTagsOrderingCriteria = "Alphabetic" | "AlphabeticReverse" | "TagCount" | "TagCountReverse"
 export type Database = { db_path: string }
+export type DateOrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 /**
  * Placeholder search until I implement proper search parsing
  * Only supports searching for Media that have the tags
  */
 export type DateRange = { start: number; end: number }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
+export type EmbeddingDistance = { hash: string; distance: number }
 export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number; url_hash: string; url: string; extractor: string }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader; Layout: Layout }
 /**
@@ -245,12 +250,12 @@ export type ImagePlacement = { x_relative: number; y_relative: number; width: nu
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type Layout = { show_filenames: boolean; thumbnail_scale: number }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean; videoMetadata: VideoMetadata | null }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean; videoMetadata: VideoMetadata | null; pathThatExists: string | null }
 export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
-export type OrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 export type RawImage = { width: number; height: number; bytes: number[] }
-export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by: OrderCriteria; date_range: DateRange | null; favorites_only: boolean }
+export type ResolutionOrderCriteria = "None" | "HighestFirst" | "LowestFirst"
+export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by_date: DateOrderCriteria; order_by_resolution: ResolutionOrderCriteria; date_range: DateRange | null; favorites_only: boolean }
 export type SourceCategoryGroupedTags = { tags_with_source_categories: { [key in string]: TagWithDetails[] }; tags_without_source_categories: TagWithDetails[] }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations

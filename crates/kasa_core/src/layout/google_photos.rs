@@ -27,14 +27,19 @@ const LAST_ROW_HEIGHT: u64 = 250;
 /// TODO check if svelte-tiny-list works with
 ///
 /// TODO `max_height` is not used remove it
-/// 
+///
 pub struct MediaLayoutData {
     pub hash: String,
     pub thumbnail_x: i64,
     pub thumbnail_y: i64,
 }
 
-pub fn calculate_layout(images: Vec<MediaLayoutData>, scale: f64, width: f64, gaps: u64) -> Vec<ImageRow> {
+pub fn calculate_layout(
+    images: Vec<MediaLayoutData>,
+    scale: f64,
+    width: f64,
+    gaps: u64,
+) -> Vec<ImageRow> {
     let mut row_index = 0;
     /*
     let min_aspect_ratio = match width {

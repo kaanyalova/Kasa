@@ -12,7 +12,7 @@ use kasa_core::{config::global_config::get_config_impl, tags::insert_tags_with_s
 use kasa_python::extractors::ExtractedTag;
 use sqlx::{query, query_as, query_scalar, sqlite::SqlitePoolOptions};
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, PartialEq, Clone, Debug)]
 pub struct HashAndPath {
     pub hash: String,
     pub path: String,

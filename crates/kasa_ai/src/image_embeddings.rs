@@ -1,6 +1,8 @@
 use anyhow::{Ok, Result};
+use image::{DynamicImage, ImageReader};
 use std::{
-    path::Path,
+    f64::consts::E,
+    path::{self, Path, PathBuf},
     time::Instant,
 };
 
@@ -26,13 +28,36 @@ pub fn generate_image_embedding_single(path: &Path) {
     println!("Took {}ms", elapsed.as_millis());
 }
 
-pub fn generate_image_embeddings(paths: Vec<&Path>) -> Result<Vec<Vec<f32>>> {
+pub struct Embedding {
+    pub path: PathBuf,
+    pub params: Vec<f32>,
+}
+
+pub fn generate_image_embeddings(paths: Vec<&Path>) -> Result<Vec<Embedding>> {
+    let (paths, images): (Vec<PathBuf>, Vec<DynamicImage>) = paths
+        .iter()
+        .filter_map(|p| Some((PathBuf::from(p), ImageReader::open(p).ok()?.decode().ok()?)))
+        .unzip();
+
+    let embeddings = generate_image_embeddings_from_images(images)?;
+
+    let embeddings = paths
+        .into_iter()
+        .zip(embeddings)
+        .map(|(path, params)| Embedding { path, params })
+        .collect();
+
+    Ok(embeddings)
+}
+
+pub fn generate_image_embeddings_from_images(images: Vec<DynamicImage>) -> Result<Vec<Vec<f32>>> {
     let mut model = ImageEmbedding::try_new(
         ImageInitOptions::new(fastembed::ImageEmbeddingModel::NomicEmbedVisionV15)
             .with_show_download_progress(true),
     )?;
 
-    let embeddings = model.embed(paths, None)?;
+    let embeddings = model.embed_images(images)?;
+
     Ok(embeddings)
 }
 

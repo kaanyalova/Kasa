@@ -1,4 +1,5 @@
 use crate::db::DbStore;
+use kasa_core::db::embeddings::{EmbeddingDistance, get_top_n_closest_for_media_impl};
 use kasa_core::db::schema::MediaSource;
 use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{
@@ -147,5 +148,30 @@ pub async fn get_video_length(handle: AppHandle, hash: String) -> Option<f64> {
     } else {
         error!("No connection to database, could not get video length");
         None
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_top_n_closest_for_media(
+    handle: AppHandle,
+    hash: String,
+    n: i64,
+) -> Vec<EmbeddingDistance> {
+    let connection_state = handle.state::<DbStore>();
+    let connection_guard = connection_state.db.lock().await.clone();
+
+    if let Some(pool) = connection_guard.as_ref() {
+        let closest = get_top_n_closest_for_media_impl(pool, &hash, n).await;
+
+        match closest {
+            Ok(c) => return c,
+            Err(e) => {
+                error!("{}", e.to_string());
+                return vec![];
+            }
+        }
+    } else {
+        return vec![];
     }
 }

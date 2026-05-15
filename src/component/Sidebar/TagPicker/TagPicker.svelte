@@ -37,7 +37,8 @@
 			excludes_tags: Array.from(checkedTags.entries())
 				.filter(([_tag, state]) => state === 'exclude')
 				.map(([tag, _state]) => tag),
-			order_by: 'NewestFirst',
+			order_by_date: 'NewestFirst',
+			order_by_resolution: 'None',
 			date_range: null,
 			favorites_only: filterFavorites
 		});
@@ -59,7 +60,8 @@
 			excludes_tags: Array.from(checkedTags.entries())
 				.filter(([_tag, state]) => state === 'exclude')
 				.map(([tag, _state]) => tag),
-			order_by: 'NewestFirst',
+			order_by_date: 'NewestFirst',
+			order_by_resolution: 'None',
 			date_range: null,
 			favorites_only: filterFavorites
 		});
@@ -82,8 +84,8 @@
 	let loadTagsPromise = $state(loadTags);
 
 	// Try every one second until the tags are first loaded, the as db is usually not instantly mounted
-	const initialLoadInterval = setInterval(() => {
-		if (!tags) {
+	const initialLoadInterval = setInterval(async () => {
+		if (!tags && (await commands.areDbsMounted())) {
 			loadTags();
 		} else {
 			clearInterval(initialLoadInterval);
@@ -140,7 +142,8 @@
 			contains_tags: [],
 			contains_tags_or_group: [],
 			excludes_tags: [],
-			order_by: 'NewestFirst',
+			order_by_date: 'NewestFirst',
+			order_by_resolution: 'None',
 			date_range: null,
 			favorites_only: false
 		});

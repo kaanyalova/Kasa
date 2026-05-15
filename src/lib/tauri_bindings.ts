@@ -213,6 +213,9 @@ async getExampleMetadataForExtractor(name: string) : Promise<string> {
 },
 async getTopNClosestForMedia(hash: string, n: number) : Promise<EmbeddingDistance[]> {
     return await TAURI_INVOKE("get_top_n_closest_for_media", { hash, n });
+},
+async doesTheDbFileExist() : Promise<boolean> {
+    return await TAURI_INVOKE("does_the_db_file_exist");
 }
 }
 

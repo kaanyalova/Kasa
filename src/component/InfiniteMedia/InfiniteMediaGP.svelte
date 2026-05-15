@@ -10,14 +10,19 @@
 	import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
 	import { emit, listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import MediaThumbnail from './MediaThumbnail.svelte';
-	import { commands } from '$lib/tauri_bindings';
+	import { commands, type GlobalConfig } from '$lib/tauri_bindings';
 	import { SearchStore } from '../Sidebar/Search/SearchStore.svelte';
 	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
+	import { comma } from 'postcss/lib/list';
+	import '../../fonts.css';
+	import { onNewDb, onOpenDb } from '$lib/dbSelection';
 
 	let values: Array<ImageRow> = $state([]);
 	let heights: Array<number> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
 	let tauri_height = $state(0);
+	let doesTheDbFileExist = $state(true); // set the true so it doesnt flash if the db does exist
+	let config: GlobalConfig | null = $state(null);
 
 	let cooldown = $state(0);
 
@@ -37,10 +42,18 @@
 	});
 
 	listen('dbs_updated', async (_) => {
+		doesTheDbFileExist = await commands.doesTheDbFileExist();
+
+		if (!doesTheDbFileExist) {
+			return;
+		}
+
 		await commands.connectDbs();
 		await initializeLayout();
 		await emit('tags_updated');
-		trace('dbs_mounted event received');
+		values = values;
+		console.log('dbs_updated');
+		trace('dbs_updated event received');
 	});
 
 	// drag and drop support
@@ -59,8 +72,9 @@
 		updateLayoutFromCache();
 	});
 	onMount(async () => {
-		await commands.connectDbs();
-		await InfiniteMediaStore.loadSettings();
+		config = await commands.getConfig();
+		// check if the db actually exists first, prompt to user to create/select a database that exists if it doesn't
+		doesTheDbFileExist = await commands.doesTheDbFileExist();
 
 		const initial_size = await getCurrentWindow().innerSize();
 		tauri_height = initial_size.height;
@@ -70,6 +84,15 @@
 			tauri_height = size.height;
 			tauri_width = size.width;
 		});
+
+		if (!doesTheDbFileExist) {
+			console.log('the db file doesnt exist ');
+			return;
+		}
+
+		await commands.connectDbs();
+		await InfiniteMediaStore.loadSettings();
+		await initializeLayout();
 	});
 
 	onDestroy(() => {
@@ -112,6 +135,7 @@
 
 		heights = _heights;
 		values = _values;
+
 		trace(`calculating sizes w:${tauri_width}`);
 	}
 
@@ -135,13 +159,6 @@
 		}
 	}
 
-	onMount(async () => {
-		await initializeLayout();
-
-		// reload the values
-		values = values;
-	});
-
 	$effect(async () => {
 		tauri_width;
 		tauri_height;
@@ -151,47 +168,115 @@
 	});
 
 	$effect(async () => {});
-
-	onMount(() => {
-		initializeLayout();
-		// reload the values
-		values = values;
-	});
 </script>
 
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
 <div class="list">
-	<VirtualList
-		height="100%"
-		width="100%"
-		itemSize={heights}
-		itemCount={values.length}
-		overscanCount={Math.round(8 * InfiniteMediaStore.thumbnailScale)}
-		bind:this={virtualList}
-	>
-		<div class="mediaRow" slot="item" let:index let:style {style}>
-			{#each values[index].images as image}
-				<MediaThumbnail
-					isSelected={false}
-					hash={image.hash}
-					height={image.height}
-					width={image.width}
-					offset_x={image.x_relative}
-					offset_y={image.y_relative}
-				></MediaThumbnail>
-			{/each}
+	{#if doesTheDbFileExist}
+		<VirtualList
+			height="100%"
+			width="100%"
+			itemSize={heights}
+			itemCount={values.length}
+			overscanCount={Math.round(8 * InfiniteMediaStore.thumbnailScale)}
+			bind:this={virtualList}
+		>
+			<div class="mediaRow" slot="item" let:index let:style {style}>
+				{#each values[index].images as image}
+					<MediaThumbnail
+						isSelected={false}
+						hash={image.hash}
+						height={image.height}
+						width={image.width}
+						offset_x={image.x_relative}
+						offset_y={image.y_relative}
+					></MediaThumbnail>
+				{/each}
+			</div>
+		</VirtualList>
+	{:else}
+		<div class="dbFileMissingWrapper">
+			<div class="dbFileMissingContainer">
+				<div class="dbFileMissingText">
+					The selected database does not exist in
+					<span class="filePath">
+						{config?.Database.db_path}
+					</span>
+				</div>
+
+				<div class="dbMissingButtonRow">
+					<button
+						class="dbMissingButton"
+						onclick={async () => {
+							await onNewDb();
+						}}>New DB</button
+					>
+					<button
+						class="dbMissingButton"
+						onclick={async () => {
+							await onOpenDb();
+						}}>Open DB</button
+					>
+				</div>
+			</div>
 		</div>
-	</VirtualList>
+	{/if}
 </div>
 
 <style>
 	.list {
-		height: calc(100% - 12px); /* onscroll events won't fire without this one, why... ?*/
+		height: calc(100%); /* onscroll events won't fire without this one, why... ?*/
 		position: relative;
-		top: 12px;
 	}
 
 	.list :global(.virtual-list-wrapper) {
 		overflow-x: hidden; /*Don't show horizontal scroll bar when moving the sidebar*/
+	}
+
+	.dbFileMissingText {
+		color: var(--text);
+
+		font-size: 20px;
+	}
+
+	.filePath {
+		font-family: 'UbuntuMono';
+		border: 1px solid var(--secondary-alt);
+		padding: 2px;
+		margin-left: 4px;
+		margin-right: 4px;
+	}
+
+	.dbFileMissingWrapper {
+		display: flex;
+		flex-grow: 1;
+		align-items: center;
+		justify-content: center;
+		height: calc(100% - 32px);
+		flex-direction: column;
+	}
+
+	.dbMissingButton {
+		background-color: var(--accent);
+		border: 1px solid var(--accent-border);
+		color: var(--text-opposite);
+		padding: 8px;
+		margin-top: 16px;
+		margin-left: 4px;
+		margin-right: 4px;
+		font-weight: bold;
+		border-radius: 4px;
+	}
+	.dbMissingButton:hover {
+		background-color: var(--accent-hover);
+	}
+
+	.dbFileMissingContainer {
+		display: flex;
+		align-items: center;
+		justify-self: center;
+		flex-direction: column;
+		border: 1px solid var(--secondary-alt);
+		padding: 32px;
 	}
 </style>

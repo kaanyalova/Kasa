@@ -18,6 +18,7 @@ use db::MediaCache;
 use db::are_dbs_mounted;
 use db::connect_dbs;
 use db::connect_to_db;
+use db::does_the_db_file_exist;
 use db::get_layout_from_cache;
 use db::get_thumbs_db_info;
 use db::nuke_db_versioning;
@@ -194,7 +195,8 @@ pub fn run() {
             create_or_get_extractor_contents,
             get_existing_extractor_names,
             get_example_metadata_for_extractor,
-            get_top_n_closest_for_media
+            get_top_n_closest_for_media,
+            does_the_db_file_exist
         ]
     });
 

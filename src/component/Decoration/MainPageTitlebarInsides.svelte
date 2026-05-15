@@ -17,6 +17,7 @@
 	import TagPickerCheckBox from '../Sidebar/TagPicker/TagPickerCheckBox.svelte';
 	import { isLayoutMenuActive } from './DecorationStore.svelte';
 	import LayoutMenu from './components/LayoutMenu.svelte';
+	import { onNewDb, onOpenDb } from '$lib/dbSelection';
 
 	let dbName = $state('');
 
@@ -29,40 +30,6 @@
 
 	function handleSidebarButton() {
 		sidebarStore.toggle();
-	}
-
-	async function onNewDb() {
-		const paths = await openFilePickerWithSaveDialog('Kasa Database', '*.kasa', 'default.kasa');
-		const path = paths[0];
-
-		console.log('Selected path:', path);
-
-		if (!path) {
-			error('File picker failed to select file');
-			return;
-		}
-
-		await commands.setDbPath(path);
-		dbName = path.split('/').pop() || '';
-
-		await emit('dbs_updated');
-	}
-
-	async function onOpenDb() {
-		const paths = await openFilePickerWithSelectDialog('Kasa Database', '*.kasa');
-		const path = paths[0];
-
-		console.log('Selected path:', path);
-
-		if (!path) {
-			error('File picker failed to select file');
-			return;
-		}
-
-		dbName = path.split('/').pop() || '';
-		await commands.setDbPath(path);
-
-		await emit('dbs_updated');
 	}
 
 	function onOpenLayoutSettings() {
@@ -90,10 +57,22 @@
          <Moon height={20} width={20}></Moon>
 		<div class="iconPadding"></div>-->
 
-			<button class="option newDb" onclick={async () => onNewDb()}> New DB </button>
+			<button
+				class="option newDb"
+				onclick={async () => {
+					dbName = await onNewDb();
+				}}
+			>
+				New DB
+			</button>
 			<div class="iconPadding" data-tauri-drag-region></div>
 
-			<button class="option" onclick={async () => await onOpenDb()}>Open DB ▼</button>
+			<button
+				class="option"
+				onclick={async () => {
+					dbName = await onOpenDb();
+				}}>Open DB ▼</button
+			>
 			<div class="iconPadding" data-tauri-drag-region></div>
 		</div>
 

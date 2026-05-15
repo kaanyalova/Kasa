@@ -17,7 +17,7 @@ use sqlx::{
     Pool, Sqlite, query,
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 use tauri::{AppHandle, Manager};
 #[derive(Default)]
 pub struct DbStore {
@@ -131,6 +131,13 @@ pub async fn connect_dbs(handle: AppHandle) {
     let db_store = handle.state::<DbStore>();
     *db_store.db.lock().await = Some(pool_db);
     *db_store.thumbs_db.lock().await = Some(pool_thumbs);
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn does_the_db_file_exist() -> bool {
+    let config = get_config_impl();
+    PathBuf::from(config.db.db_path).exists()
 }
 
 #[tauri::command(async)]

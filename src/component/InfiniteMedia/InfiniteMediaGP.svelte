@@ -41,37 +41,39 @@
 		trace('media_updated event received');
 	});
 
-	listen('dbs_updated', async (_) => {
-		doesTheDbFileExist = await commands.doesTheDbFileExist();
-
-		if (!doesTheDbFileExist) {
-			return;
-		}
-
-		await commands.connectDbs();
-		await initializeLayout();
-		await emit('tags_updated');
-		values = values;
-		console.log('dbs_updated');
-		trace('dbs_updated event received');
-	});
-
-	// drag and drop support
-	listen('tauri://drag-drop', (event: any) => {
-		// what is the type for the drag and drop event?
-		const paths: Array<string> = event.event.paths;
-
-		paths.forEach((path) => {
-			commands.addIndexSource;
-		});
-	});
-
 	$effect(() => {
 		InfiniteMediaStore.showNames;
 		console.log('setshownames updated');
 		updateLayoutFromCache();
 	});
 	onMount(async () => {
+		await listen('dbs_updated', async (e) => {
+			const createNewDb = (e.payload as any).newDb;
+			doesTheDbFileExist = !(await commands.doesTheDbFileExist()) || createNewDb;
+
+			info(`dbs_updated fileExists: ${doesTheDbFileExist}, newDb: ${createNewDb}`);
+
+			if (!doesTheDbFileExist) {
+				return;
+			}
+
+			await commands.connectDbs();
+			await initializeLayout();
+			await emit('tags_updated');
+			values = values;
+			trace('dbs_updated event received');
+		});
+
+		// drag and drop support
+		await listen('tauri://drag-drop', (event: any) => {
+			// what is the type for the drag and drop event?
+			const paths: Array<string> = event.event.paths;
+
+			paths.forEach((path) => {
+				commands.addIndexSource;
+			});
+		});
+
 		config = await commands.getConfig();
 		// check if the db actually exists first, prompt to user to create/select a database that exists if it doesn't
 		doesTheDbFileExist = await commands.doesTheDbFileExist();

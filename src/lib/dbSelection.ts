@@ -17,7 +17,7 @@ export async function onNewDb(): Promise<string> {
 		await commands.setDbPath(path);
 		const dbName = path.split('/').pop() || '';
 
-		await emit('dbs_updated');
+		await emit('dbs_updated', { newDb: true });
         return dbName;
     }
 

@@ -58,7 +58,7 @@
 
 			info(`dbs_updated fileExists: ${isDatabaseOk}, newDb: ${createNewDb}`);
 			console.log(
-				`dbs_updated fileExists: ${doesTheDbFileExist}, newDb: ${createNewDb}, shouldCreateOrConnectToDb: ${shouldCreateOrConnectToDb}`
+				`dbs_updated fileExists: ${doesTheDbFileExist}, newDb: ${createNewDb}, isDbOk:${isDatabaseOk}`
 			);
 
 			if (!isDatabaseOk) {

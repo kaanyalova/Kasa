@@ -21,7 +21,7 @@
 	let heights: Array<number> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
 	let tauri_height = $state(0);
-	let doesTheDbFileExist = $state(true); // set the true so it doesnt flash if the db does exist
+	let isDatabaseOk = $state(true); // set the true so it doesnt flash if the db does exist
 	let config: GlobalConfig | null = $state(null);
 
 	let cooldown = $state(0);
@@ -48,12 +48,20 @@
 	});
 	onMount(async () => {
 		await listen('dbs_updated', async (e) => {
-			const createNewDb = (e.payload as any).newDb;
-			doesTheDbFileExist = !(await commands.doesTheDbFileExist()) || createNewDb;
+			const createNewDb = (e.payload as any).newDb as boolean;
+			const doesTheDbFileExist = await commands.doesTheDbFileExist();
 
-			info(`dbs_updated fileExists: ${doesTheDbFileExist}, newDb: ${createNewDb}`);
+			// Show the files only if the database file actually exists or
+			// the user is creating a new database,
+			// TODO: i should also check for migrations
+			isDatabaseOk = doesTheDbFileExist || createNewDb;
 
-			if (!doesTheDbFileExist) {
+			info(`dbs_updated fileExists: ${isDatabaseOk}, newDb: ${createNewDb}`);
+			console.log(
+				`dbs_updated fileExists: ${doesTheDbFileExist}, newDb: ${createNewDb}, shouldCreateOrConnectToDb: ${shouldCreateOrConnectToDb}`
+			);
+
+			if (!isDatabaseOk) {
 				return;
 			}
 
@@ -76,7 +84,7 @@
 
 		config = await commands.getConfig();
 		// check if the db actually exists first, prompt to user to create/select a database that exists if it doesn't
-		doesTheDbFileExist = await commands.doesTheDbFileExist();
+		isDatabaseOk = await commands.doesTheDbFileExist();
 
 		const initial_size = await getCurrentWindow().innerSize();
 		tauri_height = initial_size.height;
@@ -87,7 +95,7 @@
 			tauri_width = size.width;
 		});
 
-		if (!doesTheDbFileExist) {
+		if (!isDatabaseOk) {
 			console.log('the db file doesnt exist ');
 			return;
 		}
@@ -174,7 +182,7 @@
 
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
 <div class="list">
-	{#if doesTheDbFileExist}
+	{#if isDatabaseOk}
 		<VirtualList
 			height="100%"
 			width="100%"

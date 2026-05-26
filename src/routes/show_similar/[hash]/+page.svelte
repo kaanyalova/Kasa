@@ -71,6 +71,7 @@
 		padding: 8px;
 		background-color: var(--background);
 		color: var(--text);
+		padding-right: 20px;
 	}
 
 	.item {

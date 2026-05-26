@@ -42,7 +42,7 @@
 
 -->
 
-<div class="container">
+<div class="wrapper">
 	{#each data.closest as media}
 		{#await getThumbnail(media.hash) then thumbnail}
 			<div class="item">
@@ -62,7 +62,7 @@
 </div>
 
 <style>
-	.container {
+	.wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;

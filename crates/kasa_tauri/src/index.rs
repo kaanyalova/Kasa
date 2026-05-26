@@ -1,3 +1,4 @@
+use crate::AppHandle;
 use kasa_core::index::{
     index_sources::{
         add_index_source_impl, cleanup_unreferenced_files_impl, get_index_paths_impl,
@@ -5,7 +6,7 @@ use kasa_core::index::{
     },
     indexer::index,
 };
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{Emitter, Manager};
 
 use crate::db::DbStore;
 

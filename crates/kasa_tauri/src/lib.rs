@@ -65,6 +65,12 @@ use tags::get_list_of_all_tags_with_details;
 use tags::get_tags_as_text;
 use tags::update_tags;
 use tauri::Manager;
+
+#[cfg(feature = "cef")]
+pub type AppHandle = tauri::AppHandle<tauri::Cef>;
+#[cfg(not(feature = "cef"))]
+pub type AppHandle = tauri::AppHandle<tauri::Wry>;
+
 use tauri_specta::{Builder, collect_commands};
 use utils::get_env_var;
 use utils::image_path_to_rgba_bytes;
@@ -137,68 +143,72 @@ pub fn run() {
 
     let context = tauri::generate_context!();
 
-    let builder = Builder::<tauri::Wry>::new().commands({
-        collect_commands![
-            connect_to_db,
-            query_tags,
-            get_thumbnail,
-            get_info,
-            get_layout_from_cache,
-            update_tags,
-            get_tags,
-            get_env_var,
-            are_dbs_mounted,
-            get_config,
-            connect_dbs,
-            get_thumbnail_from_db,
-            get_thumbs_db_info,
-            set_config_value_str,
-            set_config_resolution_value,
-            search,
-            serve_media,
-            close_server,
-            get_media_type,
-            add_index_source,
-            remove_index_source,
-            get_index_paths,
-            index_all,
-            index_path,
-            image_path_to_rgba_bytes,
-            open_with_system_default_app,
-            new_linux_file_picker_dialog_multiple_folder_select,
-            new_linux_file_picker_dialog_save_file,
-            new_linux_file_picker_dialog_file_select,
-            nuke_all_indexes,
-            nuke_selected_index,
-            cleanup_unreferenced_files,
-            get_swf_resolution,
-            get_group_info,
-            delete_tags,
-            get_tags_as_text,
-            nuke_db_versioning,
-            get_tags_grouped_by_source_categories,
-            get_list_of_all_tags_with_details,
-            open_file_manager_with_file_selected,
-            set_search_store,
-            set_db_path,
-            set_thumbs_db_path,
-            get_media_name,
-            get_media_sources,
-            set_media_favorite,
-            get_video_length,
-            set_config_value_bool,
-            set_config_value_f64,
-            set_config_value_str,
-            queue_download_job,
-            get_downloader_statuses,
-            create_or_get_path_for_extractor,
-            create_or_get_extractor_contents,
-            get_existing_extractor_names,
-            get_example_metadata_for_extractor,
-            get_top_n_closest_for_media,
-            does_the_db_file_exist
-        ]
-    });
+    let commands = collect_commands![
+        connect_to_db,
+        query_tags,
+        get_thumbnail,
+        get_info,
+        get_layout_from_cache,
+        update_tags,
+        get_tags,
+        get_env_var,
+        are_dbs_mounted,
+        get_config,
+        connect_dbs,
+        get_thumbnail_from_db,
+        get_thumbs_db_info,
+        set_config_value_str,
+        set_config_resolution_value,
+        search,
+        serve_media,
+        close_server,
+        get_media_type,
+        add_index_source,
+        remove_index_source,
+        get_index_paths,
+        index_all,
+        index_path,
+        image_path_to_rgba_bytes,
+        open_with_system_default_app,
+        new_linux_file_picker_dialog_multiple_folder_select,
+        new_linux_file_picker_dialog_save_file,
+        new_linux_file_picker_dialog_file_select,
+        nuke_all_indexes,
+        nuke_selected_index,
+        cleanup_unreferenced_files,
+        get_swf_resolution,
+        get_group_info,
+        delete_tags,
+        get_tags_as_text,
+        nuke_db_versioning,
+        get_tags_grouped_by_source_categories,
+        get_list_of_all_tags_with_details,
+        open_file_manager_with_file_selected,
+        set_search_store,
+        set_db_path,
+        set_thumbs_db_path,
+        get_media_name,
+        get_media_sources,
+        set_media_favorite,
+        get_video_length,
+        set_config_value_bool,
+        set_config_value_f64,
+        set_config_value_str,
+        queue_download_job,
+        get_downloader_statuses,
+        create_or_get_path_for_extractor,
+        create_or_get_extractor_contents,
+        get_existing_extractor_names,
+        get_example_metadata_for_extractor,
+        get_top_n_closest_for_media,
+        does_the_db_file_exist
+    ];
+
+    #[cfg(feature = "cef")]
+    let builder = Builder::<tauri::Cef>::new().commands(commands);
+
+    #[cfg(not(feature = "cef"))]
+    let builder = Builder::<tauri::Wry>::new().commands(commands);
 
     #[cfg(all(not(target_os = "android"), debug_assertions))]
     let builder = {

@@ -3,6 +3,7 @@ use log::{error, info};
 use sqlite_vec::sqlite3_vec_init;
 use tokio::sync::Mutex;
 
+use crate::AppHandle;
 use kasa_core::{
     config::global_config::get_config_impl,
     db::{
@@ -18,7 +19,7 @@ use sqlx::{
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
 use std::{path::PathBuf, str::FromStr};
-use tauri::{AppHandle, Manager};
+use tauri::Manager;
 #[derive(Default)]
 pub struct DbStore {
     pub db: Mutex<Option<Pool<Sqlite>>>,

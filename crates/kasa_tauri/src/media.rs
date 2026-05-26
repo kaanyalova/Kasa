@@ -1,3 +1,4 @@
+use crate::AppHandle;
 use crate::db::DbStore;
 use kasa_core::db::embeddings::{EmbeddingDistance, get_top_n_closest_for_media_impl};
 use kasa_core::db::schema::MediaSource;
@@ -9,7 +10,7 @@ use kasa_core::media::{
 };
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;
-use tauri::{AppHandle, Manager};
+use tauri::Manager;
 
 #[tauri::command(async)]
 #[specta::specta]

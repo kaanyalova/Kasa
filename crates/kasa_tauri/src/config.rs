@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use crate::AppHandle;
 use kasa_core::config::{
     extractor_scripts::{
         create_or_get_extractor_contents_impl, create_or_get_path_for_extractor_impl,
@@ -10,7 +11,7 @@ use kasa_core::config::{
         set_value_resolution,
     },
 };
-use tauri::{AppHandle, Manager};
+use tauri::Manager;
 
 use crate::db::DbStore;
 

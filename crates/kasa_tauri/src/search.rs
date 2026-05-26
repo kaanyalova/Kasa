@@ -1,9 +1,10 @@
+use crate::AppHandle;
 use kasa_core::{
     db::schema::Media,
     tags::{presets::new_or_update_preset_impl, search::SearchCriteria},
 };
 use log::trace;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{Emitter, Manager};
 use tokio::sync::Mutex;
 
 /// A store containing "extra" search parameters, like those come from TagPicker, or a future sort element

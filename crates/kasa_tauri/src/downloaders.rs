@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::AppHandle;
 use kasa_core::config::global_config::get_tag_extractors_dir;
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
@@ -8,12 +9,9 @@ use kasa_core::{
 use kasa_python::extractors::TagExtractor;
 use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
-use kasa_python::{
-    GalleryDlStatus, PyTrustMe, init_interpreter,
-    init_interpreter_with_gallery_dl,
-};
+use kasa_python::{GalleryDlStatus, PyTrustMe, init_interpreter, init_interpreter_with_gallery_dl};
 use log::error;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{Emitter, Manager};
 use tokio::sync::mpsc;
 
 use crate::db::DbStore;

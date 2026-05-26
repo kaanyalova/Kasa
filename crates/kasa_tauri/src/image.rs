@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 
+use crate::AppHandle;
 use kasa_core::thumbnail::{
     thumbnail_image::ThumbnailFormat,
     thumbnailer::{get_thumbnail_from_db_impl, get_thumbnail_from_file_impl},
 };
 use log::trace;
-use tauri::{AppHandle, Manager};
+use tauri::Manager;
 
 use crate::db::DbStore;
 

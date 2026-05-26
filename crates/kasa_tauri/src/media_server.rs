@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
+use crate::AppHandle;
 use axum::Router;
 use log::trace;
 use sqlx::query_scalar;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{Emitter, Manager};
 use tokio::sync::{
     Mutex,
     oneshot::{self, Receiver, Sender},

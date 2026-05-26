@@ -53,6 +53,7 @@ libsqlite3-sys = "0.35.0"
 # If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.
 # DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
+cef = ["tauri/cef"]
 
 
 [target.'cfg(target_os = "linux")'.dependencies]

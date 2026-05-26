@@ -82,10 +82,12 @@ specta-typescript = "0.0.7"
 sqlx = {git= "https://github.com/launchbadge/sqlx"}
 strum = "0.26.3"
 tar = "0.4.43"
-tauri = "2.1.1"
+tauri = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef"}
+
+
 tauri-build = "2.0.3"
 tauri-plugin-clipboard-manager = "2.2.0"
-tauri-plugin-dialog = "2.7.0"
+tauri-plugin-dialog = "2.7.1"
 tauri-plugin-fs = "2.5.0"
 tauri-plugin-log = "2.2.0"
 tauri-plugin-os = "2.2.0"
@@ -100,3 +102,7 @@ tower-http = "0.5.2"
 walkdir = { git = "https://github.com/dbarnett/walkdir/", branch = "lifetimes" }
 xxhash-rust = "0.8.10"
 xz = "0.1.0"
+
+
+[patch.crates-io]
+tauri = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }

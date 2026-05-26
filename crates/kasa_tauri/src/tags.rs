@@ -1,4 +1,4 @@
-
+use crate::AppHandle;
 use kasa_core::{
     config::global_config::get_tag_extractors_dir,
     tags::{
@@ -8,7 +8,7 @@ use kasa_core::{
 };
 use kasa_python::extractors::scriptable::PythonTagExtractor;
 use log::trace;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{Emitter, Manager};
 
 use crate::{db::DbStore, downloaders::PythonStore};
 

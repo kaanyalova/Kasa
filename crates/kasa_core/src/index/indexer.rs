@@ -1,5 +1,6 @@
+use chrono::Utc;
 use itertools::Itertools;
-use log::error;
+use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use tokio::{sync::mpsc, task::spawn_blocking};
 
@@ -52,6 +53,7 @@ const CHUNK_SIZE: usize = 1000;
 ///
 /// In that case second_pass should only return Vec<MediaTypeWithData>
 pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) {
+    let start = Utc::now();
     let (tx, mut rx) = mpsc::channel(5);
     let path = path.to_owned();
     let path_cloned = path.clone();
@@ -91,6 +93,12 @@ pub async fn index(path: &str, pool: &Pool<Sqlite>, pool_thumbs: &Pool<Sqlite>) 
     while let Some((batch, _type)) = rx.recv().await {
         write_to_db(batch, pool, pool_thumbs, &path_cloned).await;
     }
+
+    let end = Utc::now();
+
+    let time = end - start;
+    let ms = time.num_milliseconds();
+    info!("indexing took {}ms", ms);
 }
 
 pub type Chunk = Vec<walkdir::DirEntry>;

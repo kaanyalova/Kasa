@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS Image (
     hash TEXT NOT NULL,
     -- format TEXT NOT NULL,
     resolution_x INT NOT NULL,
-    resolution_y INT NOT NULL
+    resolution_y INT NOT NULL,
+    pixels INT
 );
 
 

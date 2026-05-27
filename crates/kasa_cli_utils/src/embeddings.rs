@@ -40,7 +40,7 @@ pub async fn generate_all_image_embeddings() {
         .unwrap();
 
     let hashes_and_paths: Vec<HashAndPath> = query_as(
-        "SELECT m.hash, p.path as path FROM Media m JOIN Path p ON p.hash = m.hash WHERE m.media_type = 'Image'",
+        "SELECT m.hash, p.path as path FROM Media m JOIN Path p ON p.hash = m.hash LEFT JOIN MediaEmbeddingMeta mem ON mem.hash = m.hash WHERE m.media_type = 'Image' AND mem.hash IS NULL",
     )
         .fetch_all(&pool)
         .await
@@ -115,7 +115,7 @@ pub async fn generate_all_image_embeddings() {
     }
 
     let mut videos:Vec<HashAndPath> = query_as(
-        "SELECT m.hash, p.path as path FROM Media m JOIN Path p ON p.hash = m.hash WHERE m.media_type = 'Video'",
+        "SELECT m.hash, p.path as path FROM Media m JOIN Path p ON p.hash = m.hash LEFT JOIN MediaEmbeddingMeta mem ON mem.hash = m.hash WHERE m.media_type = 'Video' AND mem.hash IS NULL",
     )
         .fetch_all(&pool)
         .await

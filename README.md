@@ -30,9 +30,9 @@ An app for media hoarders
 ```
 cargo install tauri-cli --version "^2.0.0" --locked
 ```
-- Install [Bun](bun.com) then install the npm packages using 
+- Install [Deno](https://deno.com/) then install the npm packages using 
 ```
-bun i
+deno i
 ```
 Then run `cargo tauri dev` to run the dev server or `cargo tauri build` to build the release binaries 
 

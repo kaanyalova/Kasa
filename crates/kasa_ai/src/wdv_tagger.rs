@@ -3,9 +3,8 @@ use std::iter::zip;
 use image::{Rgba, imageops};
 
 use anyhow::Result;
-use ort::tensor::TensorElementType::Float32;
 use ort::value::Tensor;
-use ort::session::Session;
+use ort::{session::Session, value::TensorElementType::Float32};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]

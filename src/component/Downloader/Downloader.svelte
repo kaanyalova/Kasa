@@ -6,7 +6,6 @@
 	import { commands, type GalleryDlStatus } from '$lib/tauri_bindings';
 	import { comma } from 'postcss/lib/list';
 	import { onDestroy, onMount } from 'svelte';
-	import Download from '../Vector/Download.svelte';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import DownloaderRow from './DownloaderRow.svelte';
@@ -49,7 +48,7 @@
 		<div class="leftSide">
 			<div class="downloadBar">
 				<div class="downloadIcon">
-					<Download height={12} width={12}></Download>
+					<span class="icon-[material-symbols--download] w-3 h-3"></span>
 				</div>
 				<input
 					type="text"

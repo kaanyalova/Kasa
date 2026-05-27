@@ -1,5 +1,4 @@
 <script lang="ts">
-	import FileManager from '../../Vector/FileManager.svelte';
 	import '../../../fonts.css';
 	import { info } from '@tauri-apps/plugin-log';
 	import Button from './Button.svelte';
@@ -16,7 +15,7 @@
 	<button class="fileSelectButton">
 		<span class="details">Browse</span>
 		<div class="icon">
-			<FileManager height={18} width={18}></FileManager>
+			<span class="icon-[material-symbols--folder] h-4 w-4"></span>
 		</div></button
 	>
 </div>

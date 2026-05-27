@@ -11,11 +11,8 @@
 	import { comma } from 'postcss/lib/list';
 	import { SearchStore } from '../Search/SearchStore.svelte';
 	import { emit, listen } from '@tauri-apps/api/event';
-	import FilterAltOff from '../../Vector/FilterAltOff.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import TagPresets from './TagPresets.svelte';
-	import FavoriteFilled from '../../Vector/FavoriteFilled.svelte';
-	import FavoriteOutlined from '../../Vector/FavoriteOutlined.svelte';
 	import { canPlayHLSNatively } from 'vidstack';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
@@ -183,7 +180,7 @@
 			<div class="searchLabel">Search Tags</div>
 			<button class="resetFilter" onclick={async () => await resetTags()}>
 				Clear
-				<FilterAltOff height={24} width={24}></FilterAltOff>
+				<span class="icon-[material-symbols--filter-alt-off] w-5 h-5 pl-2"></span>
 			</button>
 		</div>
 		<input type="text" bind:value={filterInput} />
@@ -194,9 +191,9 @@
 			onclick={async () => await toggleFavorites()}
 		>
 			{#if filterFavorites}
-				<FavoriteFilled height={24} width={24} color="#f14c45"></FavoriteFilled>
+				<span class="icon-[material-symbols--favorite] w-5 h-5 bg-[#f14c45] mr-1"></span>
 			{:else}
-				<FavoriteOutlined height={24} width={24}></FavoriteOutlined>
+				<span class="icon-[material-symbols--favorite-outline] w-5 h-5 mr-1"></span>
 			{/if}
 			Favorites
 		</button>
@@ -275,6 +272,9 @@
 		flex-direction: row;
 		padding-left: 4px;
 		padding-right: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	.resetFilter:hover {
 		background-color: var(--secondary-alt);
@@ -324,6 +324,9 @@
 		margin-top: 8px;
 		text-align: center;
 		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.favoritesButton:hover {

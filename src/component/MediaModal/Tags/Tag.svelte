@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { commands } from '$lib/tauri_bindings';
 	import { SearchStore } from '../../Sidebar/Search/SearchStore.svelte';
-	import Cross from '../../Vector/Cross.svelte';
-	import CrossFilled from '../../Vector/CrossFilled.svelte';
-	import Trash from '../../Vector/Trash.svelte';
-	import TrashGnome from '../../Vector/TrashGnome.svelte';
-	import TrashWithQuestionMark from '../../Vector/TrashWithQuestionMark.svelte';
 	import { MediaModalStatusStore } from '../MediaModalStatusStore.svelte';
 
 	let { name, color, onDelete }: TagProps = $props();
@@ -54,11 +49,11 @@
 				On second click, show the delete icon
 				-->
 				<div class="tagButton trashButton">
-					<TrashGnome height={12} width={12}></TrashGnome>
+					<span class="icon-[material-symbols--delete] w-3 h-3"></span>
 				</div>
 			{:else}
 				<div class="tagButton xButton">
-					<Cross height={16} width={16}></Cross>
+					<span class="icon-[material-symbols--close] w-3 h-3"></span>
 				</div>
 			{/if}
 		</div>

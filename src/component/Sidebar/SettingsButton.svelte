@@ -13,7 +13,7 @@
 	}}
 >
 	<div class="iconContainer">
-		{@render children()}
+		{@render children?.()}
 	</div>
 
 	<div class="innerText">{text}</div>

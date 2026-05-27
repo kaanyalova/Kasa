@@ -1,10 +1,4 @@
 <script lang="ts">
-	import Database from '../../Vector/Database.svelte';
-	import Download from '../../Vector/Download.svelte';
-	import Heart from '../../Vector/Heart.svelte';
-	import Image from '../../Vector/Image.svelte';
-	import LoupePlus from '../../Vector/LoupePlus.svelte';
-	import Trash from '../../Vector/Trash.svelte';
 	import { SettingsCategories } from '../Settings';
 	import SidebarEntry from './SidebarEntry.svelte';
 
@@ -21,7 +15,7 @@
 					name="Database"
 					onClick={() => updateSelectedCategory(SettingsCategories.Database)}
 				>
-					<Database height={20} width={20}></Database>
+					<span class="icon-[material-symbols--database] w-5 h-5"></span>
 				</SidebarEntry>
 			</li>
 
@@ -35,7 +29,7 @@
 					}}
 					name="Thumbnails"
 				>
-					<Image height={20} width={20}></Image>
+					<span class="icon-[material-symbols--image] w-5 h-5"></span>
 				</SidebarEntry>
 			</li>
 
@@ -46,7 +40,7 @@
 					name="Gallery DL"
 					onClick={() => updateSelectedCategory(SettingsCategories.Downloaders)}
 				>
-					<Download height={18} width={18}></Download>
+					<span class="icon-[material-symbols--download] w-5 h-5"></span>
 				</SidebarEntry>
 			</li>
 
@@ -57,7 +51,7 @@
 					name="Unreferenced"
 					onClick={() => updateSelectedCategory(SettingsCategories.UnreferencedItems)}
 				>
-					<Trash height={20} width={20}></Trash>
+					<span class="icon-[material-symbols--delete] w-5 h-5"></span>
 				</SidebarEntry>
 			</li>
 			<li class="sidebarEntry">
@@ -67,7 +61,7 @@
 					name="Indexers"
 					onClick={() => updateSelectedCategory(SettingsCategories.Indexers)}
 				>
-					<LoupePlus height={20} width={20}></LoupePlus>
+					<span class="icon-[material-symbols--database-search] w-5 h-5"></span>
 				</SidebarEntry>
 			</li>
 			<li class="sidebarEntry">Forth</li>

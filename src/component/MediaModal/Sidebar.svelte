@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { info } from '@tauri-apps/plugin-log';
-	import X from '../Vector/X.svelte';
 	import { MediaModalStatusStore } from './MediaModalStatusStore.svelte';
 	import { onMount } from 'svelte';
 	import TagDisplay from './Tags/TagDisplay.svelte';
 	import SidebarFooter from './SidebarFooter.svelte';
 	import { TauriEvent } from '@tauri-apps/api/event';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-	import Clipboard from '../Vector/Clipboard.svelte';
 	import VerticalDivider from '../Shared/Dividers/VerticalDivider.svelte';
-	import Tick from '../Vector/Tick.svelte';
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import ImportInfo from './ImportInfo.svelte';
@@ -31,9 +28,9 @@
 
 <div class="sidebar">
 	<div class="windowControls">
-		<button onclick={MediaModalStatusStore.close} class="">
+		<button onclick={MediaModalStatusStore.close} class="" title="Close">
 			<div class="closeButtonWrapper">
-				<X height={15} width={15}></X>
+				<span class="icon-[material-symbols--close] w-3 h-3"></span>
 			</div>
 		</button>
 	</div>
@@ -60,9 +57,9 @@
 							aria-hidden="true"
 						>
 							{#if showCopySuccessButton === i}
-								<Tick height={15} width={15}></Tick>
+								<span class="icon-[material-symbols--check] w-3 h-3"></span>
 							{:else}
-								<Clipboard height={15} width={15}></Clipboard>
+								<span class="icon-[material-symbols--content-copy] w-3 h-3"></span>
 							{/if}
 						</div>
 					</button>

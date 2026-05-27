@@ -6,10 +6,10 @@
 <button class="button" onclick={onClick}>
 	<div class="buttonInsides">
 		<div class="icon">
-			{@render children()}
+			{@render children?.()}
 		</div>
 
-		<div class="buttonText">{@render text()}</div>
+		<div class="buttonText">{@render text?.()}</div>
 	</div>
 </button>
 

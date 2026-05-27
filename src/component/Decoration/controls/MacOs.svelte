@@ -11,7 +11,7 @@
 		maximizeWindow,
 		minimizeWindow
 	} from '../utils/window';
-	import { BROWSER } from 'esm-env';
+	//import { BROWSER } from 'esm-env';
 	import { onDestroy, onMount } from 'svelte';
 
 	onMount(async () => {

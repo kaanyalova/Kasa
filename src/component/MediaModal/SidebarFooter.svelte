@@ -1,17 +1,10 @@
 <script lang="ts">
 	import { readImage, writeImage, writeText } from '@tauri-apps/plugin-clipboard-manager';
-	import ArrowUpRightFromSquare from '../Vector/ArrowUpRightFromSquare.svelte';
-	import Clipboard from '../Vector/Clipboard.svelte';
 	import { readFile, writeFile } from '@tauri-apps/plugin-fs';
-	import Tick from '../Vector/Tick.svelte';
 	import { commands } from '$lib/tauri_bindings';
 	import { Image } from '@tauri-apps/api/image';
-	import FolderOpen from '../Vector/FolderOpen.svelte';
 	import { openFilePickerWithMultipleFolderSelection } from '$lib/openFilePicker';
-	import Heart from '../Vector/Heart.svelte';
 	import type { SidebarFooterProps } from './SidebarFooter';
-	import FavoriteFilled from '../Vector/FavoriteFilled.svelte';
-	import FavoriteOutlined from '../Vector/FavoriteOutlined.svelte';
 	import { emit } from '@tauri-apps/api/event';
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
@@ -64,26 +57,26 @@
 <div class="sidebarFooter">
 	<button title="Copy {data.mediaType}" onclick={() => onCopyButtonClicked()}>
 		{#if showCopySuccessButton}
-			<Tick height={20} width={20}></Tick>
+			<span class="icon-[material-symbols--check] h-5 w-5"></span>
 		{:else}
-			<Clipboard height={20} width={20}></Clipboard>
+			<span class="icon-[material-symbols--content-copy] h-5 w-5"></span>
 		{/if}
 	</button>
 	<button title="Open Externally" onclick={() => onOpenExternallyButtonClicked()}>
-		<ArrowUpRightFromSquare height={20} width={20}></ArrowUpRightFromSquare></button
-	>
+		<span class="icon-[material-symbols--open-in-new] h-5 w-5"></span>
+	</button>
 	<button title="Open Folder" onclick={() => onShowOnFileManagerButtonClicked()}>
-		<FolderOpen height={20} width={20}></FolderOpen>
+		<span class="icon-[material-symbols--folder-open] h-5 w-5"></span>
 	</button>
 	<button title="Favorite" onclick={async () => await toggleFavorite()}>
 		{#if favoriteState}
-			<FavoriteFilled height={20} width={20} color="#f14c45"></FavoriteFilled>
+			<span class="icon-[material-symbols--favorite] h-5 w-5 bg-[#f14c45]"></span>
 		{:else}
-			<FavoriteOutlined height={20} width={20}></FavoriteOutlined>
+			<span class="icon-[material-symbols--favorite-outline] h-5 w-5"></span>
 		{/if}
 	</button>
 	<button title="Show Similar" onclick={async () => onClickShowSimilarButtonClicked()}>
-		Sim
+		<span class="icon-[material-symbols--image-search] h-5 w-5"></span>
 	</button>
 </div>
 

@@ -5,7 +5,6 @@
 	import { event } from '@tauri-apps/api';
 	import type { Optional } from '$lib/Option';
 	import '../../../fonts.css';
-	import MagnifyingGlass from '../../Vector/MagnifyingGlass.svelte';
 	import { info } from '@tauri-apps/plugin-log';
 	import '../SideBarGlobals.scss';
 	import type { SearchTag } from './SearchDropDown';
@@ -72,9 +71,9 @@
 </script>
 
 <div class="parentDiv">
-	<button class="searchIcon" class:selected={shouldActuallyShow} onclick={onSearch}>
+	<button class="searchIcon" class:selected={shouldActuallyShow} onclick={onSearch} title="Search">
 		<div class="searchIconInner">
-			<MagnifyingGlass height={15} width={15}></MagnifyingGlass>
+			<span class="icon-[material-symbols--search] w-5 h-5"></span>
 		</div>
 	</button>
 

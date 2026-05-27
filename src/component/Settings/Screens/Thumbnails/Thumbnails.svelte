@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { commands } from '$lib/tauri_bindings';
-	import FileManager from '../../../Vector/FileManager.svelte';
 	import '../../../../fonts.css';
 	import { comma } from 'postcss/lib/list';
 	import type { ThumbsDBInfo } from '$lib/tauri_bindings';
@@ -56,7 +55,7 @@
 		// Don't send the initial empty value breaking the config parsing
 		if (thumb_format !== '') {
 			// They are lowercase on config file
-			commands.setConfigValue('Thumbnails', 'thumbnail_format', thumb_format.toLowerCase());
+			commands.setConfigValueStr('Thumbnails', 'thumbnail_format', thumb_format.toLowerCase());
 		}
 	});
 </script>

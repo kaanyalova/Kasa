@@ -1,7 +1,5 @@
 <script>
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
-	import Gear from '../Vector/Gear.svelte';
-	import Heart from '../Vector/Heart.svelte';
 	import SettingsButton from './SettingsButton.svelte';
 	import SidebarButton from './SidebarButton.svelte';
 	import './SideBarGlobals.scss';
@@ -28,7 +26,7 @@ When a process is running the settings button should get smaller and a pie (like
 					onSettingsButtonClick();
 				}}
 			>
-				<Gear width={20} height={20}></Gear>
+				<span class="icon-[material-symbols--settings] w-5 h-5"></span>
 			</SettingsButton>
 		</li>
 	</ul>

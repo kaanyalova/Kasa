@@ -3,7 +3,7 @@
 </script>
 
 <div class="borderedBox" style="padding: {padding}px;">
-	{@render children()}
+	{@render children?.()}
 </div>
 
 <style>

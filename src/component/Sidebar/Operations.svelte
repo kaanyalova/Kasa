@@ -1,6 +1,5 @@
 <script>
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
-	import Heart from '../Vector/Heart.svelte';
 	import SidebarButton from './SidebarButton.svelte';
 	import './SideBarGlobals.scss';
 
@@ -29,19 +28,25 @@
 		<li class="seperator topMargin"></li>
 		<li>
 			<SidebarButton text="Manage Sources">
+				<!--
 				<Heart height={20} width={20}></Heart>
+				-->
 			</SidebarButton>
 		</li>
 
 		<li>
 			<SidebarButton text="Download" onClick={onClickDownload}>
+				<!--
 				<Heart height={20} width={20}></Heart>
+				-->
 			</SidebarButton>
 		</li>
 
 		<li>
 			<SidebarButton text="Extractors" onClick={onClickExtractors}>
+				<!--
 				<Heart height={20} width={20}></Heart>
+			-->
 			</SidebarButton>
 		</li>
 	</ul>

@@ -5,7 +5,6 @@
 	import { info } from '@tauri-apps/plugin-log';
 
 	import { commands } from '$lib/tauri_bindings';
-	import VideoReel from '../Vector/VideoReel.svelte';
 	import Swf from '../Vector/Swf.svelte';
 	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
 	import {

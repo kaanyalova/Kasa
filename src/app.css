@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import "fonts.css";
 
 @plugin "@iconify/tailwind4";
 
@@ -24,6 +25,7 @@ html, body {
     background-color: var(--background);
     margin: 0;
     overflow: hidden;
+	font-family: "Ubuntu";
 }
 
 html {

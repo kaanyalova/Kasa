@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import Tick from '../../Vector/Tick.svelte';
-	import Cross from '../../Vector/Cross.svelte';
 	import type { MouseEventHandler } from 'svelte/elements';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { trace } from '@tauri-apps/plugin-log';
@@ -32,9 +30,9 @@
 <div class="tagPickerCheckBox">
 	<button class="checkBox" onclick={() => onClick()} oncontextmenu={(e) => onContextMenu(e)}>
 		{#if checkboxState === 'selected'}
-			<Tick height={16} width={16}></Tick>
+			<span class="icon-[material-symbols--check] w-4 h-4"></span>
 		{:else if checkboxState === 'exclude'}
-			<Cross height={20} width={20}></Cross>
+			<span class="icon-[material-symbols--close] w-5 h-5"></span>
 		{:else}{/if}
 	</button>
 </div>

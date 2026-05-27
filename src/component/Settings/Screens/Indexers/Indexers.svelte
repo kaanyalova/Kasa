@@ -1,25 +1,13 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import BorderedBox from '../../../Shared/BorderedBox.svelte';
-	import { DividerSizes } from '../../../Shared/Dividers/DividerSizes';
-	import VerticalDivider from '../../../Shared/Dividers/VerticalDivider.svelte';
-	import LoupePlus from '../../../Vector/LoupePlus.svelte';
-	import SearchHardrive from '../../../Vector/SearchHardrive.svelte';
-	import Button from '../../Shared/Button.svelte';
 	import ConfirmationDialog from '../../Shared/ConfirmationDialog.svelte';
 	import { ConfirmationScreenStore } from '../../Shared/ConfirmationDialogStore.svelte';
-	import Database from '../Database.svelte';
 	import IndexerButton from './IndexerButton.svelte';
 	import IndexerButtonDestructive from './IndexerButtonDestructive.svelte';
-	import SearchFolder from '../../../Vector/SearchFolder.svelte';
-	import Trash from '../../../Vector/Trash.svelte';
-	import UserTrash from '../../../Vector/UserTrash.svelte';
-	import { open } from '@tauri-apps/plugin-dialog';
 	import { commands } from '$lib/tauri_bindings';
-	import { error, info, trace } from '@tauri-apps/plugin-log';
 	import { openFilePickerWithMultipleFolderSelection } from '$lib/openFilePicker';
 	import { clickOutside, clickOutsideClassExcluding, clickOutsideModal } from '$lib/clickOutside';
-	import Heart from '../../../Vector/Heart.svelte';
 
 	let entriesPromise = $state();
 	let selectedEntries: Array<number> = $state([]);
@@ -135,7 +123,7 @@
 						<div>Add index</div>
 					{/snippet}
 					<!--Replace with search-folder gnome icon-->
-					<LoupePlus width={20} height={20}></LoupePlus>
+					<span class="icon-[material-symbols--screen-search-desktop] w-5 h-5"></span>
 				</IndexerButton>
 			</li>
 
@@ -148,7 +136,7 @@
 					{#snippet text()}
 						Re-scan all
 					{/snippet}
-					<SearchHardrive width={20} height={20}></SearchHardrive>
+					<span class="icon-[material-symbols--hard-drive] w-5 h-5"></span>
 				</IndexerButton>
 			</li>
 
@@ -162,7 +150,7 @@
 						Re-scan selected
 					{/snippet}
 
-					<SearchFolder width={20} height={20}></SearchFolder>
+					<span class="icon-[material-symbols--image-search] w-5 h-5"></span>
 				</IndexerButton>
 			</li>
 
@@ -179,7 +167,7 @@
 					{#snippet text()}
 						Remove selected
 					{/snippet}
-					<UserTrash width={20} height={20}></UserTrash>
+					<span class="icon-[material-symbols--delete] w-5 h-5"></span>
 				</IndexerButton>
 			</li>
 
@@ -205,7 +193,7 @@
 						Remove all indexers
 					{/snippet}
 
-					<SearchHardrive width={20} height={20}></SearchHardrive>
+					<span class="icon-[material-symbols--hard-drive] w-5 h-5"></span>
 				</IndexerButton>
 			</li>
 
@@ -234,7 +222,7 @@
 						</div>
 					{/snippet}
 
-					<SearchHardrive width={20} height={20}></SearchHardrive>
+					<span class="icon-[material-symbols--hard-drive] w-5 h-5"></span>
 				</IndexerButtonDestructive>
 			</li>
 
@@ -261,7 +249,7 @@
 							</ul>
 						</div>
 					{/snippet}
-					<SearchHardrive width={20} height={20}></SearchHardrive>
+					<span class="icon-[material-symbols--hard-drive] w-5 h-5"></span>
 				</IndexerButtonDestructive>
 			</li>
 
@@ -283,7 +271,7 @@
 						</div>
 					{/snippet}
 
-					<Heart width={20} height={20}></Heart>
+					<span class="icon-[material-symbols--favorite] w-5 h-5"></span>
 				</IndexerButtonDestructive>
 			</li>
 		</ul>

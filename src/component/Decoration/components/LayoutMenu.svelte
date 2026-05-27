@@ -71,7 +71,7 @@
 		color: var(--text);
 		border: 1px solid var(--secondary-alt);
 		position: fixed;
-		left: calc(100vw - 300px - 475px);
+		left: calc(100vw - 350px);
 		top: calc(32px + 8px);
 		border-radius: 8px;
 		padding: 8px;

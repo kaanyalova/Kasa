@@ -1,5 +1,4 @@
 <script>
-	import Heart from '../Vector/Heart.svelte';
 	import SidebarButton from './SidebarButton.svelte';
 	import './SideBarGlobals.scss';
 </script>

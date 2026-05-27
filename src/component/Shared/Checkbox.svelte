@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import Tick from '../Vector/Tick.svelte';
 
 	let { onCheck, state }: CheckboxProps = $props();
 
@@ -18,7 +17,7 @@
 <div>
 	<button class="checkBox" onclick={() => onClick()} oncontextmenu={(e) => e.preventDefault()}>
 		{#if state === true}
-			<Tick height={16} width={16}></Tick>
+			<span class="icon-[material-symbols--check] w-4 h-4"></span>
 		{/if}
 	</button>
 </div>

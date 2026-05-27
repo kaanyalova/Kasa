@@ -2,9 +2,7 @@
 	import { invoke } from '@tauri-apps/api/core';
 	import { MediaModalStatusStore } from '../MediaModalStatusStore.svelte';
 	import { info, trace } from '@tauri-apps/plugin-log';
-	import Pen from '../../Vector/Pen.svelte';
 	import { onMount } from 'svelte';
-	import Clipboard from '../../Vector/Clipboard.svelte';
 	import { handleSelect } from '../../Sidebar/Search/HandleSelect';
 	import {
 		commands,
@@ -182,7 +180,7 @@
 		title="Edit tags"
 		class:titleButtonActive={isInEditMode}
 	>
-		<Pen height={12} width={12}></Pen>
+		<span class="icon-[material-symbols--edit] h-3 w-3"></span>
 	</button>
 
 	<button
@@ -192,7 +190,7 @@
 		}}
 		title="Copy Tags"
 	>
-		<Clipboard height={12} width={12}></Clipboard>
+		<span class="icon-[material-symbols--content-copy] w-3 h-3"></span>
 	</button>
 </div>
 

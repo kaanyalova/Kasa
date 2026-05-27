@@ -1,7 +1,4 @@
 <script lang="ts">
-	import Bars from '../Vector/Bars.svelte';
-	import Moon from '../Vector/Moon.svelte';
-	import SidebarIcon from '../Vector/SidebarIcon.svelte';
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
 	import { InfiniteMediaStore } from '../InfiniteMedia/InfiniteMediaStore.svelte';
 	import '../../fonts.css';
@@ -46,9 +43,9 @@
 		<div class="insides"></div>
 	{:else}
 		<div class="iconContainer">
-			<button onclick={handleSidebarButton}>
+			<button onclick={handleSidebarButton} title="Toggle Sidebar">
 				<div class="iconContainer">
-					<SidebarIcon height={20} width={20}></SidebarIcon>
+					<span class="icon-[material-symbols--side-navigation] w-5 h-5"></span>
 				</div>
 			</button>
 			<div class="iconPadding"></div>
@@ -88,9 +85,7 @@
 			<LayoutMenu></LayoutMenu>
 		{/if}
 
-		<div class="jobs">Running Job: Indexing Files</div>
 		<div class="iconPadding" data-tauri-drag-region></div>
-		<Bars width={15} height={15}></Bars>
 	{/if}
 </div>
 
@@ -111,6 +106,8 @@
 		justify-content: center;
 		margin-left: 4px;
 		margin-right: 4px;
+		color: var(--text);
+		fill: color;
 	}
 
 	svg {

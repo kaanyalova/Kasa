@@ -9,7 +9,7 @@
 	<TagPickerCheckBox {tagName} checkboxState={checkboxState ?? 'unselected'} {onCheck}
 	></TagPickerCheckBox>
 	<label for="tag-{tagName}">
-		<div class="tagName">
+		<div class="tagName" id="tag-{tagName}">
 			{tagName}
 		</div>
 	</label>

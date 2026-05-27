@@ -49,11 +49,11 @@
 				On second click, show the delete icon
 				-->
 				<div class="tagButton trashButton">
-					<span class="icon-[material-symbols--delete] w-3 h-3"></span>
+					<span class="icon-[material-symbols--delete] w-3.5 h-3.5"></span>
 				</div>
 			{:else}
 				<div class="tagButton xButton">
-					<span class="icon-[material-symbols--close] w-3 h-3"></span>
+					<span class="icon-[material-symbols--close] w-3.5 h-3.5"></span>
 				</div>
 			{/if}
 		</div>
@@ -88,6 +88,8 @@
 		position: relative;
 		height: 19px;
 		top: 1px;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.name {

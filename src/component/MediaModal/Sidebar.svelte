@@ -57,9 +57,9 @@
 							aria-hidden="true"
 						>
 							{#if showCopySuccessButton === i}
-								<span class="icon-[material-symbols--check] w-3 h-3"></span>
+								<span class="icon-[material-symbols--check] w-4 h-4"></span>
 							{:else}
-								<span class="icon-[material-symbols--content-copy] w-3 h-3"></span>
+								<span class="icon-[material-symbols--content-copy] w-4 h-4"></span>
 							{/if}
 						</div>
 					</button>

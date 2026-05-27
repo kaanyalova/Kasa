@@ -26,16 +26,11 @@
 		<li class="moreTopMargin"></li>
 		<li class="topText">Operations</li>
 		<li class="seperator topMargin"></li>
-		<li>
-			<SidebarButton text="Manage Sources">
-				<!--
-				<Heart height={20} width={20}></Heart>
-				-->
-			</SidebarButton>
-		</li>
 
 		<li>
 			<SidebarButton text="Download" onClick={onClickDownload}>
+				<span class="icon-[material-symbols--download] w-6 h-6"></span>
+
 				<!--
 				<Heart height={20} width={20}></Heart>
 				-->
@@ -44,9 +39,7 @@
 
 		<li>
 			<SidebarButton text="Extractors" onClick={onClickExtractors}>
-				<!--
-				<Heart height={20} width={20}></Heart>
-			-->
+				<span class="icon-[material-symbols--label] w-5 h-5"></span>
 			</SidebarButton>
 		</li>
 	</ul>

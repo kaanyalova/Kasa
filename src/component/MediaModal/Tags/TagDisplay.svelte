@@ -180,7 +180,7 @@
 		title="Edit tags"
 		class:titleButtonActive={isInEditMode}
 	>
-		<span class="icon-[material-symbols--edit] h-3 w-3"></span>
+		<span class="icon-[material-symbols--edit] h-4 w-4"></span>
 	</button>
 
 	<button
@@ -190,7 +190,7 @@
 		}}
 		title="Copy Tags"
 	>
-		<span class="icon-[material-symbols--content-copy] w-3 h-3"></span>
+		<span class="icon-[material-symbols--content-copy] w-4 h-4"></span>
 	</button>
 </div>
 

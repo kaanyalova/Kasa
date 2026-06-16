@@ -118,12 +118,17 @@
 	}
 	.option {
 		color: black;
-		background: var(--accent);
+		background-color: var(--accent);
 		padding-left: 2px;
 		padding-right: 2px;
 		border-radius: 4px;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		border: 1px solid var(--accent-hover);
+	}
+
+	.option:hover {
+		background-color: var(--accent-hover);
 	}
 
 	.selectionText {
@@ -167,5 +172,10 @@
 		padding-left: 4px;
 		padding-right: 4px;
 		border-radius: 4px;
+		border: 1px solid var(--accent-hover);
+	}
+
+	.layoutSettings:hover {
+		background-color: var(--accent-hover);
 	}
 </style>

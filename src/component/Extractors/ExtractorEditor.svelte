@@ -7,10 +7,16 @@
 	import { Pane, Splitpanes } from 'svelte-splitpanes';
 	import './SplitPanes.scss';
 
-	let selectedExtractor = $state('sneed');
+	let selectedExtractor = $state('');
 	let exampleMetadataJson = $state('');
 
-	onMount(async () => {});
+	onMount(async () => {
+		document.addEventListener('keydown', (e) => {
+			if (e.ctrlKey && e.key == 's') {
+				e.preventDefault();
+			}
+		});
+	});
 
 	$effect(async () => {
 		selectedExtractor;
@@ -52,7 +58,13 @@
 						{#await getExistingExtractors() then extractors}
 							{#each extractors as extractor}
 								<li class="selectionListEntry">
-									{getFileName(extractor)}
+									<button
+										class="extractorButton"
+										onclick={() => (selectedExtractor = extractor)}
+										class:selectedExtractor={selectedExtractor === extractor}
+									>
+										{getFileName(extractor)}
+									</button>
 								</li>
 							{/each}
 						{/await}
@@ -72,7 +84,8 @@
 				</div>
 
 				<div class="editorContainer">
-					<CodeEditor extractorName={selectedExtractor} fileExtension="py"></CodeEditor>
+					<CodeEditor extractorName={getFileName(selectedExtractor)} fileExtension="py"
+					></CodeEditor>
 				</div>
 			</div>
 		</Pane>
@@ -182,6 +195,7 @@
 	.extractorsTitle {
 		color: var(--text);
 		font-weight: bold;
+		padding-left: 8px;
 	}
 
 	.selectionContainerTop {
@@ -206,6 +220,15 @@
 
 	.selectionListEntry {
 		color: white;
+		display: flex;
+	}
+
+	.selectionList {
+		border: 1px solid var(--secondary-alt);
+		margin: 8px;
+		height: 100%;
+		overflow-y: scroll;
+		padding: 1px;
 	}
 
 	:global(.cm-editor) {
@@ -229,6 +252,7 @@
 		padding-left: 8px;
 		padding-right: 4px;
 		gap: 8px;
+		border: 1px solid transparent;
 	}
 
 	.codeEditorActionButton {
@@ -242,5 +266,21 @@
 
 	.codeEditorActionButton:hover {
 		background-color: var(--accent-hover);
+	}
+
+	.selectedExtractor {
+		border: 1px solid var(--accent) !important;
+	}
+
+	.extractorButton {
+		display: flex;
+		flex-grow: 1;
+		padding-right: 4px;
+		padding-left: 4px;
+		border: 1px solid transparent;
+	}
+
+	.extractorButton:hover {
+		border: 1px solid var(--secondary);
 	}
 </style>

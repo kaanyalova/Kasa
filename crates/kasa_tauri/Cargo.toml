@@ -67,3 +67,10 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=/path/to/mold"]
+
+
+[profile.release]
+strip = true      # Automatically strip symbols from the binary (will remove the ~126MiB of bloat)
+opt-level = "z"   # Optimize for size instead of speed
+lto = true        # Enable Link Time Optimization (removes unused code across crates)
+codegen-units = 1 # Better optimizations, though slower compile times

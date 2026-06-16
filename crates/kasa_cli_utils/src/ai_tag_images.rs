@@ -1,6 +1,6 @@
 use std::{
     env,
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -70,24 +70,25 @@ pub async fn ai_tag_images() {
             .await
             .unwrap();
 
-        let first_path = path.first().unwrap();
+        let first_path = path.iter().find(|p| Path::new(p).exists());
 
-        let tags_result = tag_image_wdv(&mut session, first_path, &labels, &thresholds);
-        let tags = match tags_result {
-            Ok(t) => t,
-            Err(e) => {
-                println!(
-                    "Failed to tag image {}, skipping... Error: {}",
-                    first_path, e
-                );
-                continue;
-            }
-        };
+        if let Some(first_path) = first_path {
+            let tags_result = tag_image_wdv(&mut session, first_path, &labels, &thresholds);
+            let tags = match tags_result {
+                Ok(t) => t,
+                Err(e) => {
+                    println!(
+                        "Failed to tag image {}, skipping... Error: {}",
+                        first_path, e
+                    );
+                    continue;
+                }
+            };
 
-        let start = SystemTime::now();
-        let since_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+            let start = SystemTime::now();
+            let since_epoch = start.duration_since(UNIX_EPOCH).unwrap();
 
-        query("INSERT INTO AutoTaggerInfo(hash, tagged_on, tagger_model, thresholds, tag_count) VALUES (?,?,?,?,?)")
+            query("INSERT INTO AutoTaggerInfo(hash, tagged_on, tagger_model, thresholds, tag_count) VALUES (?,?,?,?,?)")
             .bind(&hash_and_path.hash)
             .bind(since_epoch.as_secs() as i64)
             .bind(&model_file_name)
@@ -95,52 +96,53 @@ pub async fn ai_tag_images() {
             .bind(tags.count())
             .execute(&pool).await.unwrap();
 
-        let characters: Vec<ExtractedTag> = tags
-            .character
-            .iter()
-            .map(|t| ExtractedTag {
-                category: Some("Character".to_string()),
-                tag: t.name.to_string(),
-            })
-            .collect();
-        let general: Vec<ExtractedTag> = tags
-            .general
-            .iter()
-            .map(|t| ExtractedTag {
-                category: Some("General".to_string()),
-                tag: t.name.to_string(),
-            })
-            .collect();
+            let characters: Vec<ExtractedTag> = tags
+                .character
+                .iter()
+                .map(|t| ExtractedTag {
+                    category: Some("Character".to_string()),
+                    tag: t.name.to_string(),
+                })
+                .collect();
+            let general: Vec<ExtractedTag> = tags
+                .general
+                .iter()
+                .map(|t| ExtractedTag {
+                    category: Some("General".to_string()),
+                    tag: t.name.to_string(),
+                })
+                .collect();
 
-        let ratings: Vec<ExtractedTag> = vec![ExtractedTag {
-            category: Some("Rating".to_string()),
-            tag: tags.ratings.name,
-        }];
+            let ratings: Vec<ExtractedTag> = vec![ExtractedTag {
+                category: Some("Rating".to_string()),
+                tag: tags.ratings.name,
+            }];
 
-        insert_tags_with_source_types(
-            characters,
-            &pool,
-            Some(hash_and_path.hash.clone()),
-            Some("AI Tagger".to_string()),
-        )
-        .await;
+            insert_tags_with_source_types(
+                characters,
+                &pool,
+                Some(hash_and_path.hash.clone()),
+                Some("AI Tagger".to_string()),
+            )
+            .await;
 
-        insert_tags_with_source_types(
-            general,
-            &pool,
-            Some(hash_and_path.hash.clone()),
-            Some("AI Tagger".to_string()),
-        )
-        .await;
+            insert_tags_with_source_types(
+                general,
+                &pool,
+                Some(hash_and_path.hash.clone()),
+                Some("AI Tagger".to_string()),
+            )
+            .await;
 
-        insert_tags_with_source_types(
-            ratings,
-            &pool,
-            Some(hash_and_path.hash.clone()),
-            Some("AI Tagger".to_string()),
-        )
-        .await;
-        counter += 1;
-        println!("Tagged {}/{} images", counter, hash_count);
+            insert_tags_with_source_types(
+                ratings,
+                &pool,
+                Some(hash_and_path.hash.clone()),
+                Some("AI Tagger".to_string()),
+            )
+            .await;
+            counter += 1;
+            println!("Tagged {}/{} images", counter, hash_count);
+        }
     }
 }

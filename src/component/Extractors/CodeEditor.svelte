@@ -25,7 +25,7 @@
 	});
 	*/
 
-	onMount(async () => {
+	async function initEditor() {
 		editor = new EditorView({
 			parent: editorContainer,
 			doc: 'Hello',
@@ -41,6 +41,18 @@
 				insert: contents
 			}
 		});
+	}
+
+	$effect(async () => {
+		extractorName;
+		fileExtension;
+
+		editor.destroy();
+		await initEditor();
+	});
+
+	onMount(async () => {
+		await initEditor();
 	});
 
 	onDestroy(() => {

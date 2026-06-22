@@ -85,20 +85,14 @@
 	</div>
 {:then thumbnail}
 	<img
-		use:onClickOutside={() => {
-			//InfiniteMediaStore.cleanAllMedia();
-		}}
+		class="thumbnail"
 		onclick={(e) => onClick(e)}
 		src={thumbnail}
-		ondragstart={(e) => {
-			// Disable dragging of images on grid
-			// Why is there a more convenient way of doing this wtf
-			e.preventDefault();
-		}}
 		alt=""
 		style="transform:translate3d({offset_x}px,0px, 0px); height:{height}px; width:{width}px"
 		role="figure"
 		class:selected={isSelected}
+		decoding="async"
 	/>
 
 	{#if mediaType === 'Video'}
@@ -206,5 +200,9 @@
 		fill: var(--text);
 		background-color: color-mix(in srgb, black 60%, transparent 40%);
 		color: var(--text);
+	}
+
+	.thumbnail {
+		content-visibility: auto;
 	}
 </style>

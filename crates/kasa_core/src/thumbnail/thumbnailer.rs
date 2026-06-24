@@ -71,7 +71,7 @@ pub async fn generate_or_get_thumbnail_from_db_impl(
             let (tx, rx) = tokio::sync::oneshot::channel();
             rayon::spawn(move || {
                 let result = std::panic::catch_unwind(|| {
-                    thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG)
+                    thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::JPEG)
                 });
 
                 let out = match result {
@@ -91,7 +91,7 @@ pub async fn generate_or_get_thumbnail_from_db_impl(
             let (tx, rx) = tokio::sync::oneshot::channel();
             rayon::spawn(move || {
                 let result = std::panic::catch_unwind(|| {
-                    thumbnail_video(&path, (256, 256), &ThumbnailFormat::PNG, 5000)
+                    thumbnail_video(&path, (256, 256), &ThumbnailFormat::JPEG, 5000)
                 });
 
                 let out = match result {

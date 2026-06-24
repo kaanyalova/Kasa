@@ -7,12 +7,13 @@ pub mod tags;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite, prelude::FromRow, query_as};
+use utoipa::ToSchema;
 
 use crate::index::media_types::FirstPass;
 
 use schema::{Media, TagDetail};
 
-#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type)]
+#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type, ToSchema)]
 pub struct TagQueryOutput {
     name: String,
     #[sqlx(rename = "tag_count")]

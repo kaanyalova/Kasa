@@ -84,6 +84,16 @@
 	$effect(() => {
 		console.log(flashResolutionX, flashResolutionY);
 	});
+
+	async function getFileUrl(data: MediaInfo): Promise<string> {
+		if (await commands.isRemoteDb()) {
+			return `${await commands.getRemoteServerUrl()}/media?hash=${mediaHash}`;
+		} else if (data.mediaType === 'Video') {
+			return 'http://localhost:3169';
+		} else {
+			return convertFileSrc(data.pathThatExists!);
+		}
+	}
 </script>
 
 <svelte:window
@@ -99,67 +109,65 @@
 <!-- TODO keyboard navigation -->
 <dialog open={false}>
 	{#await getData() then data}
-		<div class="modalWrapper"></div>
+		{#await getFileUrl(data) then fileUrl}
+			<div class="modalWrapper"></div>
 
-		<div
-			class="dialogContents"
-			use:clickOutsideMediaModal={async () => {
-				await onClose();
-				trace('click outside modal');
-			}}
-		>
-			<div class="imageWrapper">
-				<!-- svelte-ignore a11y_img_redundant_alt -->
-				{#if data!.mediaType === 'Image'}
-					<img
-						src={convertFileSrc(data!.pathThatExists!)}
-						alt="An image provided by user"
-						style="aspect-ratio: {data!.aspectRatio};"
-					/>
-				{:else if data!.mediaType === 'Video'}
-					<!--There is a slight pop-in when videos are first loaded-->
-					<media-player
-						autoplay
-						controlsDelay={1000}
-						title={data!.fileName}
-						class="mediaPlayer"
-						style="aspect-ratio: {data!.aspectRatio};"
-					>
-						<media-provider>
-							<!--
+			<div
+				class="dialogContents"
+				use:clickOutsideMediaModal={async () => {
+					await onClose();
+					trace('click outside modal');
+				}}
+			>
+				<div class="imageWrapper">
+					<!-- svelte-ignore a11y_img_redundant_alt -->
+					{#if data!.mediaType === 'Image'}
+						<img
+							src={fileUrl}
+							alt="An image provided by user"
+							style="aspect-ratio: {data!.aspectRatio};"
+						/>
+					{:else if data!.mediaType === 'Video'}
+						<!--There is a slight pop-in when videos are first loaded-->
+						<media-player
+							autoplay
+							controlsDelay={1000}
+							title={data!.fileName}
+							class="mediaPlayer"
+							style="aspect-ratio: {data!.aspectRatio};"
+						>
+							<media-provider>
+								<!--
 							Video player refuses video/x-matkroska wtf, but video/webm works for all videos
 							https://stackoverflow.com/questions/17018119/how-to-play-mkv-file-in-browser
 							-->
-							<source type="video/webm" src="http://localhost:3169" />
-						</media-provider>
-						<media-video-layout></media-video-layout>
-					</media-player>
+								<source type="video/webm" src={fileUrl} />
+							</media-provider>
+							<media-video-layout></media-video-layout>
+						</media-player>
 
-					<!--
+						<!--
 					<video src="http://localhost:3169" controls></video>
 					-->
-				{:else if data!.mediaType === 'Group'}
-					<!--TODO-->
-				{:else if data!.mediaType === 'Flash'}
-					{#await getFlashResolution(data) then}
-						<script src="ruffle/ruffle.js"></script>
+					{:else if data!.mediaType === 'Group'}
+						<!--TODO-->
+					{:else if data!.mediaType === 'Flash'}
+						{#await getFlashResolution(data) then}
+							<script src="ruffle/ruffle.js"></script>
 
-						<div class="overflow-hidden">
-							<object aria-label="User provided flash content">
-								<!-- TODO Make the scaling configurable-->
-								<embed
-									src={convertFileSrc(data!.paths[0])}
-									width={flashResolutionX * 2}
-									height={flashResolutionY * 2}
-								/>
-							</object>
-						</div>
-					{/await}
-				{/if}
+							<div class="overflow-hidden">
+								<object aria-label="User provided flash content">
+									<!-- TODO Make the scaling configurable-->
+									<embed src={fileUrl} width={flashResolutionX * 2} height={flashResolutionY * 2} />
+								</object>
+							</div>
+						{/await}
+					{/if}
+				</div>
+
+				<Sidebar {data} {updateTagsTextBoxContents}></Sidebar>
 			</div>
-
-			<Sidebar {data} {updateTagsTextBoxContents}></Sidebar>
-		</div>
+		{/await}
 	{/await}
 </dialog>
 

@@ -1,0 +1,73 @@
+use std::path::PathBuf;
+
+use axum::Router;
+
+use kasa_core::config::global_config::{GlobalConfig, get_config_impl};
+use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
+use tracing::info;
+use utoipa_axum::{router::OpenApiRouter, routes};
+
+use crate::{
+    api::{Databases, run, write_openapi_spec},
+    cli::Args,
+};
+use clap::Parser;
+mod api;
+mod cli;
+
+#[tokio::main]
+async fn main() {
+    let args = Args::parse();
+    let kasa_config = get_config_impl();
+    tracing_subscriber::fmt::init();
+    dotenvy::dotenv().ok();
+
+    match args {
+        Args::StartServer(server_args) => {
+            // if a path is provided use that, otherwise use the last opened db from the client config file
+            let db_path = server_args
+                .db_path
+                .clone()
+                .unwrap_or(PathBuf::from(&kasa_config.db.db_path.clone()));
+
+            let thumbs_db_path = server_args
+                .thumbs_db_path
+                .clone()
+                .unwrap_or(PathBuf::from(&kasa_config.thumbs.thumbs_db_path.clone()));
+
+            let pool = SqlitePool::connect_with(
+                SqliteConnectOptions::new()
+                    .filename(&db_path)
+                    .create_if_missing(false),
+            )
+            .await
+            .unwrap();
+
+            let thumbs_pool = SqlitePool::connect_with(
+                SqliteConnectOptions::new()
+                    .filename(&thumbs_db_path)
+                    .create_if_missing(false),
+            )
+            .await
+            .unwrap();
+
+            info!("Connected to database at {}", &db_path.display());
+            info!(
+                "Connected to thumbnail database at {}",
+                &thumbs_db_path.display(),
+            );
+
+            run(
+                &server_args,
+                Databases {
+                    db: pool,
+                    thumbs_db: thumbs_pool,
+                },
+            )
+            .await;
+        }
+        Args::WriteOpenApiSpec(open_api_args) => {
+            write_openapi_spec(open_api_args.path.as_deref()).await;
+        }
+    }
+}

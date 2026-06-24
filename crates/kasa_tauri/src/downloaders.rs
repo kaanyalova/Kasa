@@ -8,15 +8,12 @@ use kasa_core::{
 use kasa_python::extractors::TagExtractor;
 use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
-use kasa_python::{
-    GalleryDlStatus, PyTrustMe, init_interpreter,
-    init_interpreter_with_gallery_dl,
-};
+use kasa_python::{GalleryDlStatus, PyTrustMe, init_interpreter, init_interpreter_with_gallery_dl};
 use log::error;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::mpsc;
 
-use crate::db::DbStore;
+use crate::db::{DatabaseState, DbStore};
 use std::sync::Mutex as SyncMutex;
 
 pub struct PythonStore {
@@ -73,25 +70,32 @@ impl DownloaderStore {
             while let Some(job) = rx.recv().await {
                 let cfg = get_config_impl();
 
-                let connection_state = handle.state::<DbStore>();
+                let db_handle = handle.state::<DatabaseState>();
+                let connection_state = db_handle.0.lock().await;
                 let python_state = handle.state::<PythonStore>();
                 let tag_extractor_state = handle.state::<ExtractorsStore>();
-                let connection_guard = connection_state.db.lock().await.clone();
-                let connection_guard_thumbs = connection_state.thumbs_db.lock().await.clone();
 
-                let extractors_cloned = tag_extractor_state.extractors.clone();
+                match &*connection_state {
+                    DbStore::Local(db_store) => {
+                        let connection_guard = db_store.db.lock().await.clone();
+                        let connection_guard_thumbs = db_store.thumbs_db.lock().await.clone();
 
-                process_download_job(
-                    &handle,
-                    &statuses_cloned,
-                    &cfg,
-                    &python_state,
-                    &connection_guard,
-                    &connection_guard_thumbs,
-                    extractors_cloned,
-                    job,
-                )
-                .await;
+                        let extractors_cloned = tag_extractor_state.extractors.clone();
+
+                        process_download_job(
+                            &handle,
+                            &statuses_cloned,
+                            &cfg,
+                            &python_state,
+                            &connection_guard,
+                            &connection_guard_thumbs,
+                            extractors_cloned,
+                            job,
+                        )
+                        .await;
+                    }
+                    DbStore::Remote(_) => todo!(),
+                }
             }
         });
 

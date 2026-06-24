@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, QueryBuilder, Sqlite, prelude::FromRow, query_as};
+use utoipa::ToSchema;
 
 use crate::index::indexer::index;
 
@@ -59,7 +60,7 @@ pub async fn insert_embeddings(pool: &Pool<Sqlite>, results: Vec<EmbeddingResult
     Ok(())
 }
 
-#[derive(Debug, FromRow, specta::Type, Serialize, Deserialize)]
+#[derive(Debug, FromRow, specta::Type, Serialize, Deserialize, ToSchema)]
 pub struct EmbeddingDistance {
     pub hash: String,
     pub distance: f32,

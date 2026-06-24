@@ -11,8 +11,10 @@ use image::codecs::png::PngEncoder;
 use image::{ImageEncoder, ImageReader};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 use strum::{Display, EnumString};
 use thiserror::Error;
+use utoipa::ToSchema;
 
 use crate::supported_formats::SUPPORTED_FORMATS;
 
@@ -110,68 +112,7 @@ pub enum ThumbnailerError {
     ImageOperationError(String),
 }
 
-/// Thumbnails a single image, returns the thumbnail size
-/// Saves the image to given path
-/// Unused, TODO remove
-pub fn thumbnail_image_single_to_file(
-    path: &str,
-    out_path: &str,
-    resolution: (u32, u32),
-    format: &ThumbnailFormat,
-) -> Result<(u32, u32)> {
-    let mime = mime_guess::from_path(path)
-        .first_or_octet_stream()
-        .to_string();
-    if !SUPPORTED_FORMATS.contains(&mime.as_ref()) {
-        //dbg!(
-        //    "file {} is unsupported by the thumbnailer, the mime was: {}",
-        //    &i.in_path,
-        //    mime
-        //);
-
-        return Err(ThumbnailerError::FormatUnsupported(mime).into());
-    }
-    let src_image = ImageReader::open(path).unwrap().decode();
-
-    let src_image = match src_image {
-        Ok(img) => img,
-        Err(e) => return Err(ThumbnailerError::ImageOperationError(e.to_string()).into()),
-    };
-
-    let src_color_type = src_image.color();
-
-    let (dst_x, dst_y) = calculate_aspect_ratio(
-        src_image.width(),
-        src_image.height(),
-        resolution.0,
-        resolution.1,
-    );
-
-    let mut dest_img = Image::new(dst_x, dst_y, src_image.pixel_type().unwrap());
-
-    let mut resizer = Resizer::new();
-    resizer.resize(&src_image, &mut dest_img, None).unwrap();
-
-    let file = File::create(out_path).unwrap();
-    let mut result_buf = BufWriter::new(file);
-
-    match format {
-        ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut result_buf)
-                .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-                .unwrap();
-        }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut result_buf)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut result_buf)
-            .write_image(dest_img.buffer(), dst_x, dst_y, src_color_type.into())
-            .unwrap(),
-    }
-
-    Ok((dst_x, dst_y))
-}
-
+#[derive(Debug, FromRow, ToSchema)]
 pub struct Thumbnail {
     pub x: u32,
     pub y: u32,

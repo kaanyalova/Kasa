@@ -6,8 +6,9 @@ use log::error;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
+use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, Debug, Clone, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema)]
 pub struct VideoAudioStreamMetadata {
     pub codec: String,
     pub codec_long_name: Option<String>,
@@ -22,7 +23,7 @@ pub struct VideoAudioStreamMetadata {
     pub channel_layout: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema)]
 pub struct VideoVideoStreamMeta {
     pub codec: String,
     pub codec_long_name: Option<String>,
@@ -43,7 +44,7 @@ pub struct VideoVideoStreamMeta {
     pub intra_dc_precision: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema)]
 pub struct VideoMetadata {
     pub duration: f64,
     pub bit_rate: i64,
@@ -71,68 +72,66 @@ pub fn index_video_batch(first_passes: &Vec<FirstPass>) -> Vec<MediaTypeWithData
             let mut video_meta = None;
             let mut audio_meta = None;
 
-            if let Some(video_stream) = meta.streams().best(ffmpeg::media::Type::Video) {
-                if let Ok(codec_context) =
+            if let Some(video_stream) = meta.streams().best(ffmpeg::media::Type::Video)
+                && let Ok(codec_context) =
                     ffmpeg::codec::context::Context::from_parameters(video_stream.parameters())
-                {
-                    let codec_desc = codec_context.codec().map(|c| c.description().to_string());
+            {
+                let codec_desc = codec_context.codec().map(|c| c.description().to_string());
 
-                    if let Ok(video) = codec_context.decoder().video() {
-                        let codec_name = video.id().name().to_string();
+                if let Ok(video) = codec_context.decoder().video() {
+                    let codec_name = video.id().name().to_string();
 
-                        video_meta = Some(VideoVideoStreamMeta {
-                            codec: codec_name,
-                            codec_long_name: codec_desc,
-                            bit_rate: video.bit_rate() as i64,
-                            max_rate: video.max_bit_rate() as i64,
-                            delay: video.delay() as i32,
-                            width: video.width(),
-                            height: video.height(),
-                            format: format!("{:?}", video.format()),
-                            has_b_frames: video.has_b_frames(),
-                            aspect_ratio: format!(
-                                "{}:{}",
-                                video.aspect_ratio().0,
-                                video.aspect_ratio().1
-                            ),
-                            color_space: format!("{:?}", video.color_space()),
-                            color_range: format!("{:?}", video.color_range()),
-                            color_primaries: format!("{:?}", video.color_primaries()),
-                            color_transfer_characteristic: format!(
-                                "{:?}",
-                                video.color_transfer_characteristic()
-                            ),
-                            chroma_location: format!("{:?}", video.chroma_location()),
-                            references: video.references() as i32,
-                            intra_dc_precision: video.intra_dc_precision(),
-                        });
-                    }
+                    video_meta = Some(VideoVideoStreamMeta {
+                        codec: codec_name,
+                        codec_long_name: codec_desc,
+                        bit_rate: video.bit_rate() as i64,
+                        max_rate: video.max_bit_rate() as i64,
+                        delay: video.delay() as i32,
+                        width: video.width(),
+                        height: video.height(),
+                        format: format!("{:?}", video.format()),
+                        has_b_frames: video.has_b_frames(),
+                        aspect_ratio: format!(
+                            "{}:{}",
+                            video.aspect_ratio().0,
+                            video.aspect_ratio().1
+                        ),
+                        color_space: format!("{:?}", video.color_space()),
+                        color_range: format!("{:?}", video.color_range()),
+                        color_primaries: format!("{:?}", video.color_primaries()),
+                        color_transfer_characteristic: format!(
+                            "{:?}",
+                            video.color_transfer_characteristic()
+                        ),
+                        chroma_location: format!("{:?}", video.chroma_location()),
+                        references: video.references() as i32,
+                        intra_dc_precision: video.intra_dc_precision(),
+                    });
                 }
             }
 
-            if let Some(audio_stream) = meta.streams().best(ffmpeg::media::Type::Audio) {
-                if let Ok(codec_context) =
+            if let Some(audio_stream) = meta.streams().best(ffmpeg::media::Type::Audio)
+                && let Ok(codec_context) =
                     ffmpeg::codec::context::Context::from_parameters(audio_stream.parameters())
-                {
-                    let codec_desc = codec_context.codec().map(|c| c.description().to_string());
+            {
+                let codec_desc = codec_context.codec().map(|c| c.description().to_string());
 
-                    if let Ok(audio) = codec_context.decoder().audio() {
-                        let codec_name = audio.id().name().to_string();
+                if let Ok(audio) = codec_context.decoder().audio() {
+                    let codec_name = audio.id().name().to_string();
 
-                        audio_meta = Some(VideoAudioStreamMetadata {
-                            codec: codec_name,
-                            codec_long_name: codec_desc,
-                            bit_rate: audio.bit_rate() as i64,
-                            max_rate: audio.max_bit_rate() as i64,
-                            delay: audio.delay() as i32,
-                            rate: audio.rate(),
-                            channels: audio.channels(),
-                            format: format!("{:?}", audio.format()),
-                            frames: audio.frames() as u64,
-                            align: audio.align() as u32,
-                            channel_layout: format!("{:?}", audio.channel_layout()),
-                        });
-                    }
+                    audio_meta = Some(VideoAudioStreamMetadata {
+                        codec: codec_name,
+                        codec_long_name: codec_desc,
+                        bit_rate: audio.bit_rate() as i64,
+                        max_rate: audio.max_bit_rate() as i64,
+                        delay: audio.delay() as i32,
+                        rate: audio.rate(),
+                        channels: audio.channels(),
+                        format: format!("{:?}", audio.format()),
+                        frames: audio.frames() as u64,
+                        align: audio.align() as u32,
+                        channel_layout: format!("{:?}", audio.channel_layout()),
+                    });
                 }
             }
 

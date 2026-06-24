@@ -12,7 +12,7 @@ use kasa_core::config::{
 };
 use tauri::{AppHandle, Manager};
 
-use crate::db::DbStore;
+use crate::db::{DatabaseState, DbStore};
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -75,29 +75,40 @@ pub fn create_or_get_extractor_contents(extractor_name: &str, file_extension: &s
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_existing_extractor_names(handle: AppHandle) -> Vec<String> {
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await.clone();
+    let state = handle.state::<DatabaseState>();
+    let connection_state = state.0.lock().await;
 
-    if let Some(pool) = connection_guard.as_ref() {
-        get_existing_extractor_names_impl(pool).await.unwrap()
-    } else {
-        vec![]
+    match &*connection_state {
+        DbStore::Local(db_store) => {
+            let connection_guard = db_store.db.lock().await.clone();
+            if let Some(pool) = connection_guard.as_ref() {
+                get_existing_extractor_names_impl(pool).await.unwrap()
+            } else {
+                vec![]
+            }
+        }
+        DbStore::Remote(_) => todo!(),
     }
 }
 
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_example_metadata_for_extractor(handle: AppHandle, name: String) -> String {
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await.clone();
+    let state = handle.state::<DatabaseState>();
+    let connection_state = state.0.lock().await;
 
-    if let Some(pool) = connection_guard.as_ref() {
-        get_example_metadata_for_extractor_impl(pool, &name)
-            .await
-            .unwrap()
-    } else {
-        let response =
-            r#"{"error" : "Could not query the database for an example, is the db connected?"}"#;
-        response.to_owned()
+    match &*connection_state {
+        DbStore::Local(db_store) => {
+            let connection_guard = db_store.db.lock().await.clone();
+            if let Some(pool) = connection_guard.as_ref() {
+                get_example_metadata_for_extractor_impl(pool, &name)
+                    .await
+                    .unwrap()
+            } else {
+                let response = r#"{"error" : "Could not query the database for an example, is the db connected?"}"#;
+                response.to_owned()
+            }
+        }
+        DbStore::Remote(_) => todo!(),
     }
 }

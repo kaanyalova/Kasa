@@ -8,6 +8,8 @@ use kasa_python::extractors::ExtractedTag;
 use log::trace;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, QueryBuilder, Sqlite, prelude::FromRow, query, query_scalar};
+use strum::Display;
+use utoipa::ToSchema;
 
 use crate::db::schema::TagDetail;
 
@@ -263,7 +265,7 @@ pub async fn get_tags_as_text_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
     tags.iter().join(", ")
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow, specta::Type)]
+#[derive(Debug, Serialize, Deserialize, FromRow, specta::Type, ToSchema)]
 pub struct TagWithCount {
     pub tag_name: String,
     pub count: u32,
@@ -271,7 +273,7 @@ pub struct TagWithCount {
     pub details: TagDetail,
 }
 
-#[derive(Debug, specta::Type, Deserialize, Serialize)]
+#[derive(Debug, specta::Type, Deserialize, Serialize, ToSchema, Display)]
 pub enum AllTagsOrderingCriteria {
     Alphabetic,
     AlphabeticReverse,

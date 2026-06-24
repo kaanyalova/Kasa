@@ -2,10 +2,11 @@ use std::{os::unix::fs::MetadataExt, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite, query_scalar};
+use utoipa::ToSchema;
 
 use crate::config::global_config::get_config_impl;
 
-#[derive(Debug, specta::Type, Serialize, Deserialize)]
+#[derive(Debug, specta::Type, Serialize, Deserialize, ToSchema)]
 pub struct ThumbsDBInfo {
     pub path: String,
     pub size: String,

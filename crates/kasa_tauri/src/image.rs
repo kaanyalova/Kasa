@@ -1,118 +1,72 @@
-use std::path::PathBuf;
-
+use crate::db::{DatabaseState, DbStore};
+use base64::prelude::*;
 use kasa_core::thumbnail::{
-    thumbnail_image::ThumbnailFormat,
-    thumbnailer::{get_thumbnail_from_db_impl, get_thumbnail_from_file_impl},
+    thumbnail_image::Thumbnail,
+    thumbnailer::{
+        generate_or_get_thumbnail_from_db_impl, get_thumbnail_from_db_impl,
+        insert_thumbnail_into_db_impl,
+    },
 };
 use log::trace;
 use tauri::{AppHandle, Manager};
-
-use crate::db::DbStore;
-
-#[tauri::command(async)]
-#[specta::specta]
-pub async fn get_thumbnail(hash: String, handle: AppHandle) -> Result<Option<String>, ()> {
-    //let dev_thumbs_path = fs::canonicalize("../__dev_thumbs").unwrap();
-    let dev_thumbs_path = std::env::var("KASA_THUMBS_PATH").expect("KASA_THUMBS_PATH env variable was not set, it is required to provide the path for thumbnails for now!");
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await.clone();
-
-    if let Some(pool) = connection_guard.as_ref() {
-        let thumbnail = get_thumbnail_from_file_impl(
-            pool,
-            &hash,
-            PathBuf::from(dev_thumbs_path),
-            ThumbnailFormat::PNG,
-            (256, 256),
-        )
-        .await;
-
-        Ok(thumbnail)
-    } else {
-        Ok(None)
-    }
-}
 
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<String> {
     trace!("getting thumbnail for hash:{}", hash);
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await.clone();
-    let connection_guard_thumbs = connection_state.thumbs_db.lock().await.clone();
+    let state = handle.state::<DatabaseState>();
+    let connection_state = state.0.lock().await;
 
-    if let (Some(pool), Some(pool_thumbs)) =
-        (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
-    {
-        return Some(get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await);
+    match &*connection_state {
+        DbStore::Local(db_store) => {
+            let connection_guard = db_store.db.lock().await.clone();
+            let connection_guard_thumbs = db_store.thumbs_db.lock().await.clone();
+
+            if let (Some(pool), Some(pool_thumbs)) =
+                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+            {
+                let image = generate_or_get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await;
+
+                return Some(BASE64_STANDARD.encode(image));
+            }
+        }
+        DbStore::Remote(remote_store) => {
+            let connection_guard_thumbs = remote_store.thumbs_db.lock().await.clone();
+
+            if let Some(pool_thumbs) = connection_guard_thumbs.as_ref() {
+                let local_thumbnail = get_thumbnail_from_db_impl(&hash, pool_thumbs).await;
+
+                if let Some(thumbnail) = local_thumbnail
+                    && thumbnail.is_valid()
+                {
+                    return Some(BASE64_STANDARD.encode(thumbnail.bytes.unwrap()));
+                } else {
+                    // local thumbnail cache does't have the thumbnail get it from the server and cache it
+                    let bytes = remote_store.client.get_thumbnail(&hash).await.unwrap();
+
+                    // we need to figure out the size of the image now
+                    let image = image::load_from_memory(&bytes).unwrap();
+                    let width = image.width();
+                    let height = image.height();
+
+                    insert_thumbnail_into_db_impl(
+                        &hash,
+                        &Thumbnail {
+                            bytes: bytes.clone(),
+                            x: width,
+                            y: height,
+                        },
+                        pool_thumbs,
+                        true, // TODO figure out a way of checking if the thumbnails coming from the server are valid
+                    )
+                    .await;
+
+                    return Some(BASE64_STANDARD.encode(bytes));
+                }
+            }
+        }
     }
 
     trace!("something went wrong when thumbnailing");
     None
 }
-
-/*
-#[tauri::command]
-pub async fn get_thumbnails(
-    page: i64,
-    count: i64,
-    handle: AppHandle,
-) -> Result<Option<Vec<TestMedia>>, ()> {
-    let top_path = fs::canonicalize("../thumbs").unwrap();
-
-    let connection_state = handle.state::<DbStore>();
-    let connection_guard = connection_state.db.lock().await;
-    if let Some(pool) = connection_guard.as_ref() {
-        let media = query_all_test_impl(count, page, pool).await;
-
-        let to_thumbnail = media
-            .clone()
-            .into_iter()
-            .filter_map(|media: TestMedia| {
-                // DON'T thumbnail images with thumbnails
-                if let Some(path) = &media.thumbs_path {
-                    // DO thumbnail the image if the referenced thumbnail doesn't exist
-                    if !Path::new(&top_path.join(path)).exists() {
-                        return Some(media);
-                    };
-
-                    return None;
-                }
-                return Some(media);
-            })
-            .map(|media| ImageToThumbnail {
-                out_name: media.hash,
-                in_path: media.path,
-            })
-            .collect();
-
-        thumbnail_image_batch(
-            &to_thumbnail,
-            THUMBNAIL_SIZE,
-            PathBuf::from(top_path),
-            THUMBNAIL_FORMAT,
-        );
-
-        // add the to_thumbnail image thumbnail names to db
-
-        let _pool = pool.clone();
-        //tokio::spawn(async move {
-        for thumbnail in to_thumbnail {
-            let name = format!("{}.{}", thumbnail.out_name, THUMBNAIL_FORMAT);
-            query("UPDATE TestMedia SET thumbs_path = ? WHERE hash = ?")
-                .bind(name)
-                .bind(thumbnail.out_name)
-                .execute(&_pool)
-                .await
-                .unwrap();
-        }
-        //    })
-        //.await
-        //.unwrap();
-
-        return Ok(Some(media));
-    } else {
-        Ok(None)
-    }
-}
- */

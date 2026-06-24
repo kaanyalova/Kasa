@@ -5,24 +5,8 @@
 
 
 export const commands = {
-async connectToDb(dbPath: string) : Promise<Result<null, null>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("connect_to_db", { dbPath }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async queryTags(tagName: string, count: number) : Promise<TagQueryOutput[]> {
     return await TAURI_INVOKE("query_tags", { tagName, count });
-},
-async getThumbnail(hash: string) : Promise<Result<string | null, null>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("get_thumbnail", { hash }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
 },
 async getInfo(hash: string) : Promise<MediaInfo | null> {
     return await TAURI_INVOKE("get_info", { hash });
@@ -216,6 +200,12 @@ async getTopNClosestForMedia(hash: string, n: number) : Promise<EmbeddingDistanc
 },
 async doesTheDbFileExist() : Promise<boolean> {
     return await TAURI_INVOKE("does_the_db_file_exist");
+},
+async getRemoteServerUrl() : Promise<string> {
+    return await TAURI_INVOKE("get_remote_server_url");
+},
+async isRemoteDb() : Promise<boolean> {
+    return await TAURI_INVOKE("is_remote_db");
 }
 }
 

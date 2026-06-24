@@ -13,14 +13,14 @@ use config::set_config_value_f64;
 use config::set_config_value_str;
 use config::set_db_path;
 use config::set_thumbs_db_path;
-use db::DbStore;
 use db::MediaCache;
 use db::are_dbs_mounted;
 use db::connect_dbs;
-use db::connect_to_db;
 use db::does_the_db_file_exist;
 use db::get_layout_from_cache;
+use db::get_remote_server_url;
 use db::get_thumbs_db_info;
+use db::is_remote_db;
 use db::nuke_db_versioning;
 use db::query_tags;
 use downloaders::ExtractorsStore;
@@ -31,7 +31,6 @@ use file_picker::new_linux_file_picker_dialog_file_select;
 use file_picker::new_linux_file_picker_dialog_multiple_folder_select;
 use file_picker::new_linux_file_picker_dialog_save_file;
 use file_picker::open_file_manager_with_file_selected;
-use image::get_thumbnail;
 use image::get_thumbnail_from_db;
 use index::cleanup_unreferenced_files;
 use index::index_path;
@@ -79,6 +78,7 @@ mod downloaders;
 mod file_picker;
 mod index;
 mod media_server;
+mod remote_client;
 mod search;
 mod tags;
 mod utils;
@@ -139,9 +139,7 @@ pub fn run() {
 
     let builder = Builder::<tauri::Wry>::new().commands({
         collect_commands![
-            connect_to_db,
             query_tags,
-            get_thumbnail,
             get_info,
             get_layout_from_cache,
             update_tags,
@@ -196,7 +194,9 @@ pub fn run() {
             get_existing_extractor_names,
             get_example_metadata_for_extractor,
             get_top_n_closest_for_media,
-            does_the_db_file_exist
+            does_the_db_file_exist,
+            get_remote_server_url,
+            is_remote_db,
         ]
     });
 
@@ -236,7 +236,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(builder.invoke_handler())
-        .manage(DbStore::default())
+        .manage(db::DatabaseState::default())
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
         .manage(PythonStore::init_interpreter())

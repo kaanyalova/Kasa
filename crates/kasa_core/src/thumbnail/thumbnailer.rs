@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, task::Poll};
 
 use anyhow::anyhow;
 use base64::prelude::*;
@@ -14,112 +14,33 @@ use crate::{
     },
 };
 
-use super::{
-    thumbnail_flash::thumbnail_flash,
-    thumbnail_image::{ThumbnailFormat, thumbnail_image_single_to_file},
-};
+use super::{thumbnail_flash::thumbnail_flash, thumbnail_image::ThumbnailFormat};
 
-/// Returns the relative path of the thumbnail inside the thumbnails directory
-pub async fn get_thumbnail_from_file_impl(
-    pool: &Pool<Sqlite>,
-    hash: &str,
-    thumbnails_path: PathBuf,
-    thumbnail_format: ThumbnailFormat,
-    resolution_max: (u32, u32),
-) -> Option<String> {
-    // Check if the thumbnail exist in the db, return that if it does
-    let thumbs_path: Option<String> = query_scalar("SELECT thumb_path FROM Media WHERE hash = ?")
-        .bind(hash)
-        .fetch_optional(pool)
-        .await
-        .unwrap();
+#[derive(FromRow)]
+pub struct ThumbnailData {
+    pub bytes: Option<Vec<u8>>,
+    success: bool,
+}
 
-    let thumbs = thumbs_path.unwrap();
-    if !thumbs.is_empty() {
-        return Some(thumbs);
-    }
-    /*
-    This does not work
-        if let Some(thumb) = thumbs_path {
-            println!(
-                "thumb already exists for hash:{} thumbs_path:{}",
-                hash, thumb
-            );
-            return thumb;
-        }
-    */
-    let out_path = thumbnails_path
-        .join(hash)
-        .with_extension(thumbnail_format.to_string().to_lowercase());
-
-    let paths: Vec<String> = query_scalar("SELECT path FROM Path WHERE hash = ?")
-        .bind(hash)
-        .fetch_all(pool)
-        .await
-        .unwrap();
-
-    let path = paths
-        .into_iter()
-        .find(|p| std::path::Path::new(p).exists())
-        .unwrap_or_default();
-
-    match thumbnail_image_single_to_file(
-        &path,
-        out_path.to_str().unwrap(),
-        resolution_max,
-        &thumbnail_format,
-    ) {
-        Ok(_size) => {
-            let thumbnail_path =
-                format!("{}.{}", hash, thumbnail_format.to_string().to_lowercase());
-
-            // insert the thumbnail path into the db
-            query("UPDATE Media SET thumb_path = ? WHERE hash = ?")
-                .bind(&thumbnail_path)
-                .bind(hash)
-                .execute(pool)
-                .await
-                .unwrap();
-
-            Some(thumbnail_path)
-        }
-        Err(e) => {
-            error!("An error occurred while processing thumbnail Error: {}", e);
-            None
-        }
+impl ThumbnailData {
+    pub fn is_valid(&self) -> bool {
+        self.bytes.is_some() && self.success
     }
 }
 
 /// Gets the thumbnail with given hash from the db, returns base64 encoded image
 /// Creates the thumbnail and stores it into the db if the thumbnail doesn't exists
-///
-/// Stores the thumbnail in the db as raw bytes instead of base64 encoded strings because it is more
-/// storage efficient
-pub async fn get_thumbnail_from_db_impl(
+pub async fn generate_or_get_thumbnail_from_db_impl(
     hash: &str,
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
-) -> String {
-    #[derive(FromRow)]
-    struct ThumbnailData {
-        bytes: Option<Vec<u8>>,
-        success: bool,
-    }
+) -> Vec<u8> {
+    let thumbnail_from_db = get_thumbnail_from_db_impl(hash, pool_thumbs).await;
 
-    let thumbnail_from_db: Option<ThumbnailData> =
-        query_as("SELECT bytes, success FROM Thumbs WHERE hash = ?")
-            .bind(hash)
-            .fetch_optional(pool_thumbs)
-            .await
-            .unwrap();
-
-    if let Some(thumbnail) = thumbnail_from_db {
-        if let Some(bytes) = thumbnail.bytes {
-            if !bytes.is_empty() && thumbnail.success {
-                trace!("thumbnail found in db returning that");
-                return BASE64_STANDARD.encode(bytes);
-            }
-        }
+    if let Some(encoded_thumbnail) = thumbnail_from_db
+        && encoded_thumbnail.is_valid()
+    {
+        return encoded_thumbnail.bytes.unwrap(); // does not panic
     }
 
     // get the file path for the image to thumbnail
@@ -186,14 +107,14 @@ pub async fn get_thumbnail_from_db_impl(
             })
         }
         crate::db::schema::MediaType::Game => {
-            return "".to_string();
+            return vec![];
         }
         crate::db::schema::MediaType::Unknown => {
             error!(
                 "Unknown mime type {}, you have somehow managed to index a format that wasn't on the supported formats list.",
                 mime
             );
-            return "".to_string();
+            return vec![];
         }
         crate::db::schema::MediaType::Group => {
             let hashes: Vec<String> =
@@ -249,6 +170,18 @@ pub async fn get_thumbnail_from_db_impl(
     //let thumbnail = thumbnail_image_single(&path, (256, 256), &ThumbnailFormat::PNG).unwrap();
 
     // write the thumbnail to db
+    insert_thumbnail_into_db_impl(hash, &thumbnail, pool_thumbs, thumnail_success).await;
+
+    // return the encoded
+    thumbnail.bytes
+}
+
+pub async fn insert_thumbnail_into_db_impl(
+    hash: &str,
+    thumbnail: &Thumbnail,
+    pool: &Pool<Sqlite>,
+    success: bool,
+) {
     query(
         "INSERT OR REPLACE INTO Thumbs(hash, x, y, x_max, y_max, format, bytes, success) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
@@ -259,11 +192,19 @@ pub async fn get_thumbnail_from_db_impl(
     .bind(256) // TODO unhardcode
     .bind("PNG") // TODO unhardcode
     .bind(&thumbnail.bytes)
-    .bind(thumnail_success)
-    .execute(pool_thumbs)
+    .bind(success)
+    .execute(pool)
     .await
     .unwrap();
+}
 
-    // return the encoded
-    BASE64_STANDARD.encode(thumbnail.bytes)
+pub async fn get_thumbnail_from_db_impl(
+    hash: &str,
+    pool_thumbs: &Pool<Sqlite>,
+) -> Option<ThumbnailData> {
+    query_as("SELECT bytes, success FROM Thumbs WHERE hash = ?")
+        .bind(hash)
+        .fetch_optional(pool_thumbs)
+        .await
+        .unwrap()
 }

@@ -1,11 +1,9 @@
-import type { MediaInfo } from "$lib/tauri_bindings";
-
 type MediaModalProps = {
 	imageHash: string;
 };
 
 type SidebarProps = {
-	data:  MediaInfo;
+	data: MediaInfo;
 	updateTagsTextBoxContents: Function; // What is the type for state?
 };
 

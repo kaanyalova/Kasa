@@ -2,6 +2,8 @@ use log::error;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, QueryBuilder, Sqlite, query_as};
+use strum::Display;
+use utoipa::{IntoParams, ToSchema};
 
 #[allow(unused)]
 use crate::{
@@ -34,13 +36,13 @@ pub fn parse() {
 /// Placeholder search until I implement proper search parsing
 /// Only supports searching for Media that have the tags
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, IntoParams)]
 pub struct DateRange {
     start: u64,
     end: u64,
 }
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, IntoParams)]
 pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
@@ -51,7 +53,7 @@ pub struct SearchCriteria {
     favorites_only: bool,
 }
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, Display, ToSchema)]
 enum DateOrderCriteria {
     #[default]
     NewestFirst,
@@ -59,7 +61,7 @@ enum DateOrderCriteria {
     None,
 }
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema)]
 enum ResolutionOrderCriteria {
     #[default]
     None,

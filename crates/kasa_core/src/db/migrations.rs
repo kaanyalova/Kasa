@@ -4,13 +4,17 @@ use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions};
 use crate::config::global_config::GlobalConfig;
 
 /// Gets the db paths from config, creates the dbs if they don't exist, runs any pending migrations
-pub async fn prepare_dbs(config: &GlobalConfig) {
-    prepare_main_db(config).await;
-    prepare_thumbs_db(config).await;
+pub async fn prepare_dbs(main_db_path: &str, thumbs_db_path: &str) {
+    prepare_main_db(main_db_path).await;
+    prepare_thumbs_db(thumbs_db_path).await;
 }
 
-pub async fn prepare_main_db(config: &GlobalConfig) {
-    let db_path_absolute = std::path::absolute(&config.db.db_path)
+pub async fn prepare_dbs_from_config(config: &GlobalConfig) {
+    prepare_main_db(&config.db.db_path).await;
+    prepare_thumbs_db(&config.thumbs.thumbs_db_path).await;
+}
+pub async fn prepare_main_db(db_path: &str) {
+    let db_path_absolute = std::path::absolute(db_path)
         .unwrap()
         .to_string_lossy()
         .to_string();
@@ -22,13 +26,13 @@ pub async fn prepare_main_db(config: &GlobalConfig) {
         .unwrap();
 
     if !does_db_exist {
-        if config.db.db_path.is_empty() {
+        if db_path.is_empty() {
             error!("db_path is empty");
             return;
         }
         info!(
             "kasa database doesn't exist creating database at {}",
-            &config.db.db_path
+            db_path
         );
         sqlx::Sqlite::create_database(&db_path_absolute)
             .await
@@ -48,8 +52,8 @@ pub async fn prepare_main_db(config: &GlobalConfig) {
         .unwrap();
 }
 
-pub async fn prepare_thumbs_db(config: &GlobalConfig) {
-    let thumbs_path_absolute = std::path::absolute(&config.thumbs.thumbs_db_path)
+pub async fn prepare_thumbs_db(db_path: &str) {
+    let thumbs_path_absolute = std::path::absolute(db_path)
         .unwrap()
         .to_string_lossy()
         .to_string();
@@ -61,15 +65,15 @@ pub async fn prepare_thumbs_db(config: &GlobalConfig) {
         .unwrap();
 
     if !does_thumbs_db_exist {
-        if config.thumbs.thumbs_db_path.is_empty() {
+        if db_path.is_empty() {
             error!("thumbs_db_path is empty");
             return;
         }
         info!(
             "thumbs database doesn't exist creating database at {}",
-            &config.thumbs.thumbs_db_path
+            db_path
         );
-        sqlx::Sqlite::create_database(&config.thumbs.thumbs_db_path)
+        sqlx::Sqlite::create_database(&thumbs_path_absolute)
             .await
             .unwrap();
     } else {

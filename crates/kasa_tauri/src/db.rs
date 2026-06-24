@@ -113,7 +113,7 @@ pub async fn connect_dbs(handle: AppHandle) {
         sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
     }
 
-    prepare_thumbs_db(&config).await;
+    prepare_thumbs_db(&config.thumbs.thumbs_db_path).await;
 
     let thumbs_path_absolute = std::path::absolute(&config.thumbs.thumbs_db_path)
         .unwrap()
@@ -145,7 +145,7 @@ pub async fn connect_dbs(handle: AppHandle) {
             thumbs_db: Mutex::new(Some(pool_thumbs)),
         });
     } else {
-        prepare_main_db(&config).await;
+        prepare_main_db(&config.db.db_path).await;
 
         let db_path_absolute = std::path::absolute(&config.db.db_path)
             .unwrap()

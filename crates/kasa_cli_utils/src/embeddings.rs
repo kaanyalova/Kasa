@@ -12,7 +12,7 @@ use kasa_core::{
     config::global_config::get_config_impl,
     db::{
         embeddings::{self, EmbeddingResult, insert_embeddings},
-        migrations::prepare_dbs,
+        migrations::{prepare_dbs, prepare_dbs_from_config},
     },
     thumbnail::{extract_frame, get_buffer},
 };
@@ -31,7 +31,7 @@ pub async fn generate_all_image_embeddings() {
         sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
     }
 
-    prepare_dbs(&config).await;
+    prepare_dbs_from_config(&config).await;
 
     let pool = SqlitePoolOptions::new()
         .max_connections(8)

@@ -1,6 +1,6 @@
 use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
-    db::migrations::prepare_dbs,
+    db::migrations::{prepare_dbs, prepare_dbs_from_config},
     index::indexer::index,
 };
 use sqlx::sqlite::SqlitePoolOptions;
@@ -36,7 +36,7 @@ pub async fn index_folder(args: IndexFolderArgs) {
         config.thumbs.thumbs_db_path = path.display().to_string();
     }
 
-    prepare_dbs(&config).await;
+    prepare_dbs_from_config(&config).await;
     let pool = SqlitePoolOptions::new()
         .max_connections(8)
         .connect(&config.db.db_path)

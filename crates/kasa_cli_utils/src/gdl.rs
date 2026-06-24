@@ -5,15 +5,13 @@ use std::{
 
 use kasa_core::{
     config::global_config::{get_config_impl, get_tag_extractors_dir},
-    db::migrations::prepare_dbs,
+    db::migrations::{prepare_dbs, prepare_dbs_from_config},
     downloaders::gallery_dl::download_and_index_impl,
 };
 use kasa_python::{
     PyTrustMe,
     extractors::{
-        TagExtractor,
-        configurable::ConfigurableExtractor,
-        scriptable::PythonTagExtractor,
+        TagExtractor, configurable::ConfigurableExtractor, scriptable::PythonTagExtractor,
     },
     init_interpreter, init_interpreter_with_gallery_dl,
 };
@@ -32,7 +30,8 @@ pub async fn gdl(url: &str) {
     let extractors: Vec<&(dyn TagExtractor + Send + Sync)> =
         vec![&python_extractor, &configurable_extractor];
 
-    prepare_dbs(&config).await;
+    prepare_dbs_from_config(&config).await;
+
     let pool = SqlitePoolOptions::new()
         .max_connections(8)
         .connect(&config.db.db_path)

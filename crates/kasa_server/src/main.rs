@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use axum::Router;
 
-use kasa_core::config::global_config::{GlobalConfig, get_config_impl};
+use kasa_core::{
+    config::global_config::{GlobalConfig, get_config_impl},
+    db::migrations::{prepare_main_db, prepare_thumbs_db},
+};
 use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
 use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -38,18 +41,22 @@ async fn main() {
             let pool = SqlitePool::connect_with(
                 SqliteConnectOptions::new()
                     .filename(&db_path)
-                    .create_if_missing(false),
+                    .create_if_missing(true),
             )
             .await
             .unwrap();
 
+            prepare_main_db(&db_path.to_string_lossy()).await;
+
             let thumbs_pool = SqlitePool::connect_with(
                 SqliteConnectOptions::new()
                     .filename(&thumbs_db_path)
-                    .create_if_missing(false),
+                    .create_if_missing(true),
             )
             .await
             .unwrap();
+
+            prepare_thumbs_db(&thumbs_db_path.to_string_lossy()).await;
 
             info!("Connected to database at {}", &db_path.display());
             info!(

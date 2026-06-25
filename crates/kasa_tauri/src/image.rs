@@ -63,7 +63,8 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                         image::ImageFormat::Png => ThumbnailFormat::PNG,
                         image::ImageFormat::Jpeg => ThumbnailFormat::JPEG,
                         image::ImageFormat::Avif => ThumbnailFormat::AVIF,
-                        f => todo!("image format {:?} is not supported for thumbnails", f),
+                        image::ImageFormat::WebP => ThumbnailFormat::WEBPLossy,
+                        _ => ThumbnailFormat::PNG,
                     };
 
                     insert_thumbnail_into_db_impl(

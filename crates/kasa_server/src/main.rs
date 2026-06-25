@@ -6,6 +6,8 @@ use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
     db::migrations::{prepare_main_db, prepare_thumbs_db},
 };
+use libsqlite3_sys::sqlite3_auto_extension;
+use sqlite_vec::sqlite3_vec_init;
 use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
 use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -37,6 +39,10 @@ async fn main() {
                 .thumbs_db_path
                 .clone()
                 .unwrap_or(PathBuf::from(&kasa_config.thumbs.thumbs_db_path.clone()));
+
+            unsafe {
+                sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
+            }
 
             let pool = SqlitePool::connect_with(
                 SqliteConnectOptions::new()

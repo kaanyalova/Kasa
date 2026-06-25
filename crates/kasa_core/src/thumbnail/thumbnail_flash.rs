@@ -1,14 +1,9 @@
 use anyhow::{Result, anyhow};
-use fast_image_resize::{IntoImageView, Resizer, images::Image};
-use image::{
-    DynamicImage, ImageEncoder, RgbaImage,
-    codecs::{avif::AvifEncoder, jpeg::JpegEncoder, png::PngEncoder},
-};
+use image::{DynamicImage, RgbaImage};
 use std::path::Path;
 
-use super::thumbnail_image::{
-    Thumbnail, ThumbnailFormat, ThumbnailerError, calculate_aspect_ratio,
-};
+use super::encoding::resize_and_encode;
+use super::thumbnail_image::{Thumbnail, ThumbnailFormat};
 
 #[derive(Debug, Copy, Clone)]
 struct SizeOpt {
@@ -152,65 +147,11 @@ pub async fn thumbnail_flash(
     resolution: (u32, u32),
     format: &ThumbnailFormat,
 ) -> Result<Thumbnail> {
-    let (buffer, (width, height)): (Vec<RgbaImage>, (i32, i32)) =
+    let (buffer, (_width, _height)): (Vec<RgbaImage>, (i32, i32)) =
         take_screenshot(Path::new(&path), 1, 0, Default::default(), true).await?;
 
-    let (target_width, target_height) =
-        calculate_aspect_ratio(width as u32, height as u32, resolution.0, resolution.1);
-
     let input_image = DynamicImage::ImageRgba8(buffer[0].clone()); // why the clone??
-    let src_color_type = input_image.color();
-
-    let mut dest_image = Image::new(
-        target_width,
-        target_height,
-        input_image
-            .pixel_type()
-            .ok_or("No pixel type in the source image found")
-            .map_err(|e| ThumbnailerError::ImageOperationError(e.to_string()))?,
-    );
-
-    let mut resizer = Resizer::new();
-    resizer.resize(&input_image, &mut dest_image, None)?;
-
-    let mut bytes = vec![];
-
-    match format {
-        ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut bytes)
-                .write_image(
-                    dest_image.buffer(),
-                    target_width,
-                    target_height,
-                    src_color_type.into(),
-                )
-                .unwrap();
-        }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes)
-            .write_image(
-                dest_image.buffer(),
-                target_width,
-                target_height,
-                src_color_type.into(),
-            )
-            .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes)
-            .write_image(
-                dest_image.buffer(),
-                target_width,
-                target_height,
-                src_color_type.into(),
-            )
-            .unwrap(),
-    }
-
-    let thumbnail = Thumbnail {
-        x: target_width,
-        y: target_height,
-        bytes,
-    };
-
-    Ok(thumbnail)
+    resize_and_encode(&input_image, resolution, format)
 }
 
 #[cfg(feature = "swf_thumbnailer")]

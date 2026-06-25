@@ -27,10 +27,13 @@ pub async fn get_thumbnail(
 ) -> (StatusCode, HeaderMap, Vec<u8>) {
     //let thumbnail = generate_or_get_thumbnail_from_db_impl(hash, &dbs.db, &dbs.thumbs_db);
     let mut headers = HeaderMap::new();
-    headers.insert(header::CONTENT_TYPE, "image/png".parse().unwrap());
-
     let thumbnail =
         generate_or_get_thumbnail_from_db_impl(&params.hash, &dbs.db, &dbs.thumbs_db).await;
 
-    (StatusCode::OK, headers, thumbnail)
+    headers.insert(
+        header::CONTENT_TYPE,
+        thumbnail.format.to_mime().parse().unwrap(),
+    );
+
+    (StatusCode::OK, headers, thumbnail.bytes)
 }

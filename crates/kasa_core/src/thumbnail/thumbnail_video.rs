@@ -1,20 +1,14 @@
 use anyhow::Result;
-use fast_image_resize::images::Image;
-use fast_image_resize::{IntoImageView, Resizer};
 use ffmpeg::format::{Pixel, input};
 use ffmpeg::media::Type;
 use ffmpeg::software::scaling::{context::Context, flag::Flags};
 use ffmpeg::util::frame::video::Video;
-use image::codecs::avif::AvifEncoder;
-use image::codecs::jpeg::JpegEncoder;
-use image::codecs::png::PngEncoder;
-use image::{DynamicImage, ImageBuffer, ImageEncoder, Rgb, RgbImage};
+use image::{DynamicImage, ImageBuffer, Rgb, RgbImage};
 use std::fs::File;
 use std::io::Write;
 
-use super::thumbnail_image::{
-    Thumbnail, ThumbnailFormat, ThumbnailerError, calculate_aspect_ratio,
-};
+use super::encoding::resize_and_encode;
+use super::thumbnail_image::{Thumbnail, ThumbnailFormat, ThumbnailerError};
 
 // Returns the frame and (width, height)
 pub fn extract_frame(input_path: &str, timestamp: i64) -> Result<(Video, (u32, u32))> {
@@ -100,63 +94,9 @@ pub fn thumbnail_video(
     format: &ThumbnailFormat,
     timestamp: u64,
 ) -> Result<Thumbnail> {
-    let (frame, (width, height)) = extract_frame(path, timestamp as i64)?;
+    let (frame, (_width, _height)) = extract_frame(path, timestamp as i64)?;
     let buffer = get_buffer(&frame)?;
 
-    let (target_width, target_height) =
-        calculate_aspect_ratio(width, height, resolution.0, resolution.1);
-
     let input_image = DynamicImage::ImageRgb8(buffer);
-    let src_color_type = input_image.color();
-
-    let mut dest_image = Image::new(
-        target_width,
-        target_height,
-        input_image
-            .pixel_type()
-            .ok_or("No pixel type in the source image found")
-            .map_err(|e| ThumbnailerError::ImageOperationError(e.to_string()))?,
-    );
-
-    let mut resizer = Resizer::new();
-    resizer.resize(&input_image, &mut dest_image, None)?;
-
-    let mut bytes = vec![];
-
-    match format {
-        ThumbnailFormat::PNG => {
-            PngEncoder::new(&mut bytes)
-                .write_image(
-                    dest_image.buffer(),
-                    target_width,
-                    target_height,
-                    src_color_type.into(),
-                )
-                .unwrap();
-        }
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes)
-            .write_image(
-                dest_image.buffer(),
-                target_width,
-                target_height,
-                src_color_type.into(),
-            )
-            .unwrap(),
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes)
-            .write_image(
-                dest_image.buffer(),
-                target_width,
-                target_height,
-                src_color_type.into(),
-            )
-            .unwrap(),
-    }
-
-    let thumbnail = Thumbnail {
-        x: target_width,
-        y: target_height,
-        bytes,
-    };
-
-    Ok(thumbnail)
+    resize_and_encode(&input_image, resolution, format)
 }

@@ -1,7 +1,7 @@
 use crate::db::{DatabaseState, DbStore};
 use base64::prelude::*;
 use kasa_core::thumbnail::{
-    thumbnail_image::Thumbnail,
+    thumbnail_image::{Thumbnail, ThumbnailFormat},
     thumbnailer::{
         generate_or_get_thumbnail_from_db_impl, get_thumbnail_from_db_impl,
         insert_thumbnail_into_db_impl,
@@ -27,7 +27,11 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
             {
                 let image = generate_or_get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await;
 
-                return Some(BASE64_STANDARD.encode(image));
+                return Some(format!(
+                    r#"data:{};base64, {}"#,
+                    image.format.to_mime(),
+                    BASE64_STANDARD.encode(image.bytes)
+                ));
             }
         }
         DbStore::Remote(remote_store) => {
@@ -39,15 +43,28 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                 if let Some(thumbnail) = local_thumbnail
                     && thumbnail.is_valid()
                 {
-                    return Some(BASE64_STANDARD.encode(thumbnail.bytes.unwrap()));
+                    return Some(format!(
+                        r#"data:{};base64, {}"#,
+                        thumbnail.format.to_mime(),
+                        BASE64_STANDARD.encode(thumbnail.bytes)
+                    ));
                 } else {
                     // local thumbnail cache does't have the thumbnail get it from the server and cache it
                     let bytes = remote_store.client.get_thumbnail(&hash).await.unwrap();
 
-                    // we need to figure out the size of the image now
+                    // we need to figure out the size of the image and the mime type now
                     let image = image::load_from_memory(&bytes).unwrap();
                     let width = image.width();
                     let height = image.height();
+
+                    let format_ = image::guess_format(&bytes).unwrap();
+
+                    let format_ = match format_ {
+                        image::ImageFormat::Png => ThumbnailFormat::PNG,
+                        image::ImageFormat::Jpeg => ThumbnailFormat::JPEG,
+                        image::ImageFormat::Avif => ThumbnailFormat::AVIF,
+                        f => todo!("image format {:?} is not supported for thumbnails", f),
+                    };
 
                     insert_thumbnail_into_db_impl(
                         &hash,
@@ -55,13 +72,18 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                             bytes: bytes.clone(),
                             x: width,
                             y: height,
+                            format: format_.clone(),
+                            success: true, // is it always successful? TODO implement regenerating of broken thumbnails
                         },
                         pool_thumbs,
-                        true, // TODO figure out a way of checking if the thumbnails coming from the server are valid
                     )
                     .await;
 
-                    return Some(BASE64_STANDARD.encode(bytes));
+                    return Some(format!(
+                        r#"data:{};base64, {}"#,
+                        format_.to_mime(),
+                        BASE64_STANDARD.encode(bytes)
+                    ));
                 }
             }
         }

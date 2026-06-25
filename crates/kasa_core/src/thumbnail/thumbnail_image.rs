@@ -5,10 +5,9 @@ use std::path::PathBuf;
 use anyhow::Result;
 use fast_image_resize::images::Image;
 use fast_image_resize::{IntoImageView, Resizer};
-use image::codecs::avif::AvifEncoder;
-use image::codecs::jpeg::JpegEncoder;
+use image::ImageEncoder;
+use image::ImageReader;
 use image::codecs::png::PngEncoder;
-use image::{ImageEncoder, ImageReader};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -17,6 +16,7 @@ use thiserror::Error;
 use utoipa::ToSchema;
 
 use crate::supported_formats::SUPPORTED_FORMATS;
+use crate::thumbnail::encoding::resize_and_encode;
 
 pub struct ImageToThumbnail {
     /// Also the hash of the image
@@ -112,11 +112,34 @@ pub enum ThumbnailerError {
     ImageOperationError(String),
 }
 
-#[derive(Debug, FromRow, ToSchema)]
+#[derive(Debug, FromRow, ToSchema, sqlx::Type)]
 pub struct Thumbnail {
     pub x: u32,
     pub y: u32,
     pub bytes: Vec<u8>,
+    pub format: ThumbnailFormat,
+    pub success: bool,
+}
+
+impl Thumbnail {
+    pub fn error_placeholder() -> Self {
+        let error_placeholder = include_bytes!("placeholders/error_placeholder.png");
+        let image = image::load_from_memory(error_placeholder).unwrap();
+        let width = image.width();
+        let height = image.height();
+
+        Thumbnail {
+            x: width,
+            y: height,
+            bytes: error_placeholder.to_vec(),
+            format: ThumbnailFormat::PNG,
+            success: true,
+        }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.success && !self.bytes.is_empty() && self.x > 0 && self.y > 0
+    }
 }
 
 /// Thumbnails a single image, returns the thumbnail size and bytes of the image
@@ -139,55 +162,12 @@ pub fn thumbnail_image_single(
     }
     let src_image = ImageReader::open(path).unwrap().decode();
 
-    let src_image = match src_image {
+    let original_image = match src_image {
         Ok(img) => img,
         Err(e) => return Err(ThumbnailerError::ImageOperationError(e.to_string()).into()),
     };
 
-    let src_color_type = src_image.color();
-
-    let (dst_x, dst_y) = calculate_aspect_ratio(
-        src_image.width(),
-        src_image.height(),
-        resolution.0,
-        resolution.1,
-    );
-
-    let mut dest_img = Image::new(dst_x, dst_y, src_image.pixel_type().unwrap());
-
-    let mut resizer = Resizer::new();
-    resizer.resize(&src_image, &mut dest_img, None).unwrap();
-
-    let mut bytes: Vec<u8> = vec![];
-
-    match _format {
-        ThumbnailFormat::PNG => PngEncoder::new(&mut bytes).write_image(
-            dest_img.buffer(),
-            dst_x,
-            dst_y,
-            src_color_type.into(),
-        )?,
-        ThumbnailFormat::JPEG => JpegEncoder::new(&mut bytes).write_image(
-            dest_img.buffer(),
-            dst_x,
-            dst_y,
-            src_color_type.into(),
-        )?,
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes).write_image(
-            dest_img.buffer(),
-            dst_x,
-            dst_y,
-            src_color_type.into(),
-        )?,
-    }
-
-    let thumbnail = Thumbnail {
-        x: dst_x,
-        y: dst_y,
-        bytes,
-    };
-
-    Ok(thumbnail)
+    resize_and_encode(&original_image, resolution, _format)
 }
 
 /// https://stackoverflow.com/a/14731922
@@ -206,10 +186,44 @@ pub fn calculate_aspect_ratio(
     ((src_x as f64 * ratio) as u32, (src_y as f64 * ratio) as u32)
 }
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Display)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    EnumString,
+    Display,
+    ToSchema,
+    Clone,
+    specta::Type,
+    PartialEq,
+    sqlx::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ThumbnailFormat {
     PNG,
     JPEG,
     AVIF,
+    WEBPLossless,
+    WEBPLossy,
+}
+impl ThumbnailFormat {
+    pub fn to_mime(&self) -> String {
+        match self {
+            ThumbnailFormat::PNG => "image/png".to_string(),
+            ThumbnailFormat::JPEG => "image/jpeg".to_string(),
+            ThumbnailFormat::AVIF => "image/avif".to_string(),
+            ThumbnailFormat::WEBPLossless => "image/webp".to_string(),
+            ThumbnailFormat::WEBPLossy => "image/webp".to_string(),
+        }
+    }
+
+    pub fn from_mime(mime: &str) -> Option<Self> {
+        match mime {
+            "image/png" => Some(ThumbnailFormat::PNG),
+            "image/jpeg" => Some(ThumbnailFormat::JPEG),
+            "image/avif" => Some(ThumbnailFormat::AVIF),
+            "image/webp" => Some(ThumbnailFormat::WEBPLossless),
+            _ => None,
+        }
+    }
 }

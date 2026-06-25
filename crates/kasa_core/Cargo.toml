@@ -63,10 +63,9 @@ sha1 = "0.10.6"
 hex = "0.4.3"
 sqlite-vec = "0.1.9"
 bytemuck = "1.25.0"
-ffmpeg ={ package = "ffmpeg-next", version= "8.1.0" }
+ffmpeg = { package = "ffmpeg-next", version = "8.1.0" }
 utoipa = "5.5.0"
-
-
+webp = "0.3.1"
 
 
 [dev-dependencies]
@@ -86,7 +85,6 @@ default = ["swf_thumbnailer", "ai"]
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
 ai = ["dep:kasa_ai"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]
-
 
 
 [patch.crates-io]

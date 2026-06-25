@@ -30,7 +30,7 @@ pub async fn get_thumbs_db_info_impl(pool_thumbs: &Pool<Sqlite>) -> ThumbsDBInfo
         .await
         .unwrap();
 
-    let format: &str = config.thumbs.thumbnail_format.into();
+    let format = &config.thumbs.thumbnail_format.to_string();
     ThumbsDBInfo {
         path,
         size: file_size_human_readable,

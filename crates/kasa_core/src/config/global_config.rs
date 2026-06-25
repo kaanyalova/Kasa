@@ -9,6 +9,8 @@ use log::info;
 use serde::{Deserialize, Serialize};
 use toml_edit::{Array, DocumentMut, Value, value};
 
+use crate::thumbnail::thumbnail_image::ThumbnailFormat;
+
 const DEFAULT_CONFIG: &str = r#"
 # Try to avoid using relative paths, they will cause problems, they should never be configured
 # from the GUI anyways
@@ -84,13 +86,6 @@ impl Default for Thumbs {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, strum::IntoStaticStr)]
-#[serde(rename_all = "lowercase")]
-pub enum ThumbnailFormat {
-    PNG,
-    JPEG,
-    AVIF,
-}
 #[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
 pub struct Layout {
     show_filenames: bool,

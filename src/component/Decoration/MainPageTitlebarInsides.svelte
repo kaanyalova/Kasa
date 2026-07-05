@@ -32,6 +32,19 @@
 	function onOpenLayoutSettings() {
 		isLayoutMenuActive.value = !isLayoutMenuActive.value;
 	}
+
+	async function isConnectionSecure(): Promise<boolean> {
+		const isRemote = await commands.isRemoteDb();
+		if (isRemote) {
+			const url_ = await commands.getRemoteServerUrl();
+
+			if (url_.startsWith('http://')) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 </script>
 
 <div class="insides" data-tauri-drag-region>
@@ -77,7 +90,21 @@
 		<div class="title" data-tauri-drag-region>Kasa</div>
 		<div class="iconPadding" data-tauri-drag-region></div>
 
-		<div class="dbInfo" data-tauri-drag-region>{dbName}</div>
+		<div class="dbInfo" data-tauri-drag-region>
+			{dbName}
+
+			<div class="dbSecure">
+				{#await isConnectionSecure() then secure}
+					{#if !secure}
+						<div class="iconContainer warnIconContainer">
+							<span class="icon-[material-symbols--warning] w-4 h-4"></span>
+						</div>
+						(Unsecure)
+					{/if}
+				{/await}
+			</div>
+		</div>
+
 		<div class="insidesFiller"></div>
 
 		<button class="layoutSettings" onclick={() => onOpenLayoutSettings()}>Layout ▼</button>
@@ -156,8 +183,11 @@
 		color: var(--text-opposite);
 		background: var(--primary);
 		border-radius: 4px;
-		padding-left: 2px;
-		padding-right: 2px;
+		padding-left: 4px;
+		padding-right: 4px;
+		display: flex;
+		align-items: center;
+		text-align: center;
 	}
 
 	.newDb {
@@ -177,5 +207,17 @@
 
 	.layoutSettings:hover {
 		background-color: var(--accent-hover);
+	}
+
+	.dbSecure {
+		margin-left: 2px;
+		color: var(--text-opposite);
+		text-align: center;
+		display: flex;
+		align-items: center;
+	}
+
+	.warnIconContainer {
+		color: #9c302c;
 	}
 </style>

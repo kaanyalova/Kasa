@@ -48,7 +48,7 @@
 		<div class="leftSide">
 			<div class="downloadBar">
 				<div class="downloadIcon">
-					<span class="icon-[material-symbols--download] w-3 h-3"></span>
+					<span class="icon-[material-symbols--download] w-5 h-5"></span>
 				</div>
 				<input
 					type="text"
@@ -229,8 +229,9 @@
 		width: 32px;
 		height: 32px;
 		display: flex;
-		align-items: center;
 		border: 1px solid color-mix(in srgb, var(--accent) 50%, black 50%);
+		align-items: center;
+		justify-content: center;
 	}
 
 	.downloadStatuses {

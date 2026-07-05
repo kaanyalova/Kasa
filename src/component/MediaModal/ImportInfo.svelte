@@ -32,9 +32,11 @@
 	}
 </script>
 
-<div class="header">Import Info</div>
-
 {#await commands.getMediaSources(hash) then sources}
+	{#if sources.length !== 0}
+		Import Info
+	{/if}
+
 	{#each sources as source}
 		<ul class="details multicolorRows">
 			<li class="paddedLi">

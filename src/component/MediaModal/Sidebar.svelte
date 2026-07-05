@@ -11,9 +11,8 @@
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import ImportInfo from './ImportInfo.svelte';
 	import VideoInfo from './VideoInfo.svelte';
-	import type { SidebarProps } from './MediaModal';
 
-	let { data, updateTagsTextBoxContents }: SidebarProps = $props();
+	let { data, updateTagsTextBoxContents, mediaUrl }: SidebarProps = $props();
 
 	let showCopySuccessButton = $state(-1);
 
@@ -108,7 +107,7 @@
 		></TagDisplay>
 	</div>
 
-	<SidebarFooter {data}></SidebarFooter>
+	<SidebarFooter {data} {mediaUrl}></SidebarFooter>
 </div>
 
 <style>

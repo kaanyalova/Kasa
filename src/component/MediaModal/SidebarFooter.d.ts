@@ -1,4 +1,5 @@
-import type { MediaInfo } from "$lib/tauri_bindings"
+import type { MediaInfo } from '$lib/tauri_bindings';
 type SidebarFooterProps = {
-    data: MediaInfo
-}
+	data: MediaInfo;
+	mediaUrl: string;
+};

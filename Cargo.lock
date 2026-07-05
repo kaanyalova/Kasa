@@ -5031,6 +5031,7 @@ dependencies = [
  "kamadak-exif",
  "kasa_ai",
  "kasa_python",
+ "lazy_static",
  "log",
  "memchr",
  "mime_guess",

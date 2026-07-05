@@ -18,8 +18,7 @@
 	let { hash, width, height, offset_x, offset_y }: ImageProps = $props();
 
 	let image: string = $state('');
-	let previous_hash = $state(hash);
-	let promise = $state(getThumbnail(hash));
+	let promise = $derived(getThumbnail(hash));
 	let mediaType = $state('');
 	let isSelected = $derived(InfiniteMediaStore.selectedHashes.includes(hash));
 
@@ -53,21 +52,6 @@
 	async function getMediaName(): Promise<string> {
 		return commands.getMediaName(hash);
 	}
-
-	// the rust side seems to reassign hashes to existing rows, we load images only once in the onMount(), additional
-	// changes to the hash doesn't get reflected to the image, we could reload the image every time the hash
-	// gets set but that would cause all images to rerender on every single resize "tick", we only want to
-	// rerender a few images  that was changed, there is no useMemo equivalent in svelte so we do this
-	$effect(async () => {
-		hash;
-
-		if (previous_hash !== hash) {
-			promise = getThumbnail(hash);
-			mediaType = await commands.getMediaType(hash);
-		} else {
-		}
-		previous_hash = hash;
-	});
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

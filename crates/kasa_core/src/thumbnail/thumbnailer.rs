@@ -1,8 +1,10 @@
 use anyhow::anyhow;
+use lazy_static::lazy_static;
 use log::error;
 use sqlx::{Pool, Sqlite, prelude::FromRow, query, query_as, query_scalar};
 
 use crate::{
+    config::global_config::get_config_impl,
     supported_formats,
     thumbnail::{
         thumbnail_group::thumbnail_group,
@@ -11,13 +13,16 @@ use crate::{
     },
 };
 
-pub const DEFAULT_THUMBNAIL_FORMAT: ThumbnailFormat = ThumbnailFormat::WEBPLossy;
+lazy_static! {
+    static ref DEFAULT_THUMBNAIL_FORMAT: ThumbnailFormat =
+        get_config_impl().thumbs.thumbnail_format;
+}
+
 pub const WEBP_LOSSY_QUALITY: f32 = 70.0;
 
 use super::{thumbnail_flash::thumbnail_flash, thumbnail_image::ThumbnailFormat};
 
-/// Gets the thumbnail with given hash from the db, returns base64 encoded image
-/// Creates the thumbnail and stores it into the db if the thumbnail doesn't exists
+/// either generates or gets a thumbnail from the db, generated thumbnails get inserted into the db
 pub async fn generate_or_get_thumbnail_from_db_impl(
     hash: &str,
     pool: &Pool<Sqlite>,

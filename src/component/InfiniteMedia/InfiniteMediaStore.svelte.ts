@@ -2,13 +2,13 @@ import { commands } from '$lib/tauri_bindings';
 import { stat } from '@tauri-apps/plugin-fs';
 
 export class InfiniteMediaStoreInner {
-	constructor() {
-	}
+	constructor() {}
 
 	selectedHashes: Array<string> = $state([]);
 	onSelectMode = $derived(this.selectedHashes.length > 0);
-	showNames = $state(true);
-	thumbnailScale = $state(3.0);
+
+	showNames: undefined | boolean = $state(undefined);
+	thumbnailScale: undefined | number = $state(undefined);
 
 	addMedia(hash: string) {
 		if (this.selectedHashes.includes(hash as never)) {
@@ -29,9 +29,8 @@ export class InfiniteMediaStoreInner {
 	async loadSettings() {
 		const config = await commands.getConfig();
 		this.showNames = config.Layout.show_filenames;
-		this.thumbnailScale = config.Layout.thumbnail_scale; 
+		this.thumbnailScale = config.Layout.thumbnail_scale;
 	}
-
 }
 
 export const InfiniteMediaStore = new InfiniteMediaStoreInner();

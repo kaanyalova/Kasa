@@ -19,6 +19,7 @@ use crate::{
 use clap::Parser;
 mod api;
 mod cli;
+mod simple_auth;
 
 #[tokio::main]
 async fn main() {

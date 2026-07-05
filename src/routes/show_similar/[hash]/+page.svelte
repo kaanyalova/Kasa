@@ -11,10 +11,8 @@
 	let { data }: PageProps = $props();
 
 	async function getThumbnail(hash: string): Promise<string> {
-		const thumbnail_bytes = await commands.getThumbnailFromDb(hash);
-		// TODO support other image formats than png
-		const thumbnail = 'data:image/png;base64, ' + thumbnail_bytes;
-		return thumbnail;
+		const thumbnail = await commands.getThumbnailFromDb(hash);
+		return thumbnail || '';
 	}
 
 	async function onClickImage(hash: string) {

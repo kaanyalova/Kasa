@@ -55,7 +55,7 @@ zbus = { version = "5.5.0", features = ["bus-impl"] }
 zbus_macros = "5.5.0"
 env_logger.workspace = true
 sqlite-vec = "0.1.9"
-libsqlite3-sys = "0.35.0"
+libsqlite3-sys.workspace = true
 reqwest = { workspace = true, features = ["brotli"] }
 base64.workspace = true
 anyhow.workspace = true
@@ -79,9 +79,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 
 [target.x86_64-unknown-linux-gnu]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=/path/to/mold"]
-
+rustflags = ["-Clink-arg=-Wl,--no-rosegment"]
 
 #[profile.release]
 #strip = true      # Automatically strip symbols from the binary (will remove the ~126MiB of bloat)

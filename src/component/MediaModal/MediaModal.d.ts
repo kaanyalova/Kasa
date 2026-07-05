@@ -5,6 +5,7 @@ type MediaModalProps = {
 type SidebarProps = {
 	data: MediaInfo;
 	updateTagsTextBoxContents: Function; // What is the type for state?
+	mediaUrl: string;
 };
 
 type MetaEntry = {

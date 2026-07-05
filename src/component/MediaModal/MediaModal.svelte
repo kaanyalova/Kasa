@@ -40,23 +40,12 @@
 		//	hash: mediaHash
 		//});
 
-		return info!!;
-	}
-
-	onMount(async () => {
-		// we want to get the media server up as soon as possible, parsing all the meta can take a while so
-		// we have a function that just gets the type
-		const mediaType = await commands.getMediaType(mediaHash);
-
-		if (mediaType === 'Video') {
+		if (info?.mediaType === 'Video' && !(await commands.isRemoteDb())) {
 			await commands.serveMedia(mediaHash);
 		}
 
-		if (mediaType == 'Group') {
-		}
-
-		//await commands.serveMedia(imageHash);
-	});
+		return info!!;
+	}
 
 	async function onClose() {
 		trace('close media modal');
@@ -165,7 +154,7 @@
 					{/if}
 				</div>
 
-				<Sidebar {data} {updateTagsTextBoxContents}></Sidebar>
+				<Sidebar {data} {updateTagsTextBoxContents} mediaUrl={fileUrl}></Sidebar>
 			</div>
 		{/await}
 	{/await}

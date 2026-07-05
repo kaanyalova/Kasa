@@ -10,6 +10,7 @@ use kasa_core::{
     media::{MediaInfo, SourceCategoryGroupedTags, TagWithDetails},
     tags::{AllTagsOrderingCriteria, TagWithCount, search::SearchCriteria},
 };
+use log::trace;
 
 #[derive(Default)]
 pub struct RemoteClient {
@@ -25,6 +26,7 @@ impl RemoteClient {
         let mut reqwest_client = reqwest::Client::builder().brotli(true);
 
         if env::var("KASA_REMOTE_CLIENT_VERBOSE") == Ok("1".to_string()) {
+            trace!("KASA_REMOTE_CLIENT_VERBOSE is on, enabling reqwest verbose logging");
             reqwest_client = reqwest_client.connection_verbose(true);
         }
 

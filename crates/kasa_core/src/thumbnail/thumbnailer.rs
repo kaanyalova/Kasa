@@ -18,7 +18,7 @@ lazy_static! {
         get_config_impl().thumbs.thumbnail_format;
 }
 
-pub const WEBP_LOSSY_QUALITY: f32 = 70.0;
+pub const WEBP_LOSSY_QUALITY: f32 = 50.0;
 
 use super::{thumbnail_flash::thumbnail_flash, thumbnail_image::ThumbnailFormat};
 

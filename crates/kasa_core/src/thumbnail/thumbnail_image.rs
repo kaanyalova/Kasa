@@ -198,7 +198,7 @@ pub fn calculate_aspect_ratio(
     PartialEq,
     sqlx::Type,
 )]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ThumbnailFormat {
     PNG,
     JPEG,

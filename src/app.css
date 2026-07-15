@@ -1,5 +1,6 @@
 @import 'tailwindcss';
-@import "fonts.css";
+@import 'fonts.css';
+@import 'colors.css';
 
 @plugin "@iconify/tailwind4";
 
@@ -21,11 +22,12 @@
 	}
 }
 
-html, body {
-    background-color: var(--background);
-    margin: 0;
-    overflow: hidden;
-	font-family: "Ubuntu";
+html,
+body {
+	background-color: var(--background);
+	margin: 0;
+	overflow: hidden;
+	font-family: 'Ubuntu';
 }
 
 html {
@@ -47,4 +49,14 @@ svg {
 }
 button {
 	cursor: pointer;
+}
+
+.button.bordered {
+	border: 1px solid var(--secondary-alt);
+	color: var(--text);
+	border-radius: 4px;
+}
+
+.button.bordered:hover {
+	background-color: var(--secondary-alt);
 }

@@ -60,11 +60,11 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                     let format_ = image::guess_format(&bytes).unwrap();
 
                     let format_ = match format_ {
-                        image::ImageFormat::Png => ThumbnailFormat::PNG,
-                        image::ImageFormat::Jpeg => ThumbnailFormat::JPEG,
-                        image::ImageFormat::Avif => ThumbnailFormat::AVIF,
-                        image::ImageFormat::WebP => ThumbnailFormat::WEBPLossy,
-                        _ => ThumbnailFormat::PNG,
+                        image::ImageFormat::Png => ThumbnailFormat::Png,
+                        image::ImageFormat::Jpeg => ThumbnailFormat::Jpeg,
+                        image::ImageFormat::Avif => ThumbnailFormat::Avif,
+                        image::ImageFormat::WebP => ThumbnailFormat::WebpLossy,
+                        _ => ThumbnailFormat::Png,
                     };
 
                     insert_thumbnail_into_db_impl(

@@ -1,5 +1,4 @@
 import { commands } from '$lib/tauri_bindings';
-import { stat } from '@tauri-apps/plugin-fs';
 
 export class InfiniteMediaStoreInner {
 	constructor() {}

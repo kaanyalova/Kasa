@@ -10,6 +10,7 @@ use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
 use kasa_python::{GalleryDlStatus, PyTrustMe, init_interpreter, init_interpreter_with_gallery_dl};
 use log::error;
+use sqlx::{Pool, Sqlite};
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::mpsc;
 
@@ -111,8 +112,8 @@ async fn process_download_job(
     statuses: &Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
     cfg: &kasa_core::config::global_config::GlobalConfig,
     python_state: &tauri::State<'_, PythonStore>,
-    connection_guard: &Option<sqlx::Pool<sqlx::Sqlite>>,
-    connection_guard_thumbs: &Option<sqlx::Pool<sqlx::Sqlite>>,
+    connection_guard: &Option<sqlx::Pool<Sqlite>>,
+    connection_guard_thumbs: &Option<Pool<Sqlite>>,
     extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
     job: DownloadJob,
 ) {

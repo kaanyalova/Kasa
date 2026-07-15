@@ -12,11 +12,13 @@
 	} from '$lib/openFilePicker';
 	import { onMount } from 'svelte';
 	import TagPickerCheckBox from '../Sidebar/TagPicker/TagPickerCheckBox.svelte';
-	import { isLayoutMenuActive } from './DecorationStore.svelte';
-	import LayoutMenu from './components/LayoutMenu.svelte';
 	import { onNewDb, onOpenDb } from '$lib/dbSelection';
+	import LayoutMenu from './components/LayoutMenu.svelte';
+	import ConnectMenu from './components/ConnectMenu.svelte';
 
 	let dbName = $state('');
+	let isLayoutMenuActive = $state(false);
+	let isConnectMenuActive = $state(false);
 
 	onMount(async () => {
 		const config = await commands.getConfig();
@@ -30,9 +32,10 @@
 	}
 
 	function onOpenLayoutSettings() {
-		isLayoutMenuActive.value = !isLayoutMenuActive.value;
+		isLayoutMenuActive = !isLayoutMenuActive;
 	}
 
+	// todo actually check if the connection is secure
 	async function isConnectionSecure(): Promise<boolean> {
 		const isRemote = await commands.isRemoteDb();
 		if (isRemote) {
@@ -55,7 +58,7 @@
 
 		<div class="insides"></div>
 	{:else}
-		<div class="iconContainer">
+		<div class="iconContainer" data-tauri-drag-region>
 			<button onclick={handleSidebarButton} title="Toggle Sidebar">
 				<div class="iconContainer">
 					<span class="icon-[material-symbols--side-navigation] w-5 h-5"></span>
@@ -65,25 +68,33 @@
 
 			<!--
          <Moon height={20} width={20}></Moon>
-		<div class="iconPadding"></div>-->
+			<div class="iconPadding"></div>-->
 
-			<button
-				class="option newDb"
-				onclick={async () => {
-					dbName = await onNewDb();
-				}}
-			>
-				New DB
-			</button>
-			<div class="iconPadding" data-tauri-drag-region></div>
+			<div class="dbButtons" data-tauri-drag-region>
+				<button
+					class="option accent"
+					onclick={async () => {
+						dbName = await onNewDb();
+					}}
+				>
+					New DB
+				</button>
 
-			<button
-				class="option"
-				onclick={async () => {
-					dbName = await onOpenDb();
-				}}>Open DB ▼</button
-			>
-			<div class="iconPadding" data-tauri-drag-region></div>
+				<button
+					class="option accent"
+					onclick={async () => {
+						dbName = await onOpenDb();
+					}}>Open DB</button
+				>
+
+				<button class="option accent" onclick={() => (isConnectMenuActive = !isConnectMenuActive)}>
+					Connect to DB ▼
+				</button>
+
+				{#if isConnectMenuActive}
+					<ConnectMenu bind:isActive={isConnectMenuActive}></ConnectMenu>
+				{/if}
+			</div>
 		</div>
 
 		<div class="insidesFiller"></div>
@@ -107,8 +118,10 @@
 
 		<div class="insidesFiller"></div>
 
-		<button class="layoutSettings" onclick={() => onOpenLayoutSettings()}>Layout ▼</button>
-		{#if isLayoutMenuActive.value}
+		<button class="layoutSettings" onclick={() => (isLayoutMenuActive = !isLayoutMenuActive)}
+			>Layout ▼</button
+		>
+		{#if isLayoutMenuActive}
 			<LayoutMenu></LayoutMenu>
 		{/if}
 
@@ -117,6 +130,11 @@
 </div>
 
 <style>
+	.dbButtons {
+		display: flex;
+		gap: 8px;
+	}
+
 	.insides {
 		display: flex;
 		flex-grow: 1;
@@ -144,20 +162,33 @@
 		width: 10px;
 	}
 	.option {
-		color: black;
-		background-color: var(--accent);
+		color: var(--text);
 		padding-left: 2px;
 		padding-right: 2px;
 		border-radius: 4px;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		border: 1px solid var(--accent-hover);
+		padding-right: 4px;
+		padding-left: 4px;
 	}
 
-	.option:hover {
+	.option.accent {
+		background-color: var(--accent);
+		border: 1px solid var(--accent-hover);
+		color: var(--text-opposite);
+	}
+
+	.option.accent:hover {
 		background-color: var(--accent-hover);
 	}
 
+	.option.bordered {
+		border: 1px solid var(--primary);
+	}
+
+	.option.bordered:hover {
+		background-color: color-mix(in srgb, var(--secondary) 20%, var(--background));
+	}
 	.selectionText {
 		background-color: var(--primary);
 		padding-left: 4px;
@@ -188,11 +219,6 @@
 		display: flex;
 		align-items: center;
 		text-align: center;
-	}
-
-	.newDb {
-		padding-right: 4px;
-		padding-left: 4px;
 	}
 
 	.layoutSettings {

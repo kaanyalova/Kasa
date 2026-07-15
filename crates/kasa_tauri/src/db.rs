@@ -72,7 +72,11 @@ pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<
                 vec![]
             }
         }
-        DbStore::Remote(_remote_db_store) => todo!(),
+        DbStore::Remote(remote_db_store) => remote_db_store
+            .client
+            .query_tags(&tag_name, count)
+            .await
+            .unwrap(),
     }
 }
 

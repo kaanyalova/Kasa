@@ -152,7 +152,8 @@ pub async fn get_media_name(handle: AppHandle, hash: String) -> String {
                 "".to_string()
             }
         }
-        DbStore::Remote(_) => todo!(),
+        // todo figure out a way of caching these, i don't like making a request for every image
+        DbStore::Remote(remote_store) => remote_store.client.get_media_name(&hash).await.unwrap(),
     }
 }
 

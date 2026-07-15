@@ -193,6 +193,13 @@ impl RemoteClient {
         Ok(response)
     }
 
+    pub async fn get_media_name(&self, hash: &str) -> Result<String> {
+        let url = format!("{}/get_media_name?hash={}", self.base_url, hash);
+        let response: String = self.reqwest_client.get(&url).send().await?.text().await?;
+
+        Ok(response)
+    }
+
     pub fn url(&self) -> String {
         self.base_url.clone()
     }

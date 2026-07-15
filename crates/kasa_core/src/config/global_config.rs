@@ -80,7 +80,7 @@ impl Default for Thumbs {
     fn default() -> Self {
         Self {
             resolution: [256, 256],
-            thumbnail_format: ThumbnailFormat::PNG,
+            thumbnail_format: ThumbnailFormat::Png,
             thumbs_db_path: "./thumbs.kasa".to_string(),
         }
     }

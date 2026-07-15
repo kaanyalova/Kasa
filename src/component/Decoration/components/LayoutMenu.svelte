@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { isLayoutMenuActive } from '../DecorationStore.svelte';
 	import '../../../colors.css';
 	import Checkbox from '../../Shared/Checkbox.svelte';
 	import { InfiniteMediaStore } from '../../InfiniteMedia/InfiniteMediaStore.svelte';
 	import { emit } from '@tauri-apps/api/event';
 	import { commands } from '$lib/tauri_bindings';
-	import InfiniteMediaGP from '../../InfiniteMedia/InfiniteMediaGP.svelte';
 
 	async function toggleShowFileNamesOption() {
 		InfiniteMediaStore.showNames = !InfiniteMediaStore.showNames;
@@ -30,7 +28,7 @@
 		<li class="layoutMenuItem">
 			<Checkbox
 				onCheck={async () => await toggleShowFileNamesOption()}
-				state={InfiniteMediaStore.showNames}
+				state={InfiniteMediaStore.showNames ?? false}
 			></Checkbox>
 			<button
 				class="layoutMenuItemDescription"
@@ -50,7 +48,7 @@
 					min="0.5"
 					max="3"
 					step="0.2"
-					bind:value={() => thumbnailScaleDisplay, (v) => onChangeThumbnailScale(v)}
+					bind:value={() => thumbnailScaleDisplay, (v) => onChangeThumbnailScale(v ?? 1.0)}
 				/>
 			</div>
 

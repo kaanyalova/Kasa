@@ -132,7 +132,7 @@ impl Thumbnail {
             x: width,
             y: height,
             bytes: error_placeholder.to_vec(),
-            format: ThumbnailFormat::PNG,
+            format: ThumbnailFormat::Png,
             success: true,
         }
     }
@@ -200,29 +200,29 @@ pub fn calculate_aspect_ratio(
 )]
 #[serde(rename_all = "snake_case")]
 pub enum ThumbnailFormat {
-    PNG,
-    JPEG,
-    AVIF,
-    WEBPLossless,
-    WEBPLossy,
+    Png,
+    Jpeg,
+    Avif,
+    WebpLossless,
+    WebpLossy,
 }
 impl ThumbnailFormat {
     pub fn to_mime(&self) -> String {
         match self {
-            ThumbnailFormat::PNG => "image/png".to_string(),
-            ThumbnailFormat::JPEG => "image/jpeg".to_string(),
-            ThumbnailFormat::AVIF => "image/avif".to_string(),
-            ThumbnailFormat::WEBPLossless => "image/webp".to_string(),
-            ThumbnailFormat::WEBPLossy => "image/webp".to_string(),
+            ThumbnailFormat::Png => "image/png".to_string(),
+            ThumbnailFormat::Jpeg => "image/jpeg".to_string(),
+            ThumbnailFormat::Avif => "image/avif".to_string(),
+            ThumbnailFormat::WebpLossless => "image/webp".to_string(),
+            ThumbnailFormat::WebpLossy => "image/webp".to_string(),
         }
     }
 
     pub fn from_mime(mime: &str) -> Option<Self> {
         match mime {
-            "image/png" => Some(ThumbnailFormat::PNG),
-            "image/jpeg" => Some(ThumbnailFormat::JPEG),
-            "image/avif" => Some(ThumbnailFormat::AVIF),
-            "image/webp" => Some(ThumbnailFormat::WEBPLossless),
+            "image/png" => Some(ThumbnailFormat::Png),
+            "image/jpeg" => Some(ThumbnailFormat::Jpeg),
+            "image/avif" => Some(ThumbnailFormat::Avif),
+            "image/webp" => Some(ThumbnailFormat::WebpLossless),
             _ => None,
         }
     }

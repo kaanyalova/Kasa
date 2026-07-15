@@ -5,7 +5,7 @@ use super::thumbnail_image::{Thumbnail, ThumbnailFormat, thumbnail_image_single}
 pub fn thumbnail_group(img_paths: Vec<String>, style: GroupThumbnailStyle) -> Result<Thumbnail> {
     match style {
         GroupThumbnailStyle::FirstImage => {
-            thumbnail_image_single(&img_paths[0], (256, 256), &ThumbnailFormat::PNG)
+            thumbnail_image_single(&img_paths[0], (256, 256), &ThumbnailFormat::Png)
         }
     }
 

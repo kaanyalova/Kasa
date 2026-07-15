@@ -28,8 +28,7 @@
 	}
 
 	button:hover {
-		background-color: var(--primary);
-		color: var(--text-opposite);
+		background-color: var(--secondary-alt);
 	}
 
 	button:hover > .iconContainer {

@@ -23,22 +23,22 @@ pub fn encode_from_resized_buffer(
     let mut bytes: Vec<u8> = Vec::new();
 
     match format {
-        ThumbnailFormat::PNG => {
+        ThumbnailFormat::Png => {
             PngEncoder::new(&mut bytes).write_image(buffer, width, height, src_color_type.into())?
         }
-        ThumbnailFormat::AVIF => AvifEncoder::new(&mut bytes).write_image(
+        ThumbnailFormat::Avif => AvifEncoder::new(&mut bytes).write_image(
             buffer,
             width,
             height,
             src_color_type.into(),
         )?,
-        ThumbnailFormat::WEBPLossless => WebPEncoder::new_lossless(&mut bytes).write_image(
+        ThumbnailFormat::WebpLossless => WebPEncoder::new_lossless(&mut bytes).write_image(
             buffer,
             width,
             height,
             src_color_type.into(),
         )?,
-        ThumbnailFormat::JPEG => {
+        ThumbnailFormat::Jpeg => {
             let alpha_removed =
                 dynamic_image_from_raw_bytes(buffer, width, height, src_color_type)?.to_rgb8();
             JpegEncoder::new(&mut bytes).write_image(
@@ -48,7 +48,7 @@ pub fn encode_from_resized_buffer(
                 ExtendedColorType::Rgb8,
             )?;
         }
-        ThumbnailFormat::WEBPLossy => {
+        ThumbnailFormat::WebpLossy => {
             let webp_bytes = match src_color_type {
                 ColorType::Rgb8 => webp::Encoder::from_rgb(buffer, width, height)
                     .encode(WEBP_LOSSY_QUALITY)

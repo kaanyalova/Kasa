@@ -162,7 +162,6 @@
 		width: 10px;
 	}
 	.option {
-		color: var(--text);
 		padding-left: 2px;
 		padding-right: 2px;
 		border-radius: 4px;
@@ -175,7 +174,7 @@
 	.option.accent {
 		background-color: var(--accent);
 		border: 1px solid var(--accent-hover);
-		color: var(--text-opposite);
+		color: var(--text-opposite); /* fix this in light mode */
 	}
 
 	.option.accent:hover {

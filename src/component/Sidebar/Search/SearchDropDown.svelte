@@ -62,17 +62,14 @@ https://stackoverflow.com/questions/17769005/onclick-and-onblur-ordering-issue--
 		top: 34px;
 		background-color: var(--background);
 		border-radius: 0px 0px 5px 5px;
-		border: solid 1px;
-		border-color: #31353f;
-		width: calc(var(--searchbar-width) + 26px); /* -32on webkit, -21 on firefox wtf*/
-		box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+		width: calc(var(--searchbar-width) + 32px); /* -32on webkit, -21 on firefox wtf*/
 		font-family: 'Ubuntu';
-		border: 1px var(--border-color) solid;
+		border: 1px var(--accent) solid;
 		z-index: 2;
 		font-size: smaller;
+		border-top: none;
 	}
 	li {
-		border-color: white;
 		color: var(--text);
 		display: flex;
 	}

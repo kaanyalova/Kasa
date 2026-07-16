@@ -4,13 +4,8 @@
 	let { onCheck, state }: CheckboxProps = $props();
 
 	function onClick() {
-		if (state === true) {
-			state = false;
-			onCheck(state);
-		} else {
-			state = true;
-			onCheck(state);
-		}
+		state = !state;
+		onCheck(state);
 	}
 </script>
 

@@ -34,7 +34,7 @@
 <style>
 	.coloredPart {
 		width: 8px;
-		height: 20px;
+		align-self: stretch;
 		border-radius: 0px 4px 4px 0px;
 	}
 
@@ -52,7 +52,8 @@
 	}
 
 	.entry:hover {
-		background-color: var(--secondary-alt); /* color-mix with current color?*/
+		border: 1px solid var(--primary);
+		background-color: var(--secondary-alt);
 	}
 
 	.count {
@@ -63,5 +64,7 @@
 	.left {
 		padding-right: 4px;
 		padding-left: 4px;
+		word-break: break-word;
+		overflow-wrap: break-word;
 	}
 </style>

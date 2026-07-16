@@ -35,8 +35,7 @@
 	}
 
 	button:hover {
-		background-color: var(--secondary-transparent);
-		color: var(--text);
+		background-color: color-mix(in srgb, var(--primary) 80%, black 20%);
 	}
 
 	.innerText {

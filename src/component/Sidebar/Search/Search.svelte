@@ -146,7 +146,6 @@
 <style>
 	.searchBar {
 		padding: 5px;
-		border-radius: 0px 10px 10px 0px;
 		background-color: var(--secondary-alt);
 		color: var(--text);
 		font-size: large;
@@ -167,8 +166,9 @@
 		flex-grow: 1;
 	}
 
-	.searchBar.selected {
-		border-radius: 0px 10px 0px 0px;
+	.searchBar:focus {
+		border: 1px solid var(--accent);
+		border-left: none;
 	}
 
 	input:focus {
@@ -180,8 +180,7 @@
 		justify-content: center;
 		align-items: center;
 		background-color: var(--accent);
-		border-radius: 10px 0px 0px 10px;
-		border: solid color-mix(in srgb, var(--secondary) 30%, transparent) 1px;
+		border: 1px solid var(--accent-border);
 		box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 		height: 35px;
 		/* width: 50px*/
@@ -191,9 +190,5 @@
 		display: flex;
 		margin: 5px;
 		justify-content: center;
-	}
-
-	.searchIcon.selected {
-		border-radius: 10px 0px 0px 0px;
 	}
 </style>

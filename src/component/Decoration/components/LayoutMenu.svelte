@@ -58,6 +58,8 @@
 				</span>
 			</div>
 		</li>
+
+		<li class="layoutMenuItem"></li>
 	</ul>
 </dialog>
 

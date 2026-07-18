@@ -16,12 +16,14 @@ use gdl::gdl;
 use index_all_ai_images::index_all_ai_images;
 use index_folder::index_folder;
 use kasa_ai::image_embeddings::generate_image_embedding_single;
+use libsqlite3_sys::sqlite3_auto_extension;
 use nuke_db_versioning::nuke_db_versioning;
 use populate_tags::populate_tags;
 //use thumbnail::thumbnail;
 
 #[cfg(feature = "qwen3")]
 use kasa_ai::image_embeddings::qwen3_generate_image_embeddings_single;
+use sqlite_vec::sqlite3_vec_init;
 
 use crate::embeddings::generate_all_image_embeddings;
 
@@ -114,6 +116,11 @@ async fn main() {
     env_logger::init();
     let _ = dotenvy::dotenv();
     let args = KasaCli::parse();
+
+    unsafe {
+        sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
+    }
+
     match args {
         KasaCli::PopulateTags(args) => populate_tags(args).await,
         KasaCli::IndexFolder(args) => index_folder(args).await,

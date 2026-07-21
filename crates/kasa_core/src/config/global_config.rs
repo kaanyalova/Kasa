@@ -43,7 +43,7 @@ show_filenames = false
 thumbnail_scale = 1.5
 "#;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
 
 pub struct Database {
     pub db_path: String,
@@ -57,7 +57,7 @@ impl Default for Database {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
 
 pub struct Thumbs {
     pub resolution: [u32; 2],
@@ -65,7 +65,7 @@ pub struct Thumbs {
     pub thumbs_db_path: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone)]
 pub struct Downloader {
     pub output_path: String,
     // The plan was to have gallery-dl config options inside the config.toml
@@ -86,13 +86,13 @@ impl Default for Thumbs {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone)]
 pub struct Layout {
     show_filenames: bool,
     thumbnail_scale: f32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type)]
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, Clone, specta::Type)]
 pub struct GlobalConfig {
     #[serde(rename = "Database")]
     pub db: Database,

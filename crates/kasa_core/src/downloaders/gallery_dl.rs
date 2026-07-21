@@ -1,10 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use anyhow::Result;
-use kasa_python::{
-    GalleryDlStatus, PyTrustMe,
-    extractors::TagExtractor,
-};
+use kasa_python::{GalleryDlStatus, PyTrustMe, extractors::TagExtractor};
 use sha1::{Digest, Sha1};
 use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;
@@ -24,7 +21,7 @@ pub async fn download_and_index_impl(
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
     when_done: impl Fn(String) + Send + Sync,
-    on_progress: impl Fn(GalleryDlStatus) + Send + Sync + 'static,
+    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + 'static,
     extractors: &Vec<&(dyn TagExtractor + Send + Sync)>,
 ) -> Result<()> {
     let config = get_config_impl();

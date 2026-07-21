@@ -114,14 +114,3 @@ pub async fn get_list_of_all_tags_with_details(
         ),
     }
 }
-
-pub struct ScriptableTagExtractorStore(PythonTagExtractor);
-
-impl ScriptableTagExtractorStore {
-    pub async fn init(handle: AppHandle) -> Self {
-        let extractors_dir = get_tag_extractors_dir().unwrap();
-        let interpreter = handle.state::<PythonStore>().tagger_interpreter.clone();
-
-        ScriptableTagExtractorStore(PythonTagExtractor::init(interpreter, &extractors_dir).unwrap())
-    }
-}

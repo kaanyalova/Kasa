@@ -1,7 +1,9 @@
 use std::env;
 
-use crate::downloaders::DownloaderStore;
-use crate::tags::ScriptableTagExtractorStore;
+use tokio::sync::Mutex;
+
+use crate::downloaders::LocalDownloaderStore;
+use crate::downloaders::{DownloaderState, DownloaderStore};
 use config::create_or_get_extractor_contents;
 use config::create_or_get_path_for_extractor;
 use config::get_config;
@@ -23,7 +25,6 @@ use db::get_thumbs_db_info;
 use db::is_remote_db;
 use db::nuke_db_versioning;
 use db::query_tags;
-use downloaders::ExtractorsStore;
 use downloaders::PythonStore;
 use downloaders::get_downloader_statuses;
 use downloaders::queue_download_job;
@@ -74,7 +75,7 @@ mod image;
 mod media;
 //mod serve_media;
 mod config;
-mod downloaders;
+pub mod downloaders;
 mod file_picker;
 mod index;
 mod media_server;
@@ -244,9 +245,7 @@ pub fn run() {
             builder.mount_events(app);
 
             let handle = app.handle();
-            app.manage(DownloaderStore::init_queue(handle.clone()));
-            app.manage(ScriptableTagExtractorStore::init(handle.clone()));
-            app.manage(ExtractorsStore::init(handle.clone()));
+            app.manage(DownloaderState(Mutex::new(DownloaderStore::Uninitialized)));
 
             Ok(())
         })

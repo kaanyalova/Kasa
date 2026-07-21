@@ -5,12 +5,19 @@ use axum::Router;
 use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
     db::migrations::{prepare_main_db, prepare_thumbs_db},
+    downloaders::download_queue::{
+        Downloader, DownloaderContext, DownloaderStateUpdate, init_extractors,
+    },
 };
+use kasa_python::GalleryDlStatus;
 use libsqlite3_sys::sqlite3_auto_extension;
 use sqlite_vec::sqlite3_vec_init;
 use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
+use tokio::sync::broadcast;
 use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
+
+use crate::api::downloader::DownloaderState;
 
 use crate::{
     api::{Databases, run, write_openapi_spec},
@@ -71,14 +78,59 @@ async fn main() {
                 &thumbs_db_path.display(),
             );
 
-            run(
-                &server_args,
-                Databases {
-                    db: pool,
-                    thumbs_db: thumbs_pool,
-                },
+            let config = get_config_impl();
+
+            // set up the callbacks and channels for the downloader
+            let (update_tx, _) = broadcast::channel(32);
+
+            let update_tx_progress = update_tx.clone();
+
+            let on_progress = move |status: &GalleryDlStatus| {
+                let _ = update_tx_progress
+                    .send(DownloaderStateUpdate::OnProgress(status.clone()))
+                    .unwrap();
+            };
+
+            let update_tx_done = update_tx.clone();
+
+            let on_done = move |hash: String| {
+                update_tx_done
+                    .send(DownloaderStateUpdate::OnDone(hash))
+                    .unwrap();
+            };
+
+            let (mut downloader, tx_download_job) = Downloader::init(
+                pool.clone(),
+                thumbs_pool.clone(),
+                config,
+                on_progress,
+                on_done,
+            );
+            let extractors = init_extractors(
+                downloader.interpreters.tagger_interpreter.clone(),
+                &kasa_config,
             )
-            .await;
+            .unwrap();
+
+            downloader.set_extractors(extractors);
+
+            // this isn't used anywhere in the server yet
+            let downloader_context = DownloaderContext::new();
+
+            tokio::spawn(async move {
+                downloader.run(&downloader_context).await;
+            });
+
+            let downloader_state = DownloaderState {
+                job_tx: tx_download_job,
+                update_broadcast: update_tx,
+            };
+
+            let dbs = Databases {
+                db: pool,
+                thumbs_db: thumbs_pool,
+            };
+            run(&server_args, dbs, downloader_state).await;
         }
         Args::WriteOpenApiSpec(open_api_args) => {
             write_openapi_spec(open_api_args.path.as_deref()).await;

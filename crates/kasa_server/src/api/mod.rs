@@ -1,4 +1,5 @@
 mod db;
+pub(crate) mod downloader;
 mod image;
 mod media;
 mod media_server;
@@ -8,9 +9,13 @@ mod tags;
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
+use std::sync::mpsc;
 
 use crate::api::db::__path_query_tags;
 use crate::api::db::query_tags;
+use crate::api::downloader::__path_listen_for_download_updates;
+use crate::api::downloader::DownloaderState;
+use crate::api::downloader::listen_for_download_updates;
 use crate::api::image::__path_get_thumbnail;
 use crate::api::image::get_thumbnail;
 use crate::api::media::__path_get_info;
@@ -44,7 +49,16 @@ use crate::api::tags::get_list_of_all_tags_with_details;
 use crate::api::tags::get_tags_as_text;
 use crate::api::tags::update_tags;
 use crate::cli::ServerArgs;
+
+use crate::api::downloader::__path_push_download;
+use crate::api::downloader::push_download;
+
+use axum::extract::FromRef;
+use futures_util::lock::Mutex;
+use kasa_core::downloaders::download_queue::Downloader;
+use kasa_python::Interpreter;
 use sqlx::{Pool, Sqlite};
+use tokio::sync::broadcast;
 use tower_http::compression::CompressionLayer;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
@@ -60,7 +74,13 @@ pub struct ServedMedia {
     pub path: String,
 }
 
-fn create_router(dbs: Databases) -> OpenApiRouter {
+#[derive(Clone, FromRef)]
+pub struct AppState {
+    pub dbs: Databases,
+    pub downloader_state: DownloaderState,
+}
+
+fn create_router(dbs: Databases, downloader_state: DownloaderState) -> OpenApiRouter {
     OpenApiRouter::new()
         .routes(routes!(are_dbs_mounted))
         .routes(routes!(query_tags))
@@ -80,7 +100,12 @@ fn create_router(dbs: Databases) -> OpenApiRouter {
         .routes(routes!(serve_media))
         .routes(routes!(get_tags_as_text))
         .routes(routes!(get_list_of_all_tags_with_details))
-        .with_state(dbs)
+        .routes(routes!(listen_for_download_updates))
+        .routes(routes!(push_download))
+        .with_state(AppState {
+            dbs,
+            downloader_state,
+        })
         .layer(CompressionLayer::new())
 }
 
@@ -96,7 +121,15 @@ pub async fn get_openapi_spec() -> String {
         thumbs_db: dummy,
     };
 
-    let (_app, api) = create_router(dbs).split_for_parts();
+    let (job_tx, _) = tokio::sync::mpsc::channel(32);
+    let (update_broadcast, _) = broadcast::channel(32);
+
+    let downloader_state = DownloaderState {
+        job_tx,
+        update_broadcast,
+    };
+
+    let (_app, api) = create_router(dbs, downloader_state).split_for_parts();
 
     api.to_pretty_json().unwrap()
 }
@@ -111,8 +144,8 @@ pub async fn write_openapi_spec(path: Option<&Path>) {
     }
 }
 
-pub async fn run(args: &ServerArgs, dbs: Databases) {
-    let (app, _api) = create_router(dbs).split_for_parts();
+pub async fn run(args: &ServerArgs, dbs: Databases, downloader_state: DownloaderState) {
+    let (app, _api) = create_router(dbs, downloader_state).split_for_parts();
 
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", args.ip_address, args.port))
         .await

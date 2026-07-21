@@ -5,7 +5,8 @@ edition = "2024"
 
 [dependencies]
 kasa_core = { path = "../kasa_core" }
-axum = { version = "0.8.9" }
+kasa_python = { path = "../kasa_python" }
+axum = { version = "0.8.9", features = ["ws", "macros"] }
 clap = { workspace = true, features = ["derive"] }
 dotenvy.workspace = true
 serde = { workspace = true, features = ["derive"] }
@@ -19,6 +20,8 @@ utoipa = "5.5.0"
 utoipa-axum = "0.2.0"
 sqlite-vec = "0.1.9"
 libsqlite3-sys.workspace = true
+futures-util = "0.3.33"
+serde_json.workspace = true
 
 
 [lib]

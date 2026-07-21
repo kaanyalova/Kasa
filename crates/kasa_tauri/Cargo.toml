@@ -60,6 +60,9 @@ reqwest = { workspace = true, features = ["brotli"] }
 base64.workspace = true
 anyhow.workspace = true
 serde_urlencoded = "0.7.1"
+tokio-tungstenite = "0.30.0"
+futures-util = "0.3.33"
+tokio-util = "0.7.19"
 
 
 [features]

@@ -1,16 +1,21 @@
 use std::env;
 
 use anyhow::Result;
+use futures_util::{SinkExt, StreamExt};
 use kasa_core::{
     db::{
         TagQueryOutput,
         embeddings::EmbeddingDistance,
         schema::{Media, MediaSource},
     },
+    downloaders::download_queue::{DownloadJob, DownloaderStateUpdate},
     media::{MediaInfo, SourceCategoryGroupedTags, TagWithDetails},
     tags::{AllTagsOrderingCriteria, TagWithCount, search::SearchCriteria},
 };
-use log::trace;
+use log::{trace, warn};
+use serde_json::json;
+use tokio_tungstenite::{connect_async, tungstenite::stream};
+use tokio_util::sync::CancellationToken;
 
 #[derive(Default)]
 pub struct RemoteClient {
@@ -43,41 +48,68 @@ impl RemoteClient {
     }
 
     pub async fn get_thumbnail(&self, hash: &str) -> Result<Vec<u8>> {
-        let url = format!("{}/get_thumbnail?hash={}", self.base_url, hash);
-        let response = self.reqwest_client.get(&url).send().await?;
+        let url = format!("{}/get_thumbnail", self.base_url);
+        let response = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?;
         Ok(response.bytes().await?.to_vec())
     }
 
     pub async fn query_tags(&self, query: &str, limit: i64) -> Result<Vec<TagQueryOutput>> {
-        let url = format!(
-            "{}/query_tags?query={}&limit={}",
-            self.base_url, query, limit
-        );
-        let response: Vec<TagQueryOutput> =
-            self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/query_tags", self.base_url);
+        let response: Vec<TagQueryOutput> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("query", query), ("limit", &limit.to_string())])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
 
     pub async fn get_info(&self, hash: &str) -> Result<Option<MediaInfo>> {
-        let url = format!("{}/get_info?hash={}", self.base_url, hash);
-        let response: Option<MediaInfo> =
-            self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_info", self.base_url);
+        let response: Option<MediaInfo> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
 
     pub async fn get_tags(&self, hash: &str) -> Result<Vec<TagWithDetails>> {
-        let url = format!("{}/get_tags?hash={}", self.base_url, hash);
-        let response: Vec<TagWithDetails> =
-            self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_tags", self.base_url);
+        let response: Vec<TagWithDetails> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
 
     pub async fn get_media_type(&self, hash: &str) -> Result<String> {
-        let url = format!("{}/get_media_type?hash={}", self.base_url, hash);
-        let response: String = self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_media_type", self.base_url);
+        let response: String = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
@@ -86,36 +118,54 @@ impl RemoteClient {
         &self,
         hash: &str,
     ) -> Result<SourceCategoryGroupedTags> {
-        let url = format!(
-            "{}/get_tags_grouped_by_source_categories?hash={}",
-            self.base_url, hash
-        );
-        let response: SourceCategoryGroupedTags =
-            self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_tags_grouped_by_source_categories", self.base_url);
+        let response: SourceCategoryGroupedTags = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
 
     pub async fn get_media_sources(&self, hash: &str) -> Result<Vec<MediaSource>> {
-        let url = format!("{}/get_media_sources?hash={}", self.base_url, hash);
-        let response: Vec<MediaSource> = self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_media_sources", self.base_url);
+        let response: Vec<MediaSource> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
 
     pub async fn set_media_favorite(&self, hash: &str, is_favorite: bool) -> Result<()> {
-        let url = format!(
-            "{}/set_media_favorite?hash={}&is_favorite={}",
-            self.base_url, hash, is_favorite
-        );
-        let _ = self.reqwest_client.put(&url).send().await?;
+        let url = format!("{}/set_media_favorite", self.base_url);
+        self.reqwest_client
+            .put(&url)
+            .query(&[("hash", hash), ("is_favorite", &is_favorite.to_string())])
+            .send()
+            .await?;
 
         Ok(())
     }
 
     pub async fn get_video_length(&self, hash: &str) -> Result<Option<f64>> {
-        let url = format!("{}/get_video_length?hash={}", self.base_url, hash);
-        let response: Option<f64> = self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_video_length", self.base_url);
+        let response: Option<f64> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
@@ -125,12 +175,15 @@ impl RemoteClient {
         hash: &str,
         n: i64,
     ) -> Result<Vec<EmbeddingDistance>> {
-        let url = format!(
-            "{}/get_top_n_closest_for_media?hash={}&n={}",
-            self.base_url, hash, n
-        );
-        let response: Vec<EmbeddingDistance> =
-            self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_top_n_closest_for_media", self.base_url);
+        let response: Vec<EmbeddingDistance> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash), ("n", &n.to_string())])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
@@ -150,31 +203,37 @@ impl RemoteClient {
     }
 
     pub async fn update_tags(&self, raw_input: &str, hash: &str) -> Result<()> {
-        let url = format!(
-            "{}/update_tags?raw_input={}&hash={}",
-            self.base_url, raw_input, hash
-        );
-        let _ = self.reqwest_client.put(&url).send().await?;
+        let url = format!("{}/update_tags", self.base_url);
+        self.reqwest_client
+            .put(&url)
+            .query(&[("raw_input", raw_input), ("hash", hash)])
+            .send()
+            .await?;
 
         Ok(())
     }
 
     pub async fn delete_tags(&self, hash: &str, tags: Vec<String>) -> Result<()> {
-        let tags_query = tags
-            .into_iter()
-            .map(|tag| format!("tags={}", tag))
-            .collect::<Vec<String>>()
-            .join("&");
-
-        let url = format!("{}/delete_tags?hash={}&{}", self.base_url, hash, tags_query);
-        let _ = self.reqwest_client.delete(&url).send().await?;
+        let url = format!("{}/delete_tags", self.base_url);
+        self.reqwest_client
+            .delete(&url)
+            .query(&json!({ "hash": hash, "tags": tags }))
+            .send()
+            .await?;
 
         Ok(())
     }
 
     pub async fn get_tags_as_text(&self, hash: &str) -> Result<Option<String>> {
-        let url = format!("{}/get_tags_as_text?hash={}", self.base_url, hash);
-        let response: Option<String> = self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_tags_as_text", self.base_url);
+        let response: Option<String> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
@@ -183,24 +242,108 @@ impl RemoteClient {
         &self,
         ordering_criteria: AllTagsOrderingCriteria,
     ) -> Result<Vec<TagWithCount>> {
-        let url = format!(
-            "{}/get_list_of_all_tags_with_details?ordering_criteria={}",
-            self.base_url, ordering_criteria
-        );
-        let response: Vec<TagWithCount> =
-            self.reqwest_client.get(&url).send().await?.json().await?;
+        let url = format!("{}/get_list_of_all_tags_with_details", self.base_url);
+        let response: Vec<TagWithCount> = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("ordering_criteria", &ordering_criteria.to_string())])
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(response)
     }
 
     pub async fn get_media_name(&self, hash: &str) -> Result<String> {
-        let url = format!("{}/get_media_name?hash={}", self.base_url, hash);
-        let response: String = self.reqwest_client.get(&url).send().await?.text().await?;
+        let url = format!("{}/get_media_name", self.base_url);
+        let response: String = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .text()
+            .await?;
 
         Ok(response)
     }
 
     pub fn url(&self) -> String {
         self.base_url.clone()
+    }
+}
+
+pub struct RemoteDownloaderClient {
+    reqwest_client: reqwest::Client,
+    base_url: String,
+    cancel_token: Option<CancellationToken>,
+}
+
+impl RemoteDownloaderClient {
+    pub fn new(base_url: &str) -> Self {
+        let reqwest_client = reqwest::Client::builder().brotli(true).build().unwrap();
+
+        Self {
+            reqwest_client,
+            base_url: base_url.to_string(),
+            cancel_token: None,
+        }
+    }
+
+    pub async fn push_download(&self, url: &str) -> Result<()> {
+        let url = format!("{}/push_download", self.base_url);
+        self.reqwest_client
+            .post(&url)
+            .json(&DownloadJob {
+                url: url.to_string(),
+            })
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn listen_for_downloader_updates(
+        &mut self,
+        on_update: impl Fn(DownloaderStateUpdate) + Send + Sync + 'static,
+    ) -> Result<()> {
+        if self.cancel_token.is_some() {
+            warn!("trying to listen for downloader updates while already listening");
+            return Ok(());
+        }
+
+        let token = CancellationToken::new();
+        self.cancel_token = Some(token.clone());
+
+        let (ws_stream, _) = connect_async(format!("{}/downloader_ws", self.base_url)).await?;
+
+        let (mut write, mut read) = ws_stream.split();
+
+        tokio::spawn(async move {
+            tokio::select! {
+                _ = async {
+                    while let Some(Ok(msg)) = read.next().await {
+                        if let Ok(text) = msg.into_text()
+                            && let Ok(update) = serde_json::from_str::<DownloaderStateUpdate>(&text) {
+                                on_update(update);
+                            }
+                    }
+                } => {},
+                _ = token.cancelled() => {
+                    let _ = write.close().await;
+                }
+            }
+        });
+
+        Ok(())
+    }
+}
+
+impl Drop for RemoteDownloaderClient {
+    fn drop(&mut self) {
+        if let Some(token) = self.cancel_token.take() {
+            token.cancel();
+        }
     }
 }

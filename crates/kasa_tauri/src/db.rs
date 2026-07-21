@@ -21,7 +21,10 @@ use sqlx::{
 use std::{path::PathBuf, str::FromStr};
 use tauri::{AppHandle, Manager};
 
-use crate::remote_client::RemoteClient;
+use crate::{
+    downloaders::{DownloaderState, DownloaderStore},
+    remote_client::RemoteClient,
+};
 
 impl Default for DbStore {
     fn default() -> Self {
@@ -30,6 +33,7 @@ impl Default for DbStore {
 }
 
 pub enum DbStore {
+    // todo add a third uninitialized type here
     Local(LocalDbStore),
     Remote(RemoteDbStore),
 }
@@ -136,11 +140,14 @@ pub async fn connect_dbs(handle: AppHandle) {
         .unwrap();
 
     // mount the dbs
-    let state = handle.state::<DatabaseState>();
+    let handle_db = handle.clone();
+    let state = handle_db.state::<DatabaseState>();
     let mut db_store = state.0.lock().await;
 
     let is_server =
         config.db.db_path.starts_with("http://") || config.db.db_path.starts_with("https://");
+
+    let handle_downloader = handle.clone();
 
     if is_server {
         let client = RemoteClient::new(config.db.db_path.clone());
@@ -148,6 +155,16 @@ pub async fn connect_dbs(handle: AppHandle) {
             client,
             thumbs_db: Mutex::new(Some(pool_thumbs)),
         });
+
+        // create the downloader stuff here
+        let downloader_state = handle.state::<DownloaderState>();
+        let mut downloader_store = downloader_state.0.lock().await;
+
+        let remote_downloader = DownloaderStore::new_remote(handle_downloader, &config)
+            .await
+            .unwrap();
+
+        *downloader_store = remote_downloader;
     } else {
         prepare_main_db(&config.db.db_path).await;
 
@@ -167,10 +184,27 @@ pub async fn connect_dbs(handle: AppHandle) {
             .await
             .unwrap();
 
+        let pool_downloader = pool_db.clone();
+        let pool_thumbs_downloader = pool_thumbs.clone();
+
         *db_store = DbStore::Local(LocalDbStore {
             db: Mutex::new(Some(pool_db)),
             thumbs_db: Mutex::new(Some(pool_thumbs)),
         });
+
+        // if we are here, i assume the dbs are mounted properly, load the downloader
+        let handle_downloader = handle.clone();
+        let local_downloader = DownloaderStore::new_local(
+            handle_downloader,
+            pool_downloader,
+            pool_thumbs_downloader,
+            &config,
+        )
+        .unwrap();
+
+        let downloader_state = handle.state::<DownloaderState>();
+        let mut downloader_store = downloader_state.0.lock().await;
+        *downloader_store = local_downloader;
     }
 }
 

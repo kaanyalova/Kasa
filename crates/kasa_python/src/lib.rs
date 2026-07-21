@@ -4,16 +4,17 @@ use anyhow::{Result, anyhow};
 use log::trace;
 use rustpython::{InterpreterBuilder, InterpreterBuilderExt};
 use rustpython_pylib::FROZEN_STDLIB;
-use rustpython_vm::{
-    Interpreter, convert::ToPyObject, py_freeze, pymodule,
-};
+use rustpython_vm::{convert::ToPyObject, py_freeze, pymodule};
 use serde::{Deserialize, Serialize};
+
 use serde_json::Value;
 use sha1::{Digest, Sha1};
 use thiserror::Error;
 
 use crate::extractors::{ExtractedTag, TagExtractor};
 pub mod extractors;
+
+pub use rustpython::Interpreter;
 
 const CERT_BYTES: &[u8] = include_bytes!("../cacert.pem");
 
@@ -84,7 +85,7 @@ pub fn gdl_download(
     url: &str,
     output_path: &str,
     gdl_config_path: Option<String>,
-    on_progress: impl Fn(GalleryDlStatus) + Send + Sync + 'static,
+    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + 'static,
 ) -> Result<GalleryDlOutput> {
     interpreter.enter(|vm| {
         let module = vm.import("gdl", 0).map_err(|e| {
@@ -104,7 +105,7 @@ pub fn gdl_download(
 
         let on_progress_wrapper =
             move |status_json: String, _vm: &rustpython_vm::VirtualMachine| {
-                let parsed = serde_json::from_str(&status_json);
+                let parsed = &serde_json::from_str(&status_json);
 
                 if let Ok(parsed) = parsed {
                     on_progress(parsed)

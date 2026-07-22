@@ -112,16 +112,16 @@ where
         while let Some(job) = self.rx.recv().await {
             self.process_download_job(ctx, job).await;
         }
+        info!("download loop done?");
     }
 
     async fn process_download_job(&mut self, ctx: &DownloaderContext, job: DownloadJob) {
+        let dummy_status = GalleryDlStatus::new_placeholder(&job.url);
         {
-            let dummy_status = GalleryDlStatus::new_placeholder(&job.url);
             let mut locked = ctx.statuses.lock().unwrap();
             locked.insert(dummy_status.url_hash.clone(), dummy_status.clone());
-
-            (self.on_downloader_progress)(&dummy_status);
         }
+        (self.on_downloader_progress)(&dummy_status);
 
         let statuses_progress = ctx.statuses.clone();
         let statuses_done = ctx.statuses.clone();

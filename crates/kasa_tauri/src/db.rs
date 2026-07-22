@@ -160,12 +160,15 @@ pub async fn connect_dbs(handle: AppHandle) {
         let downloader_state = handle.state::<DownloaderState>();
         let mut downloader_store = downloader_state.0.lock().await;
 
+        // todo this breaks the whole app if the websockets fails, handle it more gracefully
         let remote_downloader = DownloaderStore::new_remote(handle_downloader, &config)
             .await
             .unwrap();
 
         *downloader_store = remote_downloader;
-    } else {
+    }
+    // local db
+    else {
         prepare_main_db(&config.db.db_path).await;
 
         let db_path_absolute = std::path::absolute(&config.db.db_path)
@@ -200,11 +203,14 @@ pub async fn connect_dbs(handle: AppHandle) {
             pool_thumbs_downloader,
             &config,
         )
+        .await
         .unwrap();
 
         let downloader_state = handle.state::<DownloaderState>();
-        let mut downloader_store = downloader_state.0.lock().await;
-        *downloader_store = local_downloader;
+        {
+            let mut downloader_store = downloader_state.0.lock().await;
+            *downloader_store = local_downloader;
+        }
     }
 }
 

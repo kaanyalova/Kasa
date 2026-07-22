@@ -5089,6 +5089,7 @@ dependencies = [
  "dirs 5.0.1",
  "flate2",
  "hex",
+ "libc",
  "log",
  "reqwest 0.12.28",
  "rustpython",

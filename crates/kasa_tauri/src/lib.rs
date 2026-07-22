@@ -25,7 +25,6 @@ use db::get_thumbs_db_info;
 use db::is_remote_db;
 use db::nuke_db_versioning;
 use db::query_tags;
-use downloaders::PythonStore;
 use downloaders::get_downloader_statuses;
 use downloaders::queue_download_job;
 use file_picker::new_linux_file_picker_dialog_file_select;
@@ -222,14 +221,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .level(log_level)
-                .target(tauri_plugin_log::Target::new(
-                    tauri_plugin_log::TargetKind::Stdout,
-                ))
-                .build(),
-        )
+        .plugin(tauri_plugin_log::Builder::new().level(log_level).build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_fs::init())
         //.plugin(tauri_plugin_theme::init(context.config_mut()))
@@ -240,7 +232,6 @@ pub fn run() {
         .manage(db::DatabaseState::default())
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
-        .manage(PythonStore::init_interpreter())
         .setup(move |app| {
             builder.mount_events(app);
 

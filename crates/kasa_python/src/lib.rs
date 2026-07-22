@@ -19,10 +19,17 @@ pub use rustpython::Interpreter;
 const CERT_BYTES: &[u8] = include_bytes!("../cacert.pem");
 
 pub fn init_interpreter() -> Interpreter {
-    InterpreterBuilder::new()
+    let interpreter = InterpreterBuilder::new()
         .init_stdlib()
         .add_frozen_modules(FROZEN_STDLIB)
-        .build()
+        .build();
+
+    // rustpython seems to steal the sigint, reset it
+    unsafe {
+        libc::signal(libc::SIGINT, libc::SIG_DFL);
+    }
+
+    interpreter
 }
 
 pub fn init_interpreter_with_gallery_dl() -> Interpreter {
@@ -76,6 +83,11 @@ pub fn init_interpreter_with_gallery_dl() -> Interpreter {
         //))
         .add_frozen_modules(py_freeze!(dir = "../py/py_src"))
         .build();
+
+    // rustpython seems to steal the sigint, reset it
+    unsafe {
+        libc::signal(libc::SIGINT, libc::SIG_DFL);
+    }
 
     builder
 }

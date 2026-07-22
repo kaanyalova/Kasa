@@ -13,10 +13,7 @@ rustpython-vm = { workspace = true, features = [
 ] }
 rustpython-stdlib = { workspace = true }
 rustpython-pylib = { workspace = true, features = [] }
-rustpython = { workspace = true, features = [
-    "freeze-stdlib",
-    "sqlite",
-] }
+rustpython = { workspace = true, features = ["freeze-stdlib", "sqlite"] }
 
 
 anyhow = { workspace = true }
@@ -29,6 +26,7 @@ log = { workspace = true }
 dirs = { workspace = true }
 hex = "0.4.3"
 sha1 = "0.10.6"
+libc = "0.2"
 #kasa_core = { workspace = true }
 
 [build-dependencies]

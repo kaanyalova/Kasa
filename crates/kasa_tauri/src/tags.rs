@@ -9,10 +9,7 @@ use kasa_python::extractors::scriptable::PythonTagExtractor;
 use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::{
-    db::{DatabaseState, DbStore},
-    downloaders::PythonStore,
-};
+use crate::db::{DatabaseState, DbStore};
 
 #[tauri::command(async)]
 #[specta::specta]

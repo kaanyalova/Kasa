@@ -1,4 +1,4 @@
-use std::os::unix::net::SocketAddr;
+use std::net::SocketAddr;
 
 use axum::{
     Json,
@@ -36,6 +36,7 @@ pub async fn listen_for_download_updates(
     ws: WebSocketUpgrade,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
+    trace!("{} is requesting ws upgrade for download updates", addr);
     ws.on_upgrade(move |socket| {
         handle_download_updates(socket, addr, downloader_state.update_broadcast.subscribe())
     })
@@ -46,6 +47,8 @@ async fn handle_download_updates(
     who: SocketAddr,
     mut events: broadcast::Receiver<DownloaderStateUpdate>,
 ) {
+    trace!("{} connected to ws for download updates", who);
+
     let (mut sender, mut receiver) = socket.split();
 
     let send_whom = who.clone();
@@ -55,6 +58,7 @@ async fn handle_download_updates(
 
             match serialize_result {
                 Ok(t) => {
+                    trace!("sending msg {:?} to {:?}", &event, &send_whom);
                     sender.send(Message::text(t)).await.unwrap();
                 }
                 Err(e) => {
@@ -64,7 +68,14 @@ async fn handle_download_updates(
         }
     });
 
-    let mut recv_task = tokio::spawn(async move {});
+    let mut recv_task = tokio::spawn(async move {
+        while let Some(msg) = receiver.next().await {
+            match msg {
+                Ok(Message::Close(_)) | Err(_) => break,
+                _ => {}
+            }
+        }
+    });
 
     tokio::select! {
         _ = (&mut send_task) => {
@@ -94,6 +105,7 @@ pub async fn push_download(
     State(downloader_state): State<DownloaderState>,
     Json(request): Json<PushDownloadRequest>,
 ) -> StatusCode {
+    trace!("pushing download with url: {}", request.url);
     let job = DownloadJob { url: request.url };
     downloader_state.job_tx.send(job).await.unwrap();
     StatusCode::OK

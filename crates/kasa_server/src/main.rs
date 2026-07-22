@@ -14,7 +14,7 @@ use libsqlite3_sys::sqlite3_auto_extension;
 use sqlite_vec::sqlite3_vec_init;
 use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
 use tokio::sync::broadcast;
-use tracing::info;
+use tracing::{info, trace};
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::api::downloader::DownloaderState;
@@ -85,18 +85,20 @@ async fn main() {
 
             let update_tx_progress = update_tx.clone();
 
-            let on_progress = move |status: &GalleryDlStatus| {
-                let _ = update_tx_progress
-                    .send(DownloaderStateUpdate::OnProgress(status.clone()))
-                    .unwrap();
+            let on_progress = move |status: &GalleryDlStatus| match update_tx_progress
+                .send(DownloaderStateUpdate::OnProgress(status.clone()))
+            {
+                Ok(n) => trace!("broadcasted OnProgress to {n} receivers"),
+                Err(e) => trace!("no receivers for OnProgress: {e}"),
             };
 
             let update_tx_done = update_tx.clone();
 
-            let on_done = move |hash: String| {
-                update_tx_done
-                    .send(DownloaderStateUpdate::OnDone(hash))
-                    .unwrap();
+            let on_done = move |hash: String| match update_tx_done
+                .send(DownloaderStateUpdate::OnDone(hash))
+            {
+                Ok(n) => trace!("broadcasted OnDone to {n} receivers"),
+                Err(e) => trace!("no receivers for OnDone: {e}"),
             };
 
             let (mut downloader, tx_download_job) = Downloader::init(

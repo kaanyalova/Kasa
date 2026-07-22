@@ -291,12 +291,12 @@ impl RemoteDownloaderClient {
         }
     }
 
-    pub async fn push_download(&self, url: &str) -> Result<()> {
+    pub async fn push_download(&self, download_url: &str) -> Result<()> {
         let url = format!("{}/push_download", self.base_url);
         self.reqwest_client
             .post(&url)
             .json(&DownloadJob {
-                url: url.to_string(),
+                url: download_url.to_string(),
             })
             .send()
             .await?;
@@ -316,7 +316,12 @@ impl RemoteDownloaderClient {
         let token = CancellationToken::new();
         self.cancel_token = Some(token.clone());
 
-        let (ws_stream, _) = connect_async(format!("{}/downloader_ws", self.base_url)).await?;
+        let ws_base_url = self
+            .base_url
+            .replace("https://", "wss://")
+            .replace("http://", "ws://");
+        let (ws_stream, _) =
+            connect_async(format!("{}/listen_for_download_updates", ws_base_url)).await?;
 
         let (mut write, mut read) = ws_stream.split();
 

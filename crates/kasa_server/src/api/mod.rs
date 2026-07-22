@@ -7,6 +7,7 @@ mod search;
 mod tags;
 
 use std::fs;
+use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc;
@@ -151,7 +152,13 @@ pub async fn run(args: &ServerArgs, dbs: Databases, downloader_state: Downloader
         .await
         .unwrap();
     tracing::info!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
+
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }
 
 #[utoipa::path(

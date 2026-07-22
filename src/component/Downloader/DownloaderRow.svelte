@@ -64,5 +64,6 @@
 		font-family: 'UbuntuMono';
 		position: relative;
 		top: 4px;
+		border: 1px solid var(--secondary-alt);
 	}
 </style>

@@ -47,6 +47,7 @@
 		updateLayoutFromCache();
 	});
 	onMount(async () => {
+		console.log('onmount');
 		await listen('dbs_updated', async (e) => {
 			const createNewDb = (e.payload as any).newDb as boolean;
 			const doesTheDbFileExist = await commands.doesTheDbFileExist();
@@ -65,6 +66,7 @@
 				return;
 			}
 
+			console.log();
 			await commands.connectDbs();
 			await initializeLayout();
 			await emit('tags_updated');
@@ -100,10 +102,12 @@
 			return;
 		}
 
+		console.log('called connect_dbs()');
 		await commands.connectDbs();
 		await InfiniteMediaStore.loadSettings();
 		await initializeLayout();
 	});
+	//
 
 	onDestroy(() => {
 		trace('ondestroy called!');

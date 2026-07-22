@@ -11,7 +11,7 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--manifest-path=./kasa_tauri/Cargo.toml",
+                    "--manifest-path=./crates/kasa_tauri/Cargo.toml",
                     "--no-default-features"
                 ]
             },
@@ -26,7 +26,7 @@
                 "args": [
                     "build",
                     "--release",
-                    "--manifest-path=./kasa_tauri/Cargo.toml"
+                    "--manifest-path=./crates/kasa_tauri/Cargo.toml"
                 ]
             },
             // task for the `beforeBuildCommand` if used, must be configured in `.vscode/tasks.json`

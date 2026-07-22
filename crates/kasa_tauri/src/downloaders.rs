@@ -10,7 +10,7 @@ use kasa_python::extractors::TagExtractor;
 use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
 use kasa_python::{GalleryDlStatus, PyTrustMe, init_interpreter, init_interpreter_with_gallery_dl};
-use log::error;
+use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -27,20 +27,46 @@ pub async fn queue_download_job(handle: AppHandle, url: String) {
     let state = handle.state::<DownloaderState>();
     let store = state.0.lock().await;
 
+    let store_type = match &*store {
+        DownloaderStore::Local(_) => "local",
+        DownloaderStore::Remote(_) => "remote",
+        DownloaderStore::Uninitialized => "uninitialized",
+    };
+
     match &*store {
-        DownloaderStore::Local(local) => local.tx.send(DownloadJob { url }).await.unwrap(),
+        DownloaderStore::Local(local) => local
+            .tx
+            .send(DownloadJob { url: url.clone() })
+            .await
+            .unwrap(),
         DownloaderStore::Remote(remote) => remote.client.push_download(&url).await.unwrap(),
 
         DownloaderStore::Uninitialized => {}
     }
+
+    info!(
+        "queued download job with context: {}, url: {}",
+        store_type, url
+    );
 }
 
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_downloader_statuses(handle: AppHandle) -> HashMap<String, GalleryDlStatus> {
-    let statuses = handle.state::<LocalDownloaderStore>();
-    let locked = statuses.statuses.lock().unwrap();
-    locked.clone()
+    let state = handle.state::<DownloaderState>();
+    let store = state.0.lock().await;
+
+    match &*store {
+        DownloaderStore::Local(local) => {
+            let locked = local.statuses.lock().unwrap();
+            locked.clone()
+        }
+        DownloaderStore::Remote(remote) => {
+            let locked = remote.statuses.lock().unwrap();
+            locked.clone()
+        }
+        DownloaderStore::Uninitialized => HashMap::new(),
+    }
 }
 
 pub struct LocalDownloaderStore {
@@ -63,7 +89,7 @@ pub enum DownloaderStore {
 pub struct DownloaderState(pub Mutex<DownloaderStore>);
 
 impl DownloaderStore {
-    pub fn new_local(
+    pub async fn new_local(
         handle: AppHandle,
         db: Pool<Sqlite>,
         thumbs_db: Pool<Sqlite>,
@@ -104,7 +130,7 @@ impl DownloaderStore {
         let extractors_clone = extractors.clone();
         downloader.set_extractors(extractors_clone);
 
-        tauri::async_runtime::spawn(async move {
+        tokio::spawn(async move {
             let ctx = DownloaderContext::from_values(statuses_run);
             downloader.run(&ctx).await;
         });

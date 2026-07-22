@@ -66,9 +66,10 @@
 				return;
 			}
 
-			console.log();
+			console.log('updated dbs');
 			await commands.connectDbs();
 			await initializeLayout();
+			InfiniteMediaStore.loadSettings();
 			await emit('tags_updated');
 			values = values;
 			trace('dbs_updated event received');
@@ -102,7 +103,6 @@
 			return;
 		}
 
-		console.log('called connect_dbs()');
 		await commands.connectDbs();
 		await InfiniteMediaStore.loadSettings();
 		await initializeLayout();
@@ -160,7 +160,6 @@
 	async function initializeLayout() {
 		console.log(`call init layout size is ${values.length}`);
 		try {
-			console.log(values.length);
 			if (await commands.areDbsMounted()) {
 				trace('search via initialize layout');
 				await commands.search(SearchStore.searchContents);

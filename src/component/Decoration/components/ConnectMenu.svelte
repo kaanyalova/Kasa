@@ -18,6 +18,12 @@
 		await onConnectToDb(url);
 		isActive = false;
 	}
+
+	function onKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
+			onClickConnect();
+		}
+	}
 </script>
 
 <dialog class="connectMenu" open>
@@ -35,6 +41,7 @@
 				class="serverInput"
 				bind:this={inputElement}
 				bind:value={url}
+				onkeydown={onKeyDown}
 			/>
 			<button
 				class="connectButton"

@@ -39,23 +39,31 @@
 		</li>
 
 		<li class="layoutMenuItem">
-			<div class="propertyText">Thumbnail Scale</div>
+			<div class="scaleContainer">
+				<div class="scaleLabel">Thumbnail Scale</div>
 
-			<div class="thumbnailScaleSliderContainer">
-				<input
-					class="thumbnailScaleSlider"
-					type="range"
-					min="0.5"
-					max="3"
-					step="0.2"
-					bind:value={() => thumbnailScaleDisplay, (v) => onChangeThumbnailScale(v ?? 1.0)}
-				/>
-			</div>
+				<div class="scaleContent">
+					<div class="scaleIcon">
+						<span class="icon-[material-symbols--photo-size-select-small] w-5 h-5"></span>
+					</div>
 
-			<div class="thumbnailScaleSliderValue">
-				<span class="thumbnailScaleText">
-					{thumbnailScaleDisplay}
-				</span>
+					<div class="thumbnailScaleSliderContainer">
+						<input
+							class="thumbnailScaleSlider"
+							type="range"
+							min="0.5"
+							max="3"
+							step="0.2"
+							bind:value={() => thumbnailScaleDisplay, (v) => onChangeThumbnailScale(v ?? 1.0)}
+						/>
+					</div>
+
+					<div class="thumbnailScaleSliderValue">
+						<span class="thumbnailScaleText">
+							{thumbnailScaleDisplay}
+						</span>
+					</div>
+				</div>
 			</div>
 		</li>
 
@@ -63,7 +71,7 @@
 	</ul>
 </dialog>
 
-<style>
+<style lang="scss">
 	.layoutMenu {
 		width: 300px;
 		height: 200px;
@@ -89,25 +97,23 @@
 		font-size: small;
 	}
 
-	.propertyText {
-		font-size: 12px;
-		background-color: var(--secondary-alt);
-		padding-top: 8px;
-		padding-bottom: 8px;
-		padding-left: 2px;
-		padding-right: 2px;
-		text-align: center;
-		border: 1px solid var(--border);
-		border-right: none;
-		border-radius: 4px 0px 0px 4px;
+	.scaleIcon {
+		background-color: var(--accent);
+		color: var(--text-opposite);
+		border: 1px solid var(--accent-border);
+		width: 36px;
+		height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
 	}
 
 	.thumbnailScaleSliderValue {
-		background-color: var(--accent);
-		color: var(--text-opposite);
+		background-color: var(--secondary-alt);
+		color: var(--text);
 		padding: 2px;
 		font-weight: bold;
-		outline: 1px solid var(--secondary-alt);
 		width: 36px;
 		height: 36px;
 		text-align: center;
@@ -118,16 +124,32 @@
 		padding: 4px;
 		position: relative;
 		top: 2px;
+		width: 100%;
 	}
 
 	.thumbnailScaleSliderContainer {
 		border: 1px solid var(--secondary-alt);
 		padding-left: 4px;
 		padding-right: 4px;
+		width: 100%;
 	}
 
 	.thumbnailScaleText {
 		position: relative;
 		top: 3px;
+	}
+
+	.scaleContent {
+		display: flex;
+		width: 100%;
+	}
+
+	.scaleLabel {
+		text-align: left;
+		font-size: smaller;
+	}
+
+	.scaleContainer {
+		width: 100%;
 	}
 </style>

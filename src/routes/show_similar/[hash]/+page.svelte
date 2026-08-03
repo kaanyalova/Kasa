@@ -95,7 +95,7 @@
 		outline: 1px solid var(--secondary-alt);
 	}
 	.thumbnail:hover {
-		outline: 3px solid var(--accent);
+		outline: 3px solid var(--secondary);
 	}
 
 	.info {

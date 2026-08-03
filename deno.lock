@@ -35,7 +35,7 @@
     "npm:svelte-check@^3.8.6": "3.8.6_svelte@5.55.9_postcss@8.5.15_sass@1.100.0",
     "npm:svelte-infinite-loading@^1.4.0": "1.4.0",
     "npm:svelte-splitpanes@^8.0.12": "8.0.12_svelte@5.55.9",
-    "npm:svelte-tiny-virtual-list@^2.1.2": "2.1.2",
+    "npm:svelte-tiny-virtual-list@4.0.0-rc.2": "4.0.0-rc.2_svelte@5.55.9",
     "npm:svelte@^5.55.2": "5.55.9",
     "npm:tailwind-merge@^2.6.1": "2.6.1",
     "npm:tailwindcss@^4.2.2": "4.3.0",
@@ -2219,8 +2219,11 @@
         "svelte"
       ]
     },
-    "svelte-tiny-virtual-list@2.1.2": {
-      "integrity": "sha512-jeP/WMvgFUR4mYXHGPiCexjX5DuzSO+3xzHNhxfcsFyy+uYPtnqI5UGb383swpzQAyXB0OBqYfzpYihD/5gxnA=="
+    "svelte-tiny-virtual-list@4.0.0-rc.2_svelte@5.55.9": {
+      "integrity": "sha512-HZllbesCrXFcXy6IvH2ZlQb46V5wENoJtWTtUW8QY19v5cljVgLHtRBFuwTU4lCPtiZDPc7SkyoQ7F+8/2Bluw==",
+      "dependencies": [
+        "svelte"
+      ]
     },
     "svelte@5.55.9": {
       "integrity": "sha512-fTjjT8cHLDwigcu2j3pv7Jq04LklXevPB8uBgyHNiTXv+RMNvVnrjS4UEYrLMkhuq1vpCodHjiW+z/95SDs/fg==",
@@ -2433,7 +2436,7 @@
         "npm:svelte-check@^3.8.6",
         "npm:svelte-infinite-loading@^1.4.0",
         "npm:svelte-splitpanes@^8.0.12",
-        "npm:svelte-tiny-virtual-list@^2.1.2",
+        "npm:svelte-tiny-virtual-list@4.0.0-rc.2",
         "npm:svelte@^5.55.2",
         "npm:tailwind-merge@^2.6.1",
         "npm:tailwindcss@^4.2.2",

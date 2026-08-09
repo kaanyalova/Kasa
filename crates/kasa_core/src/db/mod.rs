@@ -1,6 +1,7 @@
 pub mod db_info;
 pub mod embeddings;
 pub mod migrations;
+pub mod remote_cache;
 pub mod schema;
 pub mod tags;
 

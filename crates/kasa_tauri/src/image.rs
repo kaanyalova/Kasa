@@ -14,16 +14,12 @@ use tauri::{AppHandle, Manager};
 #[specta::specta]
 pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<String> {
     trace!("getting thumbnail for hash:{}", hash);
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            let connection_guard_thumbs = db_store.thumbs_db.lock().await.clone();
-
             if let (Some(pool), Some(pool_thumbs)) =
-                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+                (db_store.db.as_ref(), db_store.thumbs_db.as_ref())
             {
                 let image = generate_or_get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await;
 
@@ -35,9 +31,7 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
             }
         }
         DbStore::Remote(remote_store) => {
-            let connection_guard_thumbs = remote_store.thumbs_db.lock().await.clone();
-
-            if let Some(pool_thumbs) = connection_guard_thumbs.as_ref() {
+            if let Some(pool_thumbs) = remote_store.thumbs_db.as_ref() {
                 let local_thumbnail = get_thumbnail_from_db_impl(&hash, pool_thumbs).await;
 
                 if let Some(thumbnail) = local_thumbnail

@@ -164,3 +164,16 @@ pub struct AutoTaggerInfo {
     pub thresholds: String,
     pub tag_count: i64,
 }
+
+#[derive(Debug, FromRow)]
+/// Small bits of info that are fetched constantly remotely but
+/// not worth """caching""" when locally connected (they are just db fields in the main db)
+/// these are on the thumbnails database as thats the place where i cache stuff
+pub struct RemoteMediaCache {
+    pub hash: String,
+    // caching this is kind of questionable as the file name is not dependent on the file hash and can change,
+    // but better than making a billion requests for file names i guess?
+    pub filename: Option<String>,
+    pub media_type: String,
+    pub video_length: Option<f64>,
+}

@@ -32,22 +32,23 @@ impl Default for DbStore {
     }
 }
 
+#[derive(Clone)]
 pub enum DbStore {
     // todo add a third uninitialized type here
     Local(LocalDbStore),
     Remote(RemoteDbStore),
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct LocalDbStore {
-    pub db: Mutex<Option<Pool<Sqlite>>>,
-    pub thumbs_db: Mutex<Option<Pool<Sqlite>>>,
+    pub db: Option<Pool<Sqlite>>,
+    pub thumbs_db: Option<Pool<Sqlite>>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct RemoteDbStore {
     pub client: RemoteClient,
-    pub thumbs_db: Mutex<Option<Pool<Sqlite>>>,
+    pub thumbs_db: Option<Pool<Sqlite>>,
 }
 
 #[derive(Default)]
@@ -58,18 +59,24 @@ pub struct MediaCache {
 #[derive(Default)]
 pub struct DatabaseState(pub Mutex<DbStore>);
 
+impl DatabaseState {
+    /// Clones the current store out from under the lock so commands can do their
+    /// work (including network requests and long queries) without holding the mutex.
+    /// The clone is cheap: `Pool` is an `Arc`, `RemoteClient` is an `Arc` + `String`.
+    pub async fn clone_store(&self) -> DbStore {
+        self.0.lock().await.clone()
+    }
+}
+
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<TagQueryOutput> {
     println!("querying tags!");
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let guard = db_store.db.lock().await;
-
-            if let Some(pool) = guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 query_tags_impl(tag_name, count, pool).await
             } else {
                 error!("no db found when querying tags");
@@ -88,14 +95,11 @@ pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<
 #[specta::specta]
 
 pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let db_guard = db_store.db.lock().await;
-            let thumbs_guard = db_store.thumbs_db.lock().await;
-            db_guard.as_ref().is_some() && thumbs_guard.as_ref().is_some()
+            db_store.db.is_some() && db_store.thumbs_db.is_some()
         }
         DbStore::Remote(remote_store) => {
             let response = remote_store.client.ping().await;
@@ -153,7 +157,7 @@ pub async fn connect_dbs(handle: AppHandle) {
         let client = RemoteClient::new(config.db.db_path.clone());
         *db_store = DbStore::Remote(RemoteDbStore {
             client,
-            thumbs_db: Mutex::new(Some(pool_thumbs)),
+            thumbs_db: Some(pool_thumbs),
         });
 
         // create the downloader stuff here
@@ -191,8 +195,8 @@ pub async fn connect_dbs(handle: AppHandle) {
         let pool_thumbs_downloader = pool_thumbs.clone();
 
         *db_store = DbStore::Local(LocalDbStore {
-            db: Mutex::new(Some(pool_db)),
-            thumbs_db: Mutex::new(Some(pool_thumbs)),
+            db: Some(pool_db),
+            thumbs_db: Some(pool_thumbs),
         });
 
         // if we are here, i assume the dbs are mounted properly, load the downloader
@@ -217,15 +221,14 @@ pub async fn connect_dbs(handle: AppHandle) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn does_the_db_file_exist(handle: AppHandle) -> bool {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
     let config = get_config_impl();
     if config.db.db_path.starts_with("http://") || config.db.db_path.starts_with("https://") {
         return true;
     }
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(_local_db_store) => {
             let config = get_config_impl();
             PathBuf::from(config.db.db_path).exists()
@@ -267,21 +270,18 @@ pub async fn get_layout_from_cache(
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let guard = db_store.thumbs_db.lock().await;
-            if let Some(pool) = guard.as_ref() {
+            if let Some(pool) = db_store.thumbs_db.as_ref() {
                 Some(get_thumbs_db_info_impl(pool).await)
             } else {
                 None
             }
         }
         DbStore::Remote(remote_store) => {
-            let guard = remote_store.thumbs_db.lock().await;
-            if let Some(pool) = guard.as_ref() {
+            if let Some(pool) = remote_store.thumbs_db.as_ref() {
                 Some(get_thumbs_db_info_impl(pool).await)
             } else {
                 None
@@ -293,13 +293,11 @@ pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn nuke_db_versioning(handle: AppHandle) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let guard = db_store.thumbs_db.lock().await;
-            if let Some(pool) = guard.as_ref() {
+            if let Some(pool) = db_store.thumbs_db.as_ref() {
                 query("DROP TABLE _sqlx_migrations")
                     .execute(pool)
                     .await
@@ -317,19 +315,17 @@ pub async fn nuke_db_versioning(handle: AppHandle) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn is_remote_db(handle: AppHandle) -> bool {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    matches!(&*connection_state, DbStore::Remote(_))
+    matches!(db_store, DbStore::Remote(_))
 }
 
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_remote_server_url(handle: AppHandle) -> String {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(_) => {
             error!("get_remote_media_url called on local db");
             "".to_string()

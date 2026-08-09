@@ -18,8 +18,7 @@ use crate::db::{DatabaseState, DbStore, MediaCache};
 /// `width`: viewport width for layout
 /// `gaps`: gaps between images  
 pub async fn search(handle: AppHandle, input_raw: String) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
     let mut search_criteria = SearchCriteria::parse_from_str(&input_raw);
 
@@ -31,11 +30,9 @@ pub async fn search(handle: AppHandle, input_raw: String) {
 
     let mut media: Vec<Media> = vec![];
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 trace!("Searching with criteria {:?}", search_criteria);
 
                 let mut query = search_criteria.to_query();
@@ -77,13 +74,11 @@ pub async fn new_or_update_preset(
     excludes: Vec<String>,
     name: &str,
 ) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 let result = new_or_update_preset_impl(includes, excludes, name, pool).await;
 
                 if result.is_err() {

@@ -14,13 +14,11 @@ use crate::db::{DatabaseState, DbStore};
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 update_tags_impl(&raw_input, hash, pool).await;
             } else {
                 println!("DB connection wasn't initialized yet!")
@@ -40,13 +38,11 @@ pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 remove_tags(tags, pool, Some(hash)).await;
             } else {
                 println!("DB connection wasn't initialized yet!")
@@ -64,13 +60,11 @@ pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_tags_as_text(handle: AppHandle, hash: String) -> Option<String> {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 let text = get_tags_as_text_impl(&hash, pool).await;
                 Some(text)
             } else {
@@ -88,13 +82,11 @@ pub async fn get_list_of_all_tags_with_details(
     handle: AppHandle,
     ordering_criteria: AllTagsOrderingCriteria,
 ) -> Option<Vec<TagWithCount>> {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 let tags = get_list_of_all_tags_with_details_impl(pool, ordering_criteria).await;
                 Some(tags)
             } else {

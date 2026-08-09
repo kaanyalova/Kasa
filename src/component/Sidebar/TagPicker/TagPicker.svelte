@@ -76,16 +76,15 @@
 		trace('load tags');
 	}
 
-	let loadTagsPromise = $state(loadTags);
-
 	// Try every one second until the tags are first loaded, the as db is usually not instantly mounted
+	// this might call the loadTags() multiple times if it takes long to get the tags
 	const initialLoadInterval = setInterval(async () => {
 		if (!tags && (await commands.areDbsMounted())) {
-			loadTags();
+			await loadTags();
 		} else {
 			clearInterval(initialLoadInterval);
 		}
-	}, 5000);
+	}, 1000);
 
 	listen('tags_updated', (_) => {
 		trace('tags_updated emitted');

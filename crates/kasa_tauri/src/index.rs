@@ -14,13 +14,11 @@ use crate::db::{DatabaseState, DbStore};
 
 /// Adds a single index source from the path, does not index that path without calling index_path()
 pub async fn add_index_source(handle: AppHandle, path: String) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            if let Some(db) = connection_guard.as_ref() {
+            if let Some(db) = db_store.db.as_ref() {
                 add_index_source_impl(&path, db).await;
             }
         }
@@ -31,13 +29,11 @@ pub async fn add_index_source(handle: AppHandle, path: String) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn remove_index_source(handle: AppHandle, path: String) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            if let Some(db) = connection_guard.as_ref() {
+            if let Some(db) = db_store.db.as_ref() {
                 remove_index_source_impl(&path, db).await;
             }
         }
@@ -49,16 +45,12 @@ pub async fn remove_index_source(handle: AppHandle, path: String) {
 #[specta::specta]
 pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
     let h = handle.clone();
-    let state = h.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = h.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            let connection_guard_thumbs = db_store.thumbs_db.lock().await;
-
             if let (Some(db), Some(thumbs_db)) =
-                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
+                (db_store.db.as_ref(), db_store.thumbs_db.as_ref())
             {
                 index_all_impl(db, thumbs_db).await;
                 handle.emit("media_updated", "").unwrap();
@@ -73,13 +65,11 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_index_paths(handle: AppHandle) -> Vec<String> {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            if let Some(db) = connection_guard.as_ref() {
+            if let Some(db) = db_store.db.as_ref() {
                 get_index_paths_impl(db).await
             } else {
                 vec![]
@@ -92,17 +82,11 @@ pub async fn get_index_paths(handle: AppHandle) -> Vec<String> {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn index_path(handle: AppHandle, path: String) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            let connection_guard_thumbs = db_store.thumbs_db.lock().await;
-
-            if let (Some(db), Some(thumbs)) =
-                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
-            {
+            if let (Some(db), Some(thumbs)) = (db_store.db.as_ref(), db_store.thumbs_db.as_ref()) {
                 index(&path, db, thumbs).await;
             }
         }
@@ -115,17 +99,11 @@ pub async fn index_path(handle: AppHandle, path: String) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn nuke_selected_index(handle: AppHandle, path: String) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            let connection_guard_thumbs = db_store.thumbs_db.lock().await;
-
-            if let (Some(db), Some(thumbs)) =
-                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
-            {
+            if let (Some(db), Some(thumbs)) = (db_store.db.as_ref(), db_store.thumbs_db.as_ref()) {
                 nuke_selected_index_impl(db, Some(thumbs), &path).await;
             }
         }
@@ -138,17 +116,11 @@ pub async fn nuke_selected_index(handle: AppHandle, path: String) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn nuke_all_indexes(handle: AppHandle) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            let connection_guard_thumbs = db_store.thumbs_db.lock().await;
-
-            if let (Some(db), Some(thumbs)) =
-                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
-            {
+            if let (Some(db), Some(thumbs)) = (db_store.db.as_ref(), db_store.thumbs_db.as_ref()) {
                 nuke_all_indexes_impl(db, Some(thumbs)).await;
             }
         }
@@ -161,17 +133,11 @@ pub async fn nuke_all_indexes(handle: AppHandle) {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn cleanup_unreferenced_files(handle: AppHandle) {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await;
-            let connection_guard_thumbs = db_store.thumbs_db.lock().await;
-
-            if let (Some(db), Some(thumbs)) =
-                (connection_guard.as_ref(), connection_guard_thumbs.as_ref())
-            {
+            if let (Some(db), Some(thumbs)) = (db_store.db.as_ref(), db_store.thumbs_db.as_ref()) {
                 cleanup_unreferenced_files_impl(db, thumbs).await;
             }
         }

@@ -17,7 +17,7 @@ use serde_json::json;
 use tokio_tungstenite::{connect_async, tungstenite::stream};
 use tokio_util::sync::CancellationToken;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct RemoteClient {
     reqwest_client: reqwest::Client,
     base_url: String,

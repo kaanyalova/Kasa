@@ -75,13 +75,11 @@ pub fn create_or_get_extractor_contents(extractor_name: &str, file_extension: &s
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_existing_extractor_names(handle: AppHandle) -> Vec<String> {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 get_existing_extractor_names_impl(pool).await.unwrap()
             } else {
                 vec![]
@@ -94,13 +92,11 @@ pub async fn get_existing_extractor_names(handle: AppHandle) -> Vec<String> {
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn get_example_metadata_for_extractor(handle: AppHandle, name: String) -> String {
-    let state = handle.state::<DatabaseState>();
-    let connection_state = state.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*connection_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let connection_guard = db_store.db.lock().await.clone();
-            if let Some(pool) = connection_guard.as_ref() {
+            if let Some(pool) = db_store.db.as_ref() {
                 get_example_metadata_for_extractor_impl(pool, &name)
                     .await
                     .unwrap()

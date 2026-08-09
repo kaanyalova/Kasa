@@ -23,16 +23,13 @@ pub struct MediaServerStore {
 /// Returns the pointer to close the server
 #[specta::specta]
 pub async fn serve_media(handle: AppHandle, hash: String) {
-    let db_state_handle = handle.state::<DatabaseState>();
-    let db_state = db_state_handle.0.lock().await;
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    match &*db_state {
+    match db_store {
         DbStore::Local(db_store) => {
-            let db_guard = db_store.db.lock().await.clone();
-
             let state = handle.state::<MediaServerStore>();
 
-            let Some(pool) = db_guard.as_ref() else {
+            let Some(pool) = db_store.db.as_ref() else {
                 return;
             };
 

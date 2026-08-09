@@ -126,29 +126,25 @@
 		}
 	}
 
+	function getItemSize(index: number): number {
+		values[index].height;
+		return calculateRowHeight(values[index].height);
+	}
+
 	/**
 	 * Gets the media from the database possibly using cached values, sets the heights for the media and media themselves to
 	 * the received values.
 	 */
 	async function updateLayoutFromCache() {
-		let _values = await commands.getLayoutFromCache(
+		let values = await commands.getLayoutFromCache(
 			tauri_width - sidebarStore.size * 3 - 20,
 			12,
 			InfiniteMediaStore.thumbnailScale
 		);
 
-		if (_values === null) {
+		if (values === null) {
 			error('Could not get layout from the rust cache');
-			return;
 		}
-
-		const _heights: Array<number> = _values.map((row) => {
-			// first row should have the gaps height
-			return calculateRowHeight(row.height);
-		});
-
-		heights = _heights;
-		values = _values;
 
 		trace(`calculating sizes w:${tauri_width}`);
 	}
@@ -179,29 +175,29 @@
 
 		await onResize();
 	});
-
-	$effect(async () => {});
 </script>
 
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
 <div class="list">
 	{#if isDatabaseOk}
-		<VirtualList width="100%" height="100%" itemCount={values.length} itemSize={heights}>
-			{#snippet item({ style, index })}
-				<div class="mediaRow" {style}>
-					{#each values[index].images as image}
-						<MediaThumbnail
-							isSelected={false}
-							hash={image.hash}
-							height={image.height}
-							width={image.width}
-							offset_x={image.x_relative}
-							offset_y={image.y_relative}
-						></MediaThumbnail>
-					{/each}
-				</div>
-			{/snippet}
-		</VirtualList>
+		{#key values}
+			<VirtualList width="100%" height="100%" itemCount={values.length} itemSize={getItemSize}>
+				{#snippet item({ style, index })}
+					<div class="mediaRow" {style}>
+						{#each values[index].images as image}
+							<MediaThumbnail
+								isSelected={false}
+								hash={image.hash}
+								height={image.height}
+								width={image.width}
+								offset_x={image.x_relative}
+								offset_y={image.y_relative}
+							></MediaThumbnail>
+						{/each}
+					</div>
+				{/snippet}
+			</VirtualList>
+		{/key}
 	{:else}
 		<div class="dbFileMissingWrapper">
 			<div class="dbFileMissingContainer">

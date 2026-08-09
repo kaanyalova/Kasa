@@ -3,4 +3,5 @@ type TagPickerEntryProps = {
 	count: number;
 	onCheck: (state: TagPickerCheckboxState, tagName: string) => void;
 	checkboxState: TagPickerCheckboxState;
+	style?: string;
 };

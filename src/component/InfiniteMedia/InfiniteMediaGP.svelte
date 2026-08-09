@@ -186,26 +186,21 @@
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
 <div class="list">
 	{#if isDatabaseOk}
-		<VirtualList
-			height="100%"
-			width="100%"
-			itemSize={heights}
-			itemCount={values.length}
-			overscanCount={Math.round(8 * InfiniteMediaStore.thumbnailScale)}
-			bind:this={virtualList}
-		>
-			<div class="mediaRow" slot="item" let:index let:style {style}>
-				{#each values[index].images as image}
-					<MediaThumbnail
-						isSelected={false}
-						hash={image.hash}
-						height={image.height}
-						width={image.width}
-						offset_x={image.x_relative}
-						offset_y={image.y_relative}
-					></MediaThumbnail>
-				{/each}
-			</div>
+		<VirtualList width="100%" height="100%" itemCount={values.length} itemSize={heights}>
+			{#snippet item({ style, index })}
+				<div class="mediaRow" {style}>
+					{#each values[index].images as image}
+						<MediaThumbnail
+							isSelected={false}
+							hash={image.hash}
+							height={image.height}
+							width={image.width}
+							offset_x={image.x_relative}
+							offset_y={image.y_relative}
+						></MediaThumbnail>
+					{/each}
+				</div>
+			{/snippet}
 		</VirtualList>
 	{:else}
 		<div class="dbFileMissingWrapper">

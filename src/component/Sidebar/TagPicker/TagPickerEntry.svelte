@@ -2,23 +2,25 @@
 	import { formatCount, getCountColor } from '$lib/colorUtils';
 	import TagPickerCheckBox from './TagPickerCheckBox.svelte';
 
-	let { checkboxState, onCheck, tagName, count }: TagPickerEntryProps = $props();
+	let { checkboxState, onCheck, tagName, count, style }: TagPickerEntryProps = $props();
 </script>
 
-<div class="tag">
-	<TagPickerCheckBox {tagName} checkboxState={checkboxState ?? 'unselected'} {onCheck}
-	></TagPickerCheckBox>
-	<label for="tag-{tagName}">
-		<div class="tagName" id="tag-{tagName}">
-			{tagName}
+<div class="tagPickerEntry" {style}>
+	<div class="tag">
+		<TagPickerCheckBox {tagName} checkboxState={checkboxState ?? 'unselected'} {onCheck}
+		></TagPickerCheckBox>
+		<label for="tag-{tagName}">
+			<div class="tagName" id="tag-{tagName}">
+				{tagName}
+			</div>
+		</label>
+
+		<div class="count">
+			{formatCount(count)}
 		</div>
-	</label>
 
-	<div class="count">
-		{formatCount(count)}
+		<div class="coloredPart" style="background-color: {getCountColor(count)};"></div>
 	</div>
-
-	<div class="coloredPart" style="background-color: {getCountColor(count)};"></div>
 </div>
 
 <style>

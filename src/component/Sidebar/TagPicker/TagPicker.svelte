@@ -6,20 +6,18 @@
 	import type { TagWithCount, TagWithDetails } from '$lib/tauri_bindings';
 	import { formatCount, getCountColor } from '$lib/colorUtils';
 	import TagPickerEntry from './TagPickerEntry.svelte';
-	import VirtualList, { type VirtualListProps } from 'svelte-tiny-virtual-list';
+	import VirtualList from 'svelte-tiny-virtual-list';
 	import { error, trace } from '@tauri-apps/plugin-log';
 	import { comma } from 'postcss/lib/list';
 	import { SearchStore } from '../Search/SearchStore.svelte';
 	import { emit, listen } from '@tauri-apps/api/event';
 	import { SvelteMap } from 'svelte/reactivity';
 	import TagPresets from './TagPresets.svelte';
-	import { canPlayHLSNatively } from 'vidstack';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
 	let checkedTags: Map<string, TagPickerCheckboxState> = $state(new SvelteMap());
 	let filterInput = $state('');
 	let textWidthCanvas: CanvasRenderingContext2D | null;
-	let virtualList: VirtualList;
 	let filterFavorites = $state(false);
 
 	async function toggleFavorites() {
@@ -87,7 +85,7 @@
 		} else {
 			clearInterval(initialLoadInterval);
 		}
-	}, 500);
+	}, 5000);
 
 	listen('tags_updated', (_) => {
 		trace('tags_updated emitted');
@@ -106,7 +104,7 @@
 		const fontSize = style.getPropertyValue('font-size');
 		const fontFamily = style.getPropertyValue('font-family');
 
-		const font = `${fontWeight} ${fontSize} ${fontFamily}`;
+		const font = `${fontWeight} ${fontSize} ${fontFamily}`.trim() || '14px sans-serif';
 
 		if (textWidthCanvas) {
 			textWidthCanvas.font = font;
@@ -120,16 +118,28 @@
 		//canvas.remove();
 	});
 
-	function getTextWidth(text: string): number | undefined {
-		return textWidthCanvas?.measureText(text).width;
+	function measureTextWidth(text: string): number | undefined {
+		if (textWidthCanvas === null) {
+			return undefined;
+		}
+
+		return textWidthCanvas.measureText(text).width;
 	}
 
-	const TEXT_MAX_HEIGHT = 150;
+	const CONTAINER_WIDTH = 150;
+	const LINE_HEIGHT = 26;
+	const VERTICAL_PADDING = 4;
 
 	function calculateHeight(index: number): number {
-		const tag = filteredTags[index].tag_name;
-		const width = getTextWidth(tag);
-		return Math.ceil((width ?? TEXT_MAX_HEIGHT) / TEXT_MAX_HEIGHT) * 26 + 4;
+		const tag = filteredTags[index];
+
+		if (tag === undefined) {
+			return LINE_HEIGHT + VERTICAL_PADDING;
+		}
+
+		const width = measureTextWidth(tag.tag_name) ?? 0;
+		const lines = Math.max(1, Math.ceil(width / CONTAINER_WIDTH));
+		return lines * LINE_HEIGHT + VERTICAL_PADDING;
 	}
 
 	async function resetTags() {
@@ -156,21 +166,16 @@
 <div class="tagPicker">
 	<div class="tagPickerList">
 		{#if filteredTags.length > 0}
-			<VirtualList
-				height={500}
-				itemCount={filteredTags.length}
-				itemSize={calculateHeight}
-				bind:this={virtualList}
-				scrollToIndex={/*How does this even work?*/ 0}
-			>
-				<div slot="item" let:index let:style {style}>
+			<VirtualList height={500} itemCount={filteredTags.length} itemSize={calculateHeight}>
+				{#snippet item({ style, index })}
 					<TagPickerEntry
 						tagName={filteredTags!![index].tag_name}
 						count={filteredTags!![index].count}
 						checkboxState={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
 						{onCheck}
+						{style}
 					/>
-				</div>
+				{/snippet}
 			</VirtualList>
 		{/if}
 	</div>
@@ -217,7 +222,6 @@
 		flex-direction: column;
 		color: var(--text);
 		height: 500px;
-		overflow-y: auto;
 		border: 1px solid var(--secondary-alt);
 		width: 274px;
 		user-select: none;
@@ -291,20 +295,6 @@
 
 	.tagPresetsButtonContainer {
 		display: flex;
-	}
-
-	.tagPresetButton {
-		color: var(--text);
-		flex: 1;
-		margin: 8px;
-		margin-top: 4px;
-		border-radius: 8px;
-		border: 1px solid var(--secondary-alt);
-		font-size: 16px;
-	}
-
-	.tagPresetButton:hover {
-		background-color: var(--secondary-alt);
 	}
 
 	.tagPresets {

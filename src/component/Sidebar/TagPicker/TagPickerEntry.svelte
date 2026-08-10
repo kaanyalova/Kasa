@@ -7,35 +7,46 @@
 
 <div class="tagPickerEntry" {style}>
 	<div class="tag">
-		<TagPickerCheckBox {tagName} checkboxState={checkboxState ?? 'unselected'} {onCheck}
-		></TagPickerCheckBox>
-		<label for="tag-{tagName}">
-			<div class="tagName" id="tag-{tagName}">
-				{tagName}
-			</div>
-		</label>
+		<div class="leftSide">
+			<TagPickerCheckBox {tagName} checkboxState={checkboxState ?? 'unselected'} {onCheck}
+			></TagPickerCheckBox>
+			<label for="tag-{tagName}">
+				<div class="tagName" id="tag-{tagName}">
+					{tagName}
+				</div>
+			</label>
 
-		<div class="count">
-			{formatCount(count)}
+			<div class="count">
+				{formatCount(count)}
+			</div>
 		</div>
 
-		<div class="coloredPart" style="background-color: {getCountColor(count)};"></div>
+		<div
+			class="coloredPart fancyTagEndShape"
+			style="background-color: {getCountColor(count)};"
+		></div>
 	</div>
 </div>
 
 <style>
+	.leftSide {
+		padding-left: 4px;
+		display: flex;
+		flex-grow: 1;
+		border: 1px solid var(--secondary-alt);
+		border-right: none;
+	}
 	.tag {
 		display: flex;
-		border: 1px solid var(--secondary-alt);
-		margin: 2px;
-		padding-left: 4px;
-		border-radius: 0px 10px 10px 0px;
+		border-left: none;
+		position: relative;
 	}
 
 	.tagName {
 		overflow-wrap: break-word;
 		word-break: break-all;
 		margin-right: 8px;
+		width: 150px;
 	}
 
 	.count {
@@ -47,8 +58,9 @@
 	}
 
 	.coloredPart {
-		min-width: 8px;
-		border-radius: 0px 4px 4px 0px;
+		min-width: 12px;
 		position: relative;
+		min-height: 26px;
+		aspect-ratio: auto;
 	}
 </style>

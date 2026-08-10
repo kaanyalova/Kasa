@@ -29,10 +29,9 @@
 		width: 232px;
 		height: 32px;
 		background-color: var(--secondary-alt);
+		outline: 1px solid var(--border-on-secondary-alt);
 		color: var(--text-color);
-		outline: none;
 		margin: 8px;
-		border-radius: 8px 0px 0px 8px;
 		padding: 4px;
 		padding-left: 8px;
 		flex-grow: 1;
@@ -49,10 +48,10 @@
 
 	.expandButton {
 		background-color: var(--accent);
+		outline: 1px solid var(--accent-border);
 		width: 24px;
 		height: 32px;
 		align-self: center;
-		border-radius: 0px 8px 8px 0px;
 		display: flex;
 		align-items: center;
 		justify-content: center;

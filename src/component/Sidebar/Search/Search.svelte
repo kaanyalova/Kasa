@@ -152,7 +152,9 @@
 		width: var(--searchbar-width);
 		height: 35px;
 		min-width: none;
-		border: solid color-mix(in srgb, var(--secondary) 30%, transparent) 1px;
+
+		/*border: solid color-mix(in srgb, var(--secondary) 30%, transparent) 1px; */
+		border: 1px solid var(--border-on-secondary-alt);
 		border-left: none;
 		box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 	}

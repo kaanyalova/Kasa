@@ -60,3 +60,17 @@ button {
 .button.bordered:hover {
 	background-color: var(--secondary-alt);
 }
+
+.fancyTagEndShape {
+	clip-path: shape(
+		from 66.66% 0%,
+		curve to 100% 14.29% with 91.33% 2.08%/100% 14.29%,
+		vline to 85.71%,
+		curve to 66.66% 100% with 100% 85.71%/91.33% 97.92%,
+		hline to 0%,
+		curve to 31.04% 85.71% with 0% 100%/22.69% 94.29%,
+		vline to 14.29%,
+		curve to 0% 0% with 22.69% 5.71%/0% 0%,
+		close
+	);
+}

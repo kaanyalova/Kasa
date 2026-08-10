@@ -23,45 +23,56 @@
 </script>
 
 <div class="entry">
-	<div class="left">{name}</div>
-
-	<div class="right">
+	<div class="leftSide">
+		<div class="name">{name}</div>
 		<div class="count">{count}</div>
-		<div class="coloredPart" style="background-color: {getCountColor(count)};"></div>
 	</div>
+
+	<div class="coloredPart fancyTagEndShape" style="background-color: {getCountColor(count)};"></div>
 </div>
 
 <style>
 	.coloredPart {
 		width: 8px;
 		align-self: stretch;
-		border-radius: 0px 4px 4px 0px;
+		height: 20px;
 	}
 
-	.right {
+	.leftSide {
 		display: flex;
+		flex-grow: 1;
+		border: 1px solid var(--border);
+		border-right: none;
+		height: 20px;
 	}
 
 	.entry {
 		font-family: 'Ubuntu';
 		flex-grow: 1;
-		border: 1px solid var(--border);
-		border-radius: 5px;
 		display: flex;
 		justify-content: space-between;
+		height: 20px;
 	}
 
 	.entry:hover {
-		border: 1px solid var(--primary);
+		outline: 1px solid var(--primary);
 		background-color: var(--secondary-alt);
+		border-right: none;
+		/*
+		 draw the border closer to the overlapping the colored part, 
+		 still not perfect though nobody will notice the border slightly being 
+		 over the colored part
+		*/
+		outline-offset: -1px;
 	}
 
 	.count {
 		padding-left: 8px;
 		padding-right: 8px;
+		margin-left: auto;
 	}
 
-	.left {
+	.name {
 		padding-right: 4px;
 		padding-left: 4px;
 		word-break: break-word;

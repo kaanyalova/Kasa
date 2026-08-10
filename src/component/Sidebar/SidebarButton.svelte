@@ -20,7 +20,7 @@
 		display: flex;
 		flex-direction: row;
 		border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
-		border-radius: 6px;
+		border-radius: 4px;
 		color: var(--text);
 		font-size: large;
 		width: var(--button-width);

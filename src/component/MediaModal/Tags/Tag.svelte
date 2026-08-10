@@ -43,30 +43,40 @@
 			}
 		}}
 	>
-		<div class="tagButton">
-			{#if clickCount === 1}
-				<!--
+		<div class="leftSide">
+			<div class="tagButton">
+				{#if clickCount === 1}
+					<!--
 				On second click, show the delete icon
 				-->
-				<div class="tagButton trashButton">
-					<span class="icon-[material-symbols--delete] w-3.5 h-3.5"></span>
-				</div>
-			{:else}
-				<div class="tagButton xButton">
-					<span class="icon-[material-symbols--close] w-3.5 h-3.5"></span>
-				</div>
-			{/if}
+					<div class="tagButton trashButton">
+						<span class="icon-[material-symbols--delete] w-3.5 h-3.5"></span>
+					</div>
+				{:else}
+					<div class="tagButton xButton">
+						<span class="icon-[material-symbols--close] w-3.5 h-3.5"></span>
+					</div>
+				{/if}
+			</div>
+
+			<div class="name">{name}</div>
 		</div>
 
-		<div class="name">{name}</div>
-
-		<div class="coloredPart" style="background-color:{color};"></div>
+		<div class="coloredPart fancyTagEndShape" style="background-color:{color};"></div>
 	</button>
 {/if}
 
 <style>
-	.tag {
+	.leftSide {
+		display: flex;
 		border: 1px solid var(--border);
+		border-right: none;
+		height: 27px;
+		text-align: center;
+		justify-content: center;
+		align-items: center;
+	}
+	.tag {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -105,8 +115,7 @@
 	}
 
 	.coloredPart {
-		width: 4px;
-		height: 25px;
-		border-radius: 0px 2px 2px 0px;
+		width: 8px;
+		height: 27px;
 	}
 </style>

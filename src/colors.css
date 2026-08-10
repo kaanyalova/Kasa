@@ -8,7 +8,7 @@
 	--settings-gray: #4d5c72;
 
 	--border: color-mix(in srgb, var(--primary) 10%, var(--background));
-	--border-on-secondary-alt: color-mix(in srgb, var(--primary) 10%, var(--secondary-alt));
+	--border-on-secondary-alt: color-mix(in srgb, var(--primary) 20%, var(--secondary-alt) 80%);
 
 	--destructive: #7e3032;
 }
@@ -41,7 +41,5 @@
 		--accent: hwb(34 42% 12%);
 		--accent-hover: color-mix(in srgb, var(--accent) 80%, black 20%);
 		--accent-border: color-mix(in srgb, var(--accent) 80%, black 30%);
-
 	}
 }
-

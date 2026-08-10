@@ -189,7 +189,13 @@
 				<span class="icon-[material-symbols--filter-alt-off] w-5 h-5 pl-2"></span>
 			</button>
 		</div>
-		<input type="text" bind:value={filterInput} />
+
+		<div class="tagFilter">
+			<div class="tagFilterIconContainer">
+				<span class="icon-[material-symbols--label-outline]"></span>
+			</div>
+			<input type="text" bind:value={filterInput} class="tagFilterBar" />
+		</div>
 
 		<button
 			class="favoritesButton"
@@ -246,17 +252,34 @@
 		margin-bottom: 4px;
 	}
 
-	.search > input {
+	.tagFilterBar {
 		width: 100%;
 		background-color: var(--secondary-alt);
-		padding: 4px;
+		outline: 1px solid var(--border-on-secondary-alt);
+		padding: 2px;
 		padding-left: 8px;
 		padding-right: 8px;
-		border-radius: 8px;
+		height: 30px;
 	}
 
-	.search > input:focus {
+	.tagFilterBar:focus {
 		outline: var(--accent) 1px solid;
+	}
+
+	.tagFilter {
+		display: flex;
+	}
+
+	.tagFilterIconContainer {
+		background-color: var(--accent);
+		width: 30px;
+		height: 30px;
+		aspect-ratio: 1/1;
+		outline: 1px solid var(--accent-border);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: var(--text-opposite);
 	}
 
 	.searchUpper {
@@ -312,6 +335,7 @@
 		border: 1px solid var(--secondary-alt);
 		padding: 2px;
 		margin: 4px;
+		border-radius: 4px;
 		margin-top: 8px;
 		text-align: center;
 		cursor: pointer;

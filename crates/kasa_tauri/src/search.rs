@@ -63,9 +63,6 @@ pub async fn set_search_store(handle: AppHandle, search_criteria: SearchCriteria
     let mut search_guard = search_state.0.lock().await;
 
     *search_guard = search_criteria;
-
-    handle.emit("cache_updated", "").unwrap();
-    trace!("cache_updated via search");
 }
 
 pub async fn new_or_update_preset(

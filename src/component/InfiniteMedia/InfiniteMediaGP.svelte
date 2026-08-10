@@ -136,13 +136,14 @@
 	 * the received values.
 	 */
 	async function updateLayoutFromCache() {
-		let values = await commands.getLayoutFromCache(
-			tauri_width - sidebarStore.size * 3 - 20,
-			12,
-			InfiniteMediaStore.thumbnailScale
-		);
+		values =
+			(await commands.getLayoutFromCache(
+				tauri_width - sidebarStore.size * 3 - 20,
+				12,
+				InfiniteMediaStore.thumbnailScale!! // its better erroring out than reloading an whole new layout
+			)) ?? [];
 
-		if (values === null) {
+		if (values === null || values.length === 0) {
 			error('Could not get layout from the rust cache');
 		}
 

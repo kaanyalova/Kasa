@@ -13,6 +13,7 @@ use thiserror::Error;
 
 use crate::extractors::{ExtractedTag, TagExtractor};
 pub mod extractors;
+pub mod worker;
 
 pub use rustpython::Interpreter;
 
@@ -51,11 +52,12 @@ pub fn init_interpreter_with_gallery_dl() -> Interpreter {
     let builder = InterpreterBuilder::new().init_stdlib();
     let rust_side_module_def = rust_side::module_def(&builder.ctx);
     let builder = builder
+        .init_stdlib()
         .add_frozen_modules(FROZEN_STDLIB)
         .add_native_module(rust_side_module_def)
         .add_frozen_modules(py_freeze!(
             module_name = "gallery_dl",
-            dir = "../py/dependencies/gallery-dl/gallery_dl-1.31.10"
+            dir = "../py/dependencies/gallery-dl/gallery_dl-1.32.9"
         ))
         .add_frozen_modules(py_freeze!(
             module_name = "charset_normalizer",
@@ -96,8 +98,8 @@ pub fn gdl_download(
     interpreter: &Interpreter,
     url: &str,
     output_path: &str,
-    gdl_config_path: Option<String>,
-    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + 'static,
+    gdl_config_path: Option<&str>,
+    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + Clone + 'static,
 ) -> Result<GalleryDlOutput> {
     interpreter.enter(|vm| {
         let module = vm.import("gdl", 0).map_err(|e| {
@@ -130,12 +132,7 @@ pub fn gdl_download(
 
         let output = func
             .call(
-                (
-                    url,
-                    output_path,
-                    gdl_config_path.unwrap_or("".to_string()),
-                    on_progress,
-                ),
+                (url, output_path, gdl_config_path.unwrap_or(""), on_progress),
                 vm,
             )
             .map_err(|e| {
@@ -281,8 +278,3 @@ mod rust_side {
         cert_path.to_str().unwrap().to_string()
     }
 }
-
-// fuck...
-pub struct PyTrustMe(pub Interpreter);
-unsafe impl Send for PyTrustMe {}
-unsafe impl Sync for PyTrustMe {}

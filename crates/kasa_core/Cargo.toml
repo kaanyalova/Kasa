@@ -82,7 +82,7 @@ xz = { workspace = true }
 
 
 [features]
-default = ["swf_thumbnailer", "ai"]
+default = []
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
 ai = ["dep:kasa_ai"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]

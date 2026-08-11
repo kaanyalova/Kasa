@@ -135,10 +135,13 @@ async fn take_screenshot(
     skipframes: u32,
     size: SizeOpt,
     skip_unsupported: bool,
-) -> Result<Vec<RgbaImage>> {
+) -> Result<(Vec<RgbaImage>, (i32, i32))> {
     let bytes = include_bytes!("placeholders/swf_placeholder.png");
     let img = image::load_from_memory(bytes)?;
-    Ok(vec![img.to_rgba8()])
+    Ok((
+        vec![img.to_rgba8()],
+        (img.width() as i32, img.height() as i32),
+    ))
 }
 
 /// Timestamp in milliseconds
@@ -167,6 +170,6 @@ pub fn get_flash_resolution_impl(path: &str) -> Result<(u32, u32)> {
 }
 
 #[cfg(not(feature = "swf_thumbnailer"))]
-pub fn get_flash_resolution(path: &str) -> Result<(u32, u32)> {
-    return Ok((256, 256));
+pub fn get_flash_resolution_impl(path: &str) -> Result<(u32, u32)> {
+    Ok((256, 256))
 }

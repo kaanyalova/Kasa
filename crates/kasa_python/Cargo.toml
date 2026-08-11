@@ -10,10 +10,15 @@ rustpython-vm = { workspace = true, features = [
     "freeze-stdlib",
     "rustpython-compiler",
     "importlib",
+    "host_env",
 ] }
-rustpython-stdlib = { workspace = true }
+rustpython-stdlib = { workspace = true, features = ["host_env"] }
 rustpython-pylib = { workspace = true, features = [] }
-rustpython = { workspace = true, features = ["freeze-stdlib", "sqlite"] }
+rustpython = { workspace = true, features = [
+    "freeze-stdlib",
+    "sqlite",
+    "host_env",
+] }
 
 
 anyhow = { workspace = true }

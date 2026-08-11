@@ -6,9 +6,8 @@ use std::{
 };
 
 use crate::{
-    PyTrustMe,
-    extractors::TagExtractor,
-    extractors::{ExtractedTags, NoTagsInfo},
+    extractors::{ExtractedTags, NoTagsInfo, TagExtractor},
+    worker::tagger::TaggerWorker,
 };
 use anyhow::{Ok, Result};
 use rustpython_vm::compiler;
@@ -61,19 +60,15 @@ pub enum ScriptableTagExtractorError {
 }
 
 pub struct PythonTagExtractor {
-    // can i get rid of the arc mutex here?
-    interpreter: Arc<Mutex<PyTrustMe>>,
+    worker: Arc<TaggerWorker>,
     extractors: HashMap<String, String>,
 }
 
 impl PythonTagExtractor {
-    pub fn init(interpreter: Arc<Mutex<PyTrustMe>>, base_dir: &Path) -> Result<Self> {
+    pub fn init(worker: Arc<TaggerWorker>, base_dir: &Path) -> Result<Self> {
         let extractors = Self::parse_extractor_files(base_dir)?;
 
-        Ok(Self {
-            interpreter: interpreter.clone(),
-            extractors,
-        })
+        Ok(Self { worker, extractors })
     }
 }
 
@@ -97,63 +92,13 @@ impl ScriptableTagExtractor for PythonTagExtractor {
 
         let code = code.unwrap().as_str();
 
-        let output_string: Result<String> = self.interpreter.lock().unwrap().0.enter(|vm| {
-            let scope = vm.new_scope_with_builtins();
+        let result = self.worker.push_job(code, json_input)?;
 
-            let compiled = vm
-                .compile(code, compiler::Mode::Exec, "<embedded>".to_string())
-                .map_err(|err| {
-                    ScriptableTagExtractorError::PythonError(format!("Compile error: {:?}", err))
-                })?;
+        // this waits until the pushed job is done, so its effectively single threaded
+        // instead of locking a mutex i do this
+        let result = result.recv()??;
 
-            vm.run_code_obj(compiled, scope.clone()).map_err(|err| {
-                ScriptableTagExtractorError::PythonError(format!("Runtime error: {:?}", err))
-            })?;
-
-            let parser_function = scope.globals.get_item("parse", vm).map_err(|_| {
-                ScriptableTagExtractorError::PythonError("Function 'parse' not found".to_string())
-            })?;
-
-            let json = serde_json::to_string(json_input).unwrap();
-            let input = vm.ctx.new_str(json);
-
-            let result = parser_function.call((input,), vm).map_err(|err| {
-                ScriptableTagExtractorError::PythonError(format!("Execution error: {:?}", err))
-            })?;
-
-            let json_module = vm.import("json", 0).map_err(|err| {
-                ScriptableTagExtractorError::PythonError(format!(
-                    "Failed to import json module: {:?}",
-                    err
-                ))
-            })?;
-
-            let dumps_function = json_module.get_attr("dumps", vm).map_err(|err| {
-                ScriptableTagExtractorError::PythonError(format!("json.dumps not found: {:?}", err))
-            })?;
-
-            let json_result = dumps_function.call((result,), vm).map_err(|err| {
-                ScriptableTagExtractorError::PythonError(format!("Serialization error: {:?}", err))
-            })?;
-
-            let output = json_result
-                .str(vm)
-                .map_err(|_| {
-                    ScriptableTagExtractorError::PythonError(
-                        "Output string conversion error".to_string(),
-                    )
-                })?
-                .as_str()
-                .to_string();
-
-            Ok(output)
-        });
-
-        let json_result_string = output_string?;
-
-        let serialized: ExtractedTags = serde_json::from_str(&json_result_string)?;
-
-        Ok(Some(serialized))
+        Ok(result)
     }
 
     fn extractors(&self) -> &HashMap<String, String> {

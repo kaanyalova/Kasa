@@ -2,7 +2,6 @@ use std::env;
 
 use tokio::sync::Mutex;
 
-use crate::downloaders::LocalDownloaderStore;
 use crate::downloaders::{DownloaderState, DownloaderStore};
 use config::create_or_get_extractor_contents;
 use config::create_or_get_path_for_extractor;

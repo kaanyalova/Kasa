@@ -56,7 +56,7 @@ zbus_macros = "5.5.0"
 env_logger.workspace = true
 sqlite-vec = "0.1.9"
 libsqlite3-sys.workspace = true
-reqwest = { workspace = true, features = ["brotli"] }
+reqwest = { workspace = true, features = ["brotli", "json"] }
 base64.workspace = true
 anyhow.workspace = true
 serde_urlencoded = "0.7.1"
@@ -83,9 +83,3 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-Clink-arg=-Wl,--no-rosegment"]
-
-#[profile.release]
-#strip = true      # Automatically strip symbols from the binary (will remove the ~126MiB of bloat)
-#opt-level = "z"   # Optimize for size instead of speed
-#lto = true        # Enable Link Time Optimization (removes unused code across crates)
-#codegen-units = 1 # Better optimizations, though slower compile times

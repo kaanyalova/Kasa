@@ -1,7 +1,11 @@
 use std::{path::Path, sync::Arc};
 
 use anyhow::Result;
-use kasa_python::{GalleryDlStatus, PyTrustMe, extractors::TagExtractor};
+use kasa_python::{
+    GalleryDlStatus,
+    extractors::TagExtractor,
+    worker::downloader::{DownloadJob, GalleryDlDownloadWorker},
+};
 use sha1::{Digest, Sha1};
 use sqlx::{Pool, Sqlite, query_scalar};
 use thiserror::Error;
@@ -15,13 +19,13 @@ use crate::{
 
 /// output_path should be an absolute path
 pub async fn download_and_index_impl(
-    interpreter: Arc<PyTrustMe>,
+    worker: Arc<GalleryDlDownloadWorker>,
     url: &str,
     output_path: &str,
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
     when_done: impl Fn(String) + Send + Sync,
-    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + 'static,
+    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + Clone + 'static,
     extractors: &Vec<&(dyn TagExtractor + Send + Sync)>,
 ) -> Result<()> {
     let config = get_config_impl();
@@ -34,26 +38,15 @@ pub async fn download_and_index_impl(
 
     let output_path_owned = output_path.to_owned();
 
-    let (tx, rx) = tokio::sync::oneshot::channel();
+    let download_result = worker.push_job(
+        DownloadJob {
+            url: url.to_owned(),
+        },
+        output_path.clone(),
+        config.downloader.gdl_config_path.as_deref(),
+    )?;
 
-    // rustpython stack overflows on debug more with the default 4mbs of stack
-    std::thread::Builder::new()
-        .name("rustpython".to_string())
-        .stack_size(16 * 1024 * 1024)
-        .spawn(move || {
-            let result = kasa_python::gdl_download(
-                &interpreter.0,
-                &url_owned,
-                &output_path_owned,
-                config.downloader.gdl_config_path,
-                on_progress,
-            );
-
-            tx.send(result).unwrap();
-        })
-        .unwrap();
-
-    let downloader_output = rx.await??;
+    let downloader_output = download_result.recv()??;
 
     //let downloader_output = tokio::task::spawn_blocking(move || {
     //    kasa_python::gdl_download(

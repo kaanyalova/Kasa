@@ -1,6 +1,3 @@
-use ort::execution_providers::CUDAExecutionProvider;
-use ort::execution_providers::ROCmExecutionProvider;
-
 pub use ort::session::Session;
 
 pub mod image_embeddings;
@@ -10,10 +7,7 @@ pub fn prepare_session(model_path: &str) -> Session {
     let onnx_path = std::env::var("KASA_ONNX_RT_PATH").unwrap();
     ort::init_from(&onnx_path)
         .unwrap()
-        .with_execution_providers([
-            CUDAExecutionProvider::default().build(),
-            ROCmExecutionProvider::default().build(),
-        ])
+        .with_execution_providers([])
         .commit();
 
     Session::builder()

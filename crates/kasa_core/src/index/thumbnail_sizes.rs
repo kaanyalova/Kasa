@@ -1,4 +1,3 @@
-use crate::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use crate::{db::schema::MediaType, thumbnail::thumbnail_image::calculate_aspect_ratio};
 use anyhow::Result;
 use ffmpeg::format::input;
@@ -13,7 +12,14 @@ pub fn get_thumbnail_size(media_type: MediaType, path: &str) -> (u32, u32) {
         MediaType::Game => todo!(),
         MediaType::Unknown => todo!(),
         MediaType::Group => todo!(),
-        MediaType::Flash => get_flash_resolution_impl(path).unwrap_or((256, 256)),
+
+        #[cfg(feature = "swf_thumbnailer")]
+        MediaType::Flash => {
+            use crate::thumbnail::thumbnail_flash::get_flash_resolution_impl;
+            get_flash_resolution_impl(path).unwrap_or((256, 256))
+        }
+        #[cfg(not(feature = "swf_thumbnailer"))]
+        MediaType::Flash => (256, 256),
         MediaType::Pdf => (256, 256),
     };
     // TODO make this configurable, make sure it matches the actual thumbnail sizes in dev

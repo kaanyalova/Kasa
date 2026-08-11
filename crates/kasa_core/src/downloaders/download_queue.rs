@@ -1,11 +1,10 @@
 use anyhow::Result;
 use kasa_python::GalleryDlStatus;
-use kasa_python::PyTrustMe;
 use kasa_python::extractors::TagExtractor;
 use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
-use kasa_python::init_interpreter;
-use kasa_python::init_interpreter_with_gallery_dl;
+use kasa_python::worker::downloader::GalleryDlDownloadWorker;
+use kasa_python::worker::tagger::TaggerWorker;
 use log::info;
 use serde::Deserialize;
 use serde::Serialize;
@@ -26,12 +25,9 @@ pub enum DownloaderStateUpdate {
     OnDone(String),
 }
 
-pub struct PythonInterpreters {
-    // not thread safe, obviously
-    pub downloader_interpreter: Arc<PyTrustMe>,
-    // locking this with a mutex is fine?, tag extraction shouldn't take that long
-    // i might implement a proper queue though
-    pub tagger_interpreter: Arc<Mutex<PyTrustMe>>,
+pub struct PythonWorkers {
+    pub downloader_worker: Arc<GalleryDlDownloadWorker>,
+    pub tagger_worker: Arc<TaggerWorker>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -60,7 +56,7 @@ impl DownloaderContext {
 
 // this is the stuff for the "server" side
 pub struct Downloader<FP: Fn(&GalleryDlStatus) + Send + Sync, FD: Fn(String) + Send + Sync> {
-    pub interpreters: PythonInterpreters,
+    pub workers: PythonWorkers,
     rx: mpsc::Receiver<DownloadJob>,
     // url hashes mapped to the current download statuses
     db: Pool<Sqlite>,
@@ -85,16 +81,16 @@ where
     ) -> (Self, mpsc::Sender<DownloadJob>) {
         let (tx, rx) = mpsc::channel::<DownloadJob>(32);
 
-        let interpreters = PythonInterpreters {
-            downloader_interpreter: Arc::new(PyTrustMe(init_interpreter_with_gallery_dl())),
-            tagger_interpreter: Arc::new(Mutex::new(PyTrustMe(init_interpreter()))),
+        let interpreters = PythonWorkers {
+            downloader_worker: Arc::new(GalleryDlDownloadWorker::new(on_progress.clone()).unwrap()),
+            tagger_worker: Arc::new(TaggerWorker::new().unwrap()),
         };
 
         let extractors = Arc::new(vec![]);
 
         (
             Self {
-                interpreters,
+                workers: interpreters,
                 rx,
                 on_downloader_done: on_done,
                 on_downloader_progress: on_progress,
@@ -127,7 +123,7 @@ where
         let statuses_done = ctx.statuses.clone();
         let on_progress_cb = self.on_downloader_progress.clone();
         let on_done_cb = self.on_downloader_done.clone();
-        let interpreter = self.interpreters.downloader_interpreter.clone();
+        let interpreter = self.workers.downloader_worker.clone();
         let db = self.db.clone();
         let thumbs_db = self.thumbs_db.clone();
         let output_path = self.config.downloader.output_path.clone();
@@ -167,12 +163,13 @@ where
     }
 }
 
+// TODO: refactor into the Downloader
 pub fn init_extractors(
-    interpreter: Arc<Mutex<PyTrustMe>>,
+    worker: Arc<TaggerWorker>,
     config: &GlobalConfig,
 ) -> Result<Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>> {
     let extractors_dir = get_tag_extractors_dir()?;
-    let python_extractor = PythonTagExtractor::init(interpreter.clone(), &extractors_dir)?;
+    let python_extractor = PythonTagExtractor::init(worker.clone(), &extractors_dir)?;
 
     let configurable_exactor = ConfigurableExtractor::init(&extractors_dir)?;
 

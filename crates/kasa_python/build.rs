@@ -76,7 +76,7 @@ fn main() {
 
     let sources = vec![
         Source::new(
-            "https://github.com/mikf/gallery-dl/releases/download/v1.31.10/gallery_dl-1.31.10.tar.gz",
+            "https://codeberg.org/mikf/gallery-dl/releases/download/v1.32.9/gallery_dl-1.32.9.tar.gz",
             "gallery-dl",
         ),
         Source::new(
@@ -111,3 +111,4 @@ fn main() {
     //    patch.patch();
     //}
 }
+//

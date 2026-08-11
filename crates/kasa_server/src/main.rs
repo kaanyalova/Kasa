@@ -108,11 +108,8 @@ async fn main() {
                 on_progress,
                 on_done,
             );
-            let extractors = init_extractors(
-                downloader.interpreters.tagger_interpreter.clone(),
-                &kasa_config,
-            )
-            .unwrap();
+            let extractors =
+                init_extractors(downloader.workers.tagger_worker.clone(), &kasa_config).unwrap();
 
             downloader.set_extractors(extractors);
 

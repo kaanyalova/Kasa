@@ -9,7 +9,7 @@ use kasa_core::{
 use kasa_python::extractors::TagExtractor;
 use kasa_python::extractors::configurable::ConfigurableExtractor;
 use kasa_python::extractors::scriptable::PythonTagExtractor;
-use kasa_python::{GalleryDlStatus, PyTrustMe, init_interpreter, init_interpreter_with_gallery_dl};
+use kasa_python::{GalleryDlStatus, init_interpreter, init_interpreter_with_gallery_dl};
 use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
@@ -122,10 +122,10 @@ impl DownloaderStore {
         let (mut downloader, tx) =
             Downloader::init(db, thumbs_db, config.clone(), on_progress, on_done);
 
-        let tagger_interpreter = downloader.interpreters.tagger_interpreter.clone();
+        let tagger_worker = downloader.workers.tagger_worker.clone();
         let statuses_run = statuses.clone();
 
-        let extractors = init_extractors(tagger_interpreter, config)?;
+        let extractors = init_extractors(tagger_worker, config)?;
 
         let extractors_clone = extractors.clone();
         downloader.set_extractors(extractors_clone);

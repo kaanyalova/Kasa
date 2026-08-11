@@ -1,4 +1,5 @@
 use std::{
+    process,
     sync::{Arc, Mutex},
     vec,
 };
@@ -6,10 +7,12 @@ use std::{
 use kasa_core::{
     config::global_config::{get_config_impl, get_tag_extractors_dir},
     db::migrations::{prepare_dbs, prepare_dbs_from_config},
-    downloaders::gallery_dl::download_and_index_impl,
+    downloaders::{
+        download_queue::{Downloader, DownloaderContext, init_extractors},
+        gallery_dl::download_and_index_impl,
+    },
 };
 use kasa_python::{
-    PyTrustMe,
     extractors::{
         TagExtractor, configurable::ConfigurableExtractor, scriptable::PythonTagExtractor,
     },
@@ -19,16 +22,6 @@ use sqlx::sqlite::SqlitePoolOptions;
 
 pub async fn gdl(url: &str) {
     let config = get_config_impl();
-    let interpreter_gdl = Arc::new(PyTrustMe(init_interpreter_with_gallery_dl()));
-    let interpreter_extractor = Arc::new(Mutex::new(PyTrustMe(init_interpreter())));
-
-    let extractors_dir = get_tag_extractors_dir().unwrap();
-    let python_extractor =
-        PythonTagExtractor::init(interpreter_extractor.clone(), &extractors_dir).unwrap();
-    let configurable_extractor = ConfigurableExtractor::init(&extractors_dir).unwrap();
-
-    let extractors: Vec<&(dyn TagExtractor + Send + Sync)> =
-        vec![&python_extractor, &configurable_extractor];
 
     prepare_dbs_from_config(&config).await;
 
@@ -44,16 +37,23 @@ pub async fn gdl(url: &str) {
         .await
         .unwrap();
 
-    download_and_index_impl(
-        interpreter_gdl,
-        url,
-        &config.downloader.output_path,
-        &pool,
-        &pool_thumbs,
-        &|_| {},
+    let (mut downloader, job_tx) = Downloader::init(
+        pool.clone(),
+        pool_thumbs.clone(),
+        config.clone(),
         |_| {},
-        &extractors,
-    )
-    .await
-    .unwrap();
+        |hash| {
+            println!("Download done for hash: {}", hash);
+            process::exit(0);
+        },
+    );
+
+    let extractors = init_extractors(downloader.workers.tagger_worker.clone(), &config).unwrap();
+    downloader.set_extractors(extractors);
+
+    let downloader_context = DownloaderContext::new();
+
+    tokio::spawn(async move {
+        downloader.run(&downloader_context).await;
+    });
 }

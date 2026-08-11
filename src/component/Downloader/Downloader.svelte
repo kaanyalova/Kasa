@@ -81,8 +81,8 @@
 			</button>
 
 			<div class="versions">
-				<span class="code">gallery_dl</span> version <span class="code"> 1.31.10</span>
-				<span class="code">rustpython</span> version <span class="code">0eddee5</span>
+				<span class="code">gallery_dl</span> version <span class="code"> 1.32.9</span>
+				<span class="code">rustpython</span> version <span class="code"> 365434b </span>
 			</div>
 		</div>
 	</div>

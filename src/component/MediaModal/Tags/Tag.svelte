@@ -28,7 +28,7 @@
 	async function onCtrlClick() {
 		SearchStore.searchContents = name;
 		await commands.setSearchInput(name);
-		await commands.search(true);
+		await commands.searchAndReload();
 		MediaModalStatusStore.close();
 	}
 </script>

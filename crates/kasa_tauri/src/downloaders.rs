@@ -123,7 +123,7 @@ impl DownloaderStore {
 
             let handle_search = handle_on_done.clone();
             tokio::spawn(async move {
-                search(handle_search, false).await;
+                search(handle_search).await;
             });
         };
 
@@ -172,7 +172,7 @@ impl DownloaderStore {
 
                 let handle_search = handle.clone();
                 tokio::spawn(async move {
-                    search(handle_search, false).await;
+                    search(handle_search).await;
                 });
             }
         };

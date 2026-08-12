@@ -38,7 +38,7 @@
 			favorites_only: filterFavorites
 		});
 
-		await commands.search(true);
+		await commands.searchAndReload();
 	}
 
 	async function onCheck(state: TagPickerCheckboxState, tagName: string) {
@@ -62,7 +62,7 @@
 		});
 
 		trace('search via tag picker check');
-		await commands.search(true);
+		await commands.searchAndReload();
 	}
 
 	let filteredTags: Array<TagWithCount> = $derived(
@@ -159,7 +159,7 @@
 		filterFavorites = false;
 
 		trace('search via tag picker reset');
-		await commands.search(true);
+		await commands.searchAndReload();
 	}
 </script>
 

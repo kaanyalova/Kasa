@@ -219,7 +219,7 @@ pub async fn set_media_favorite(handle: AppHandle, hash: String, state: bool) {
             .unwrap(),
     }
 
-    search(handle.clone(), false).await;
+    search(handle.clone()).await;
 }
 
 #[tauri::command]

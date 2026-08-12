@@ -19,9 +19,7 @@ use crate::{
     events::CacheUpdatedEvent,
 };
 
-#[tauri::command(async)]
-#[specta::specta]
-pub async fn search(handle: AppHandle, reload_virtual_list: bool) {
+async fn search_impl(handle: AppHandle, reload_virtual_list: bool) {
     let db_store = handle.state::<DatabaseState>().clone_store().await;
 
     let search_state = handle.state::<SearchState>();
@@ -63,6 +61,18 @@ pub async fn search(handle: AppHandle, reload_virtual_list: bool) {
     .emit(&handle)
     .unwrap();
     trace!("cache_updated via search");
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn search(handle: AppHandle) {
+    search_impl(handle, false).await;
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn search_and_reload(handle: AppHandle) {
+    search_impl(handle, true).await;
 }
 
 #[tauri::command(async)]

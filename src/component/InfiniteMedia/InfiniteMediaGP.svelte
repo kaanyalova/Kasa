@@ -163,7 +163,7 @@
 			if (await commands.areDbsMounted()) {
 				trace('search via initialize layout');
 				await commands.setSearchInput(SearchStore.searchContents);
-				await commands.search(true);
+				await commands.searchAndReload();
 				console.log('redraw the layout');
 			} else {
 				setTimeout(initializeLayout, 500);

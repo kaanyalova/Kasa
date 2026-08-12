@@ -50,8 +50,11 @@ async setConfigValueStr(category: string, key: string, valu: string) : Promise<v
 async setConfigResolutionValue(height: number, width: number) : Promise<void> {
     await TAURI_INVOKE("set_config_resolution_value", { height, width });
 },
-async search(reloadVirtualList: boolean) : Promise<void> {
-    await TAURI_INVOKE("search", { reloadVirtualList });
+async search() : Promise<void> {
+    await TAURI_INVOKE("search");
+},
+async searchAndReload() : Promise<void> {
+    await TAURI_INVOKE("search_and_reload");
 },
 /**
  * Returns the pointer to close the server

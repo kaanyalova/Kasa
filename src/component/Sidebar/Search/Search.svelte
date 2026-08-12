@@ -67,7 +67,7 @@
 
 	async function onSearch() {
 		await commands.setSearchInput(SearchStore.searchContents);
-		await commands.search(true);
+		await commands.searchAndReload();
 	}
 </script>
 

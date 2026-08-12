@@ -57,6 +57,7 @@ use media_server::close_server;
 use media_server::serve_media;
 use search::SearchState;
 use search::search;
+use search::search_and_reload;
 use search::set_search_criteria;
 use search::set_search_input;
 use specta_typescript::BigIntExportBehavior;
@@ -157,6 +158,7 @@ pub fn run() {
                 set_config_value_str,
                 set_config_resolution_value,
                 search,
+                search_and_reload,
                 serve_media,
                 close_server,
                 get_media_type,

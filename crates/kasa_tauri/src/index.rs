@@ -56,7 +56,7 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
             {
                 index_all_impl(db, thumbs_db).await;
 
-                search(handle.clone(), false).await;
+                search(handle.clone()).await;
             }
         }
         DbStore::Remote(_) => todo!(),
@@ -96,7 +96,7 @@ pub async fn index_path(handle: AppHandle, path: String) {
         DbStore::Remote(_) => todo!(),
     }
 
-    search(handle.clone(), false).await;
+    search(handle.clone()).await;
 }
 
 #[tauri::command(async)]
@@ -113,7 +113,7 @@ pub async fn nuke_selected_index(handle: AppHandle, path: String) {
         DbStore::Remote(_) => todo!(),
     }
 
-    search(handle.clone(), false).await;
+    search(handle.clone()).await;
 }
 
 #[tauri::command(async)]
@@ -130,7 +130,7 @@ pub async fn nuke_all_indexes(handle: AppHandle) {
         DbStore::Remote(_) => todo!(),
     }
 
-    search(handle.clone(), false).await;
+    search(handle.clone()).await;
 }
 
 #[tauri::command(async)]
@@ -147,5 +147,5 @@ pub async fn cleanup_unreferenced_files(handle: AppHandle) {
         DbStore::Remote(_) => todo!(),
     }
 
-    search(handle.clone(), false).await;
+    search(handle.clone()).await;
 }

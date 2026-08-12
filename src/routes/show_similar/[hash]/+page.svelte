@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { commands } from '$lib/tauri_bindings';
+	import { commands, events } from '$lib/tauri_bindings';
 	import { mediaContext } from 'vidstack';
 	import MediaThumbnail from '../../../component/InfiniteMedia/MediaThumbnail.svelte';
 	import type { PageProps } from './$types';
@@ -16,7 +16,7 @@
 	}
 
 	async function onClickImage(hash: string) {
-		await emit('open_media_modal', { hash: hash });
+		await events.openMediaModalEvent.emit({ hash: hash });
 	}
 </script>
 

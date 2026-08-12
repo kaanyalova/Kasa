@@ -65,8 +65,9 @@
 		entriesToShow = entries;
 	}
 
-	function onSearch() {
-		commands.search(SearchStore.searchContents);
+	async function onSearch() {
+		await commands.setSearchInput(SearchStore.searchContents);
+		await commands.search(true);
 	}
 </script>
 

@@ -28,8 +28,12 @@
 	});
 
 	onDestroy(() => {
-		if (unlistenOpenMediaModal) unlistenOpenMediaModal();
-		if (unlistenCloseMediaModal) unlistenCloseMediaModal();
+		if (unlistenOpenMediaModal !== null) {
+			unlistenOpenMediaModal();
+		}
+		if (unlistenCloseMediaModal !== null) {
+			unlistenCloseMediaModal();
+		}
 	});
 </script>
 

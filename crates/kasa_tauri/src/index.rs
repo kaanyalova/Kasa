@@ -5,9 +5,12 @@ use kasa_core::index::{
     },
     indexer::index,
 };
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
-use crate::db::{DatabaseState, DbStore};
+use crate::{
+    db::{DatabaseState, DbStore},
+    search::search,
+};
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -49,11 +52,11 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
 
     match db_store {
         DbStore::Local(db_store) => {
-            if let (Some(db), Some(thumbs_db)) =
-                (db_store.db.as_ref(), db_store.thumbs_db.as_ref())
+            if let (Some(db), Some(thumbs_db)) = (db_store.db.as_ref(), db_store.thumbs_db.as_ref())
             {
                 index_all_impl(db, thumbs_db).await;
-                handle.emit("media_updated", "").unwrap();
+
+                search(handle.clone(), false).await;
             }
         }
         DbStore::Remote(_) => todo!(),
@@ -93,7 +96,7 @@ pub async fn index_path(handle: AppHandle, path: String) {
         DbStore::Remote(_) => todo!(),
     }
 
-    handle.emit("media_updated", "").unwrap()
+    search(handle.clone(), false).await;
 }
 
 #[tauri::command(async)]
@@ -110,7 +113,7 @@ pub async fn nuke_selected_index(handle: AppHandle, path: String) {
         DbStore::Remote(_) => todo!(),
     }
 
-    handle.emit("media_updated", "").unwrap()
+    search(handle.clone(), false).await;
 }
 
 #[tauri::command(async)]
@@ -127,7 +130,7 @@ pub async fn nuke_all_indexes(handle: AppHandle) {
         DbStore::Remote(_) => todo!(),
     }
 
-    handle.emit("media_updated", "").unwrap()
+    search(handle.clone(), false).await;
 }
 
 #[tauri::command(async)]
@@ -144,5 +147,5 @@ pub async fn cleanup_unreferenced_files(handle: AppHandle) {
         DbStore::Remote(_) => todo!(),
     }
 
-    handle.emit("media_updated", "").unwrap()
+    search(handle.clone(), false).await;
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import BorderedBox from '../../Shared/BorderedBox.svelte';
-	import { commands } from '$lib/tauri_bindings';
+	import { commands, events } from '$lib/tauri_bindings';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import type { TagWithCount, TagWithDetails } from '$lib/tauri_bindings';
 	import { formatCount, getCountColor } from '$lib/colorUtils';
@@ -24,7 +24,7 @@
 		filterFavorites = !filterFavorites;
 		// set actual filtering
 
-		await commands.setSearchStore({
+		await commands.setSearchCriteria({
 			contains_tags: Array.from(checkedTags.entries())
 				.filter(([_tag, state]) => state === 'selected')
 				.map(([tag, _state]) => tag),
@@ -38,7 +38,7 @@
 			favorites_only: filterFavorites
 		});
 
-		await commands.search(SearchStore.searchContents);
+		await commands.search(true);
 	}
 
 	async function onCheck(state: TagPickerCheckboxState, tagName: string) {
@@ -47,7 +47,7 @@
 		} else {
 			checkedTags.set(tagName, state);
 		}
-		await commands.setSearchStore({
+		await commands.setSearchCriteria({
 			contains_tags: Array.from(checkedTags.entries())
 				.filter(([_tag, state]) => state === 'selected')
 				.map(([tag, _state]) => tag),
@@ -62,7 +62,7 @@
 		});
 
 		trace('search via tag picker check');
-		await commands.search(SearchStore.searchContents);
+		await commands.search(true);
 	}
 
 	let filteredTags: Array<TagWithCount> = $derived(
@@ -86,13 +86,13 @@
 		}
 	}, 1000);
 
-	listen('tags_updated', (_) => {
-		trace('tags_updated emitted');
-		loadTags();
-	});
-
 	// Prepare the canvas for text width calculations
-	onMount(() => {
+	onMount(async () => {
+		await events.tagsUpdatedEvent.listen(async (_) => {
+			trace('tags_updated emitted');
+			await loadTags();
+		});
+
 		const canvas = document.createElement('canvas');
 		textWidthCanvas = canvas.getContext('2d');
 
@@ -144,7 +144,7 @@
 	async function resetTags() {
 		checkedTags.clear();
 		filterInput = '';
-		await commands.setSearchStore({
+		await commands.setSearchCriteria({
 			contains_tags: [],
 			contains_tags_or_group: [],
 			excludes_tags: [],
@@ -155,10 +155,11 @@
 		});
 
 		SearchStore.searchContents = '';
+		await commands.setSearchInput('');
 		filterFavorites = false;
 
 		trace('search via tag picker reset');
-		await commands.search(SearchStore.searchContents);
+		await commands.search(true);
 	}
 </script>
 

@@ -1,4 +1,5 @@
 use crate::db::{DatabaseState, DbStore};
+use crate::search::search;
 use kasa_core::db::embeddings::{EmbeddingDistance, get_top_n_closest_for_media_impl};
 use kasa_core::db::remote_cache::{
     get_media_name_from_remote_cache, get_media_type_from_remote_cache,
@@ -217,6 +218,8 @@ pub async fn set_media_favorite(handle: AppHandle, hash: String, state: bool) {
             .await
             .unwrap(),
     }
+
+    search(handle.clone(), false).await;
 }
 
 #[tauri::command]

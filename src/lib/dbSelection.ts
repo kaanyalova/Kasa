@@ -1,7 +1,6 @@
 import { error } from '@tauri-apps/plugin-log';
 import { openFilePickerWithSaveDialog, openFilePickerWithSelectDialog } from './openFilePicker';
-import { commands } from './tauri_bindings';
-import { emit } from '@tauri-apps/api/event';
+import { commands, events } from './tauri_bindings';
 
 export async function onNewDb(): Promise<string> {
 	const paths = await openFilePickerWithSaveDialog('Kasa Database', '*.kasa', 'default.kasa');
@@ -17,7 +16,7 @@ export async function onNewDb(): Promise<string> {
 	await commands.setDbPath(path);
 	const dbName = path.split('/').pop() || '';
 
-	await emit('dbs_updated', { newDb: true });
+	events.dbsUpdatedEvent.emit({ new_db: true });
 	return dbName;
 }
 
@@ -35,12 +34,12 @@ export async function onOpenDb(): Promise<string> {
 	const dbName = path.split('/').pop() || '';
 	await commands.setDbPath(path);
 
-	await emit('dbs_updated', { newDb: false });
+	events.dbsUpdatedEvent.emit({ new_db: false });
 	return dbName;
 }
 
 export async function onConnectToDb(url: string): Promise<string> {
 	await commands.setDbPath(url);
-	await emit('dbs_updated', { newDb: false });
+	await events.dbsUpdatedEvent.emit({ new_db: false });
 	return url;
 }

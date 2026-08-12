@@ -7,18 +7,19 @@ use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
 use kasa_python::extractors::TagExtractor;
-use kasa_python::extractors::configurable::ConfigurableExtractor;
-use kasa_python::extractors::scriptable::PythonTagExtractor;
 use kasa_python::{GalleryDlStatus, init_interpreter, init_interpreter_with_gallery_dl};
 use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_specta::Event;
 use tokio::sync::{Mutex, mpsc};
 
 use crate::db::{DatabaseState, DbStore};
+use crate::events::{DownloaderProgressUpdatedEvent, TagsUpdatedEvent};
 use crate::remote_client::{RemoteClient, RemoteDownloaderClient};
+use crate::search::search;
 use std::sync::Mutex as SyncMutex;
 
 #[tauri::command(async)]
@@ -102,8 +103,9 @@ impl DownloaderStore {
         let on_progress = move |status: &GalleryDlStatus| {
             let mut locked = statuses_on_progress.lock().unwrap();
             locked.insert(status.url_hash.clone(), status.clone());
-            handle_on_progress
-                .emit("downloader_progress_updated", "")
+
+            DownloaderProgressUpdatedEvent {}
+                .emit(&handle_on_progress)
                 .unwrap();
         };
 
@@ -112,11 +114,17 @@ impl DownloaderStore {
         let on_done = move |hash: String| {
             let mut locked = statuses_on_done.lock().unwrap();
             locked.remove(&hash);
-            handle_on_done
-                .emit("downloader_progress_updated", "")
+
+            DownloaderProgressUpdatedEvent {}
+                .emit(&handle_on_done)
                 .unwrap();
-            handle_on_done.emit("media_updated", "").unwrap();
-            handle_on_done.emit("tags_updated", "").unwrap();
+
+            TagsUpdatedEvent {}.emit(&handle_on_done).unwrap();
+
+            let handle_search = handle_on_done.clone();
+            tokio::spawn(async move {
+                search(handle_search, false).await;
+            });
         };
 
         let (mut downloader, tx) =
@@ -152,15 +160,20 @@ impl DownloaderStore {
             DownloaderStateUpdate::OnProgress(gallery_dl_status) => {
                 let mut locked = statuses_update_clone.lock().unwrap();
                 locked.insert(gallery_dl_status.url_hash.clone(), gallery_dl_status);
-                handle.emit("downloader_progress_updated", "").unwrap();
+                DownloaderProgressUpdatedEvent {}.emit(&handle).unwrap();
             }
             DownloaderStateUpdate::OnDone(hash) => {
                 let mut locked = statuses_update_clone.lock().unwrap();
                 locked.remove(&hash);
 
-                handle.emit("downloader_progress_updated", "").unwrap();
-                handle.emit("media_updated", "").unwrap();
-                handle.emit("tags_updated", "").unwrap();
+                DownloaderProgressUpdatedEvent {}.emit(&handle).unwrap();
+
+                TagsUpdatedEvent {}.emit(&handle).unwrap();
+
+                let handle_search = handle.clone();
+                tokio::spawn(async move {
+                    search(handle_search, false).await;
+                });
             }
         };
 

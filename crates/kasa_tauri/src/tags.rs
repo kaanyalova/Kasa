@@ -8,8 +8,12 @@ use kasa_core::{
 use kasa_python::extractors::scriptable::PythonTagExtractor;
 use log::trace;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_specta::Event;
 
-use crate::db::{DatabaseState, DbStore};
+use crate::{
+    db::{DatabaseState, DbStore},
+    events::TagsUpdatedEvent,
+};
 
 #[tauri::command(async)]
 #[specta::specta]
@@ -31,7 +35,7 @@ pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
             .unwrap(),
     }
 
-    handle.emit("tags_updated", "").unwrap();
+    TagsUpdatedEvent {}.emit(&handle).unwrap();
     trace!("Tags updated");
 }
 
@@ -53,7 +57,7 @@ pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
         }
     }
 
-    handle.emit("tags_updated", "").unwrap();
+    TagsUpdatedEvent {}.emit(&handle).unwrap();
     trace!("Tags deleted");
 }
 

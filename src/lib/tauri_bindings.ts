@@ -50,13 +50,8 @@ async setConfigValueStr(category: string, key: string, valu: string) : Promise<v
 async setConfigResolutionValue(height: number, width: number) : Promise<void> {
     await TAURI_INVOKE("set_config_resolution_value", { height, width });
 },
-/**
- * `input_raw`: user tags
- * `width`: viewport width for layout
- * `gaps`: gaps between images
- */
-async search(inputRaw: string) : Promise<void> {
-    await TAURI_INVOKE("search", { inputRaw });
+async search(reloadVirtualList: boolean) : Promise<void> {
+    await TAURI_INVOKE("search", { reloadVirtualList });
 },
 /**
  * Returns the pointer to close the server
@@ -144,11 +139,11 @@ async getListOfAllTagsWithDetails(orderingCriteria: AllTagsOrderingCriteria) : P
 async openFileManagerWithFileSelected(filePath: string) : Promise<void> {
     await TAURI_INVOKE("open_file_manager_with_file_selected", { filePath });
 },
-/**
- * Called when the search store con
- */
-async setSearchStore(searchCriteria: SearchCriteria) : Promise<void> {
-    await TAURI_INVOKE("set_search_store", { searchCriteria });
+async setSearchCriteria(searchCriteria: SearchCriteria) : Promise<void> {
+    await TAURI_INVOKE("set_search_criteria", { searchCriteria });
+},
+async setSearchInput(input: string) : Promise<void> {
+    await TAURI_INVOKE("set_search_input", { input });
 },
 async setDbPath(path: string) : Promise<void> {
     await TAURI_INVOKE("set_db_path", { path });
@@ -212,6 +207,23 @@ async isRemoteDb() : Promise<boolean> {
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+cacheUpdatedEvent: CacheUpdatedEvent,
+closeMediaModalEvent: CloseMediaModalEvent,
+dbsUpdatedEvent: DbsUpdatedEvent,
+downloaderProgressUpdatedEvent: DownloaderProgressUpdatedEvent,
+mediaServerDownEvent: MediaServerDownEvent,
+openMediaModalEvent: OpenMediaModalEvent,
+tagsUpdatedEvent: TagsUpdatedEvent
+}>({
+cacheUpdatedEvent: "cache-updated-event",
+closeMediaModalEvent: "close-media-modal-event",
+dbsUpdatedEvent: "dbs-updated-event",
+downloaderProgressUpdatedEvent: "downloader-progress-updated-event",
+mediaServerDownEvent: "media-server-down-event",
+openMediaModalEvent: "open-media-modal-event",
+tagsUpdatedEvent: "tags-updated-event"
+})
 
 /** user-defined constants **/
 
@@ -220,6 +232,8 @@ async isRemoteDb() : Promise<boolean> {
 /** user-defined types **/
 
 export type AllTagsOrderingCriteria = "Alphabetic" | "AlphabeticReverse" | "TagCount" | "TagCountReverse"
+export type CacheUpdatedEvent = { reload_virtual_list: boolean }
+export type CloseMediaModalEvent = Record<string, never>
 export type Database = { db_path: string }
 export type DateOrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 /**
@@ -227,7 +241,13 @@ export type DateOrderCriteria = "NewestFirst" | "OldestFirst" | "None"
  * Only supports searching for Media that have the tags
  */
 export type DateRange = { start: number; end: number }
+export type DbsUpdatedEvent = { 
+/**
+ * was the db just created
+ */
+new_db: boolean }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
+export type DownloaderProgressUpdatedEvent = Record<string, never>
 export type EmbeddingDistance = { hash: string; distance: number }
 export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number; url_hash: string; url: string; extractor: string }
 export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader; Layout: Layout }
@@ -244,8 +264,10 @@ export type ImageRow = { index: number; height: number; images: ImagePlacement[]
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type Layout = { show_filenames: boolean; thumbnail_scale: number }
 export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean; videoMetadata: VideoMetadata | null; pathThatExists: string | null }
+export type MediaServerDownEvent = Record<string, never>
 export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
+export type OpenMediaModalEvent = { hash: string }
 export type RawImage = { width: number; height: number; bytes: number[] }
 export type ResolutionOrderCriteria = "None" | "HighestFirst" | "LowestFirst"
 export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by_date: DateOrderCriteria; order_by_resolution: ResolutionOrderCriteria; date_range: DateRange | null; favorites_only: boolean }
@@ -266,7 +288,8 @@ override_group_color: boolean }
 export type TagQueryOutput = { name: string; count: number; tag_details: TagDetail }
 export type TagWithCount = { tag_name: string; count: number; details: TagDetail }
 export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail; count: number }
-export type ThumbnailFormat = "png" | "jpeg" | "avif"
+export type TagsUpdatedEvent = Record<string, never>
+export type ThumbnailFormat = "png" | "jpeg" | "avif" | "webp_lossless" | "webp_lossy"
 export type Thumbs = { resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
 export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }
 export type VideoAudioStreamMetadata = { codec: string; codec_long_name: string | null; bit_rate: number; max_rate: number; delay: number; rate: number; channels: number; format: string; frames: number; align: number; channel_layout: string }

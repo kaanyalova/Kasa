@@ -10,7 +10,7 @@
 	import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
 	import { emit, listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import MediaThumbnail from './MediaThumbnail.svelte';
-	import { commands, type GlobalConfig } from '$lib/tauri_bindings';
+	import { commands, events, type GlobalConfig } from '$lib/tauri_bindings';
 	import { SearchStore } from '../Sidebar/Search/SearchStore.svelte';
 	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
 	import { comma } from 'postcss/lib/list';
@@ -18,37 +18,34 @@
 	import { onNewDb, onOpenDb } from '$lib/dbSelection';
 
 	let values: Array<ImageRow> = $state([]);
-	let heights: Array<number> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
 	let tauri_height = $state(0);
 	let isDatabaseOk = $state(true); // set the true so it doesnt flash if the db does exist
 	let config: GlobalConfig | null = $state(null);
+	let reloadLayoutKey = $state(0);
 
 	let cooldown = $state(0);
 
-	let virtualList: any;
+	let virtualList: VirtualList | undefined = $state(undefined);
 
 	let window_size_unlisten: UnlistenFn;
 
 	// on cache update run updateLayout();
-	listen('cache_updated', async (_) => {
-		await updateLayoutFromCache();
+	events.cacheUpdatedEvent.listen(async (e) => {
+		await updateLayoutFromCache(e.payload.reload_virtual_list);
 		trace('cache_updated event received');
-	});
-
-	listen('media_updated', async (_) => {
-		await initializeLayout();
-		trace('media_updated event received');
 	});
 
 	$effect(() => {
 		InfiniteMediaStore.showNames;
 		console.log('setshownames updated');
-		updateLayoutFromCache();
+		updateLayoutFromCache(false);
 	});
+
 	onMount(async () => {
 		console.log('onmount');
-		await listen('dbs_updated', async (e) => {
+
+		await events.dbsUpdatedEvent.listen(async (e) => {
 			const createNewDb = (e.payload as any).newDb as boolean;
 			const doesTheDbFileExist = await commands.doesTheDbFileExist();
 
@@ -70,7 +67,7 @@
 			await commands.connectDbs();
 			await initializeLayout();
 			InfiniteMediaStore.loadSettings();
-			await emit('tags_updated');
+			await events.tagsUpdatedEvent.emit({});
 			values = values;
 			trace('dbs_updated event received');
 		});
@@ -135,7 +132,7 @@
 	 * Gets the media from the database possibly using cached values, sets the heights for the media and media themselves to
 	 * the received values.
 	 */
-	async function updateLayoutFromCache() {
+	async function updateLayoutFromCache(reloadVirtualList: boolean) {
 		values =
 			(await commands.getLayoutFromCache(
 				tauri_width - sidebarStore.size * 3 - 20,
@@ -145,6 +142,12 @@
 
 		if (values === null || values.length === 0) {
 			error('Could not get layout from the rust cache');
+		}
+
+		virtualList?.recomputeSizes(0);
+
+		if (reloadVirtualList) {
+			reloadLayoutKey += 1;
 		}
 
 		trace(`calculating sizes w:${tauri_width}`);
@@ -159,7 +162,9 @@
 		try {
 			if (await commands.areDbsMounted()) {
 				trace('search via initialize layout');
-				await commands.search(SearchStore.searchContents);
+				await commands.setSearchInput(SearchStore.searchContents);
+				await commands.search(true);
+				console.log('redraw the layout');
 			} else {
 				setTimeout(initializeLayout, 500);
 			}
@@ -181,8 +186,14 @@
 <!-- TODO  overscanCount *WILL* cause problems on larger screens, change that accordingly -->
 <div class="list">
 	{#if isDatabaseOk}
-		{#key values}
-			<VirtualList width="100%" height="100%" itemCount={values.length} itemSize={getItemSize}>
+		{#key reloadLayoutKey}
+			<VirtualList
+				bind:this={virtualList}
+				width="100%"
+				height="100%"
+				itemCount={values.length}
+				itemSize={getItemSize}
+			>
 				{#snippet item({ style, index })}
 					<div class="mediaRow" {style}>
 						{#each values[index].images as image}

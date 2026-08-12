@@ -3,27 +3,32 @@ use kasa_core::{
     tags::{presets::new_or_update_preset_impl, search::SearchCriteria},
 };
 use log::trace;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
+use tauri_specta::Event;
 use tokio::sync::Mutex;
 
 /// A store containing "extra" search parameters, like those come from TagPicker, or a future sort element
 #[derive(Debug, Default)]
-pub struct SearchState(Mutex<SearchCriteria>);
+pub struct SearchState {
+    pub input: Mutex<String>,
+    pub criteria: Mutex<SearchCriteria>,
+}
 
-use crate::db::{DatabaseState, DbStore, MediaCache};
+use crate::{
+    db::{DatabaseState, DbStore, MediaCache},
+    events::CacheUpdatedEvent,
+};
 
 #[tauri::command(async)]
 #[specta::specta]
-/// `input_raw`: user tags
-/// `width`: viewport width for layout
-/// `gaps`: gaps between images  
-pub async fn search(handle: AppHandle, input_raw: String) {
+pub async fn search(handle: AppHandle, reload_virtual_list: bool) {
     let db_store = handle.state::<DatabaseState>().clone_store().await;
 
-    let mut search_criteria = SearchCriteria::parse_from_str(&input_raw);
-
     let search_state = handle.state::<SearchState>();
-    let search_guard = search_state.0.lock().await;
+    let input = search_state.input.lock().await.clone();
+    let search_guard = search_state.criteria.lock().await;
+
+    let mut search_criteria = SearchCriteria::parse_from_str(&input);
 
     // merge the search inputs from the tag selection and the input box
     search_criteria.merge(&search_guard);
@@ -51,18 +56,31 @@ pub async fn search(handle: AppHandle, input_raw: String) {
     // update the cache
     let state = handle.state::<MediaCache>();
     *state.media.lock().await = Some(media);
-    handle.emit("cache_updated", "").unwrap();
+
+    CacheUpdatedEvent {
+        reload_virtual_list,
+    }
+    .emit(&handle)
+    .unwrap();
     trace!("cache_updated via search");
 }
 
-/// Called when the search store con
 #[tauri::command(async)]
 #[specta::specta]
-pub async fn set_search_store(handle: AppHandle, search_criteria: SearchCriteria) {
+pub async fn set_search_criteria(handle: AppHandle, search_criteria: SearchCriteria) {
     let search_state = handle.state::<SearchState>();
-    let mut search_guard = search_state.0.lock().await;
+    let mut search_guard = search_state.criteria.lock().await;
 
     *search_guard = search_criteria;
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn set_search_input(handle: AppHandle, input: String) {
+    let search_state = handle.state::<SearchState>();
+    let mut search_guard = search_state.input.lock().await;
+
+    *search_guard = input;
 }
 
 pub async fn new_or_update_preset(

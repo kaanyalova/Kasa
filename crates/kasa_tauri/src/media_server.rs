@@ -4,6 +4,7 @@ use axum::Router;
 use log::trace;
 use sqlx::query_scalar;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_specta::Event;
 use tokio::sync::{
     Mutex,
     oneshot::{self, Receiver, Sender},
@@ -11,7 +12,10 @@ use tokio::sync::{
 
 use tower_http::services::ServeFile;
 
-use crate::db::{DatabaseState, DbStore};
+use crate::{
+    db::{DatabaseState, DbStore},
+    events::MediaServerDownEvent,
+};
 
 #[derive(Debug, Default)]
 pub struct MediaServerStore {
@@ -76,7 +80,7 @@ pub async fn serve_media(handle: AppHandle, hash: String) {
                     .await
                     .unwrap();
 
-                handle.emit("media_server_down", ()).unwrap();
+                MediaServerDownEvent {}.emit(&handle).unwrap();
             });
         }
         DbStore::Remote(_) => todo!(),

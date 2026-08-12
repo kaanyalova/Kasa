@@ -25,9 +25,10 @@
 	}
 
 	// TODO: show the user when they are Ctrl+hovering,
-	function onCtrlClick() {
+	async function onCtrlClick() {
 		SearchStore.searchContents = name;
-		commands.search(name);
+		await commands.setSearchInput(name);
+		await commands.search(true);
 		MediaModalStatusStore.close();
 	}
 </script>

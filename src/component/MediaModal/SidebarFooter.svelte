@@ -17,7 +17,6 @@
 	async function toggleFavorite() {
 		favoriteState = !favoriteState;
 		await commands.setMediaFavorite(data.hash, favoriteState);
-		await emit('media_updated');
 	}
 
 	async function onCopyButtonClicked() {

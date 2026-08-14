@@ -16,6 +16,7 @@
 	import { comma } from 'postcss/lib/list';
 	import '../../fonts.css';
 	import { onNewDb, onOpenDb } from '$lib/dbSelection';
+	import Page from '../../routes/+page.svelte';
 
 	let values: Array<ImageRow> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
@@ -32,6 +33,7 @@
 
 	// on cache update run updateLayout();
 	events.cacheUpdatedEvent.listen(async (e) => {
+		console.log(`event is -> ${e} `);
 		await updateLayoutFromCache(e.payload.reload_virtual_list);
 		trace('cache_updated event received');
 	});
@@ -124,7 +126,6 @@
 	}
 
 	function getItemSize(index: number): number {
-		values[index].height;
 		return calculateRowHeight(values[index].height);
 	}
 

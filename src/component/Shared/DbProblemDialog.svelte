@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onNewDb, onOpenDb } from '$lib/dbSelection';
+	import { commands } from '$lib/tauri_bindings';
 
 	let { problemText }: DbFileMissingProps = $props();
 </script>
@@ -22,6 +23,13 @@
 				onclick={async () => {
 					await onOpenDb();
 				}}>Open DB</button
+			>
+
+			<button
+				class="dbMissingButton"
+				onclick={async () => {
+					await commands.connectToDbInConfig();
+				}}>Retry</button
 			>
 		</div>
 	</div>

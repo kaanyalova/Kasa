@@ -31,7 +31,9 @@ pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
                 None
             }
         }
+
         DbStore::Remote(remote_store) => remote_store.client.get_info(&hash).await.unwrap(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -53,6 +55,7 @@ pub async fn get_tags(handle: AppHandle, hash: String) -> Option<Vec<TagWithDeta
             let tags = remote_client.client.get_tags(&hash).await.unwrap();
             Some(tags)
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -85,6 +88,7 @@ pub async fn get_media_type(handle: AppHandle, hash: String) -> String {
                 "".to_string()
             }
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -115,6 +119,7 @@ pub async fn get_group_info(handle: AppHandle, group_hash: String) -> Vec<MediaI
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -144,6 +149,7 @@ pub async fn get_tags_grouped_by_source_categories(
                 .unwrap();
             Some(tags)
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -176,6 +182,7 @@ pub async fn get_media_name(handle: AppHandle, hash: String) -> String {
                 "".to_string()
             }
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -196,6 +203,7 @@ pub async fn get_media_sources(handle: AppHandle, hash: String) -> Vec<MediaSour
         DbStore::Remote(remote_store) => {
             remote_store.client.get_media_sources(&hash).await.unwrap()
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -217,6 +225,7 @@ pub async fn set_media_favorite(handle: AppHandle, hash: String, state: bool) {
             .set_media_favorite(&hash, state)
             .await
             .unwrap(),
+        _ => panic!("db not initialized"),
     }
 
     search(handle.clone()).await;
@@ -260,6 +269,7 @@ pub async fn get_video_length(handle: AppHandle, hash: String) -> Option<f64> {
                 None
             }
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -292,5 +302,6 @@ pub async fn get_top_n_closest_for_media(
             .get_top_n_closest_for_media(&hash, n)
             .await
             .unwrap(),
+        _ => panic!("db not initialized"),
     }
 }

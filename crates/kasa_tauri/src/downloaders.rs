@@ -89,6 +89,12 @@ pub enum DownloaderStore {
 
 pub struct DownloaderState(pub Mutex<DownloaderStore>);
 
+impl DownloaderState {
+    pub fn uninitialized() -> Self {
+        Self(Mutex::new(DownloaderStore::Uninitialized))
+    }
+}
+
 impl DownloaderStore {
     pub async fn new_local(
         handle: AppHandle,

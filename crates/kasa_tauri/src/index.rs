@@ -26,6 +26,7 @@ pub async fn add_index_source(handle: AppHandle, path: String) {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -41,6 +42,7 @@ pub async fn remove_index_source(handle: AppHandle, path: String) {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -60,6 +62,7 @@ pub async fn index_all(handle: AppHandle) -> Result<(), ()> {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 
     Ok(())
@@ -79,6 +82,7 @@ pub async fn get_index_paths(handle: AppHandle) -> Vec<String> {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -94,6 +98,7 @@ pub async fn index_path(handle: AppHandle, path: String) {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 
     search(handle.clone()).await;
@@ -111,6 +116,7 @@ pub async fn nuke_selected_index(handle: AppHandle, path: String) {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 
     search(handle.clone()).await;
@@ -128,6 +134,7 @@ pub async fn nuke_all_indexes(handle: AppHandle) {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 
     search(handle.clone()).await;
@@ -145,6 +152,7 @@ pub async fn cleanup_unreferenced_files(handle: AppHandle) {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 
     search(handle.clone()).await;

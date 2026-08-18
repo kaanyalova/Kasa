@@ -14,7 +14,6 @@
 	import TagDropDown from './TagDropDown.svelte';
 	import Tag from './Tag.svelte';
 	import NewTag from './NewTag/NewTagButton.svelte';
-	import { comma } from 'postcss/lib/list';
 	import type { CursorPosition, TagDisplayProps } from './TagDisplay';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 	import NewTagButton from './NewTag/NewTagButton.svelte';

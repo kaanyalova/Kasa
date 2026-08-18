@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { commands } from '$lib/tauri_bindings';
 	import '../../../../fonts.css';
-	import { comma } from 'postcss/lib/list';
 	import type { ThumbsDBInfo } from '$lib/tauri_bindings';
 	import { dataDir } from '@tauri-apps/api/path';
 	import { isNumericString } from '$lib/isNumbericString';

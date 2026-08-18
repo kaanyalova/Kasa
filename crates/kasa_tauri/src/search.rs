@@ -48,6 +48,7 @@ async fn search_impl(handle: AppHandle, reload_virtual_list: bool) {
         DbStore::Remote(remote_store) => {
             media = remote_store.client.search(&search_criteria).await.unwrap()
         }
+        _ => panic!("db not initialized"),
     }
 
     trace!("search returned {} items", media.len());
@@ -114,5 +115,6 @@ pub async fn new_or_update_preset(
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }

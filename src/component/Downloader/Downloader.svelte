@@ -4,7 +4,6 @@
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import { commands, type GalleryDlStatus } from '$lib/tauri_bindings';
-	import { comma } from 'postcss/lib/list';
 	import { onDestroy, onMount } from 'svelte';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';

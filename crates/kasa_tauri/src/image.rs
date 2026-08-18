@@ -82,6 +82,7 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                 }
             }
         }
+        _ => panic!("db not initialized"),
     }
 
     trace!("something went wrong when thumbnailing");

@@ -4989,6 +4989,7 @@ dependencies = [
  "kasa_ai",
  "kasa_python",
  "lazy_static",
+ "libsqlite3-sys",
  "log",
  "memchr",
  "mime_guess",

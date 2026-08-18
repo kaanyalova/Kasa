@@ -4,7 +4,7 @@ use axum::Router;
 
 use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
-    db::migrations::{prepare_main_db, prepare_thumbs_db},
+    db::migrations::{init_sqlite_vec0, prepare_main_db, prepare_thumbs_db},
     downloaders::download_queue::{
         Downloader, DownloaderContext, DownloaderStateUpdate, init_extractors,
     },
@@ -49,7 +49,7 @@ async fn main() {
                 .unwrap_or(PathBuf::from(&kasa_config.thumbs.thumbs_db_path.clone()));
 
             unsafe {
-                sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
+                init_sqlite_vec0();
             }
 
             let pool = SqlitePool::connect_with(

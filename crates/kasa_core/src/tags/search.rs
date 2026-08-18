@@ -5,6 +5,7 @@ use sqlx::{Pool, QueryBuilder, Sqlite, query_as};
 use strum::Display;
 use utoipa::{IntoParams, ToSchema};
 
+use crate::db::migrations::init_sqlite_vec0;
 #[allow(unused)]
 use crate::{
     db::schema::Media,
@@ -362,9 +363,16 @@ impl SearchCriteria {
     }
 }
 
+/*
+figure out a way of loading extensions
 #[sqlx::test]
 async fn test_sql_query_gen(pool: Pool<Sqlite>) {
     use sqlx::migrate;
+
+    unsafe {
+        init_sqlite_vec0();
+    }
+
     migrate!("../../migrations/db").run(&pool).await.unwrap();
 
     let q = SearchCriteria::parse_from_str("foo, bar, python OR javascript, -csharp");
@@ -517,3 +525,4 @@ pub async fn search_simple_impl(raw_input: &str, pool: &Pool<Sqlite>) -> Vec<Med
 
     query.fetch_all(pool).await.unwrap()
 }
+*/

@@ -12,12 +12,6 @@ pub struct CacheUpdatedEvent {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
-pub struct DbsUpdatedEvent {
-    /// was the db just created
-    pub new_db: bool,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 pub struct MediaServerDownEvent {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
@@ -28,3 +22,12 @@ pub struct OpenMediaModalEvent {
 
 #[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 pub struct CloseMediaModalEvent {}
+
+#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[serde(tag = "type", content = "data")]
+pub enum DatabaseConnectionEvent {
+    RemoteConnected,
+    LocalConnected,
+    Uninitialize,
+    Failed(String),
+}

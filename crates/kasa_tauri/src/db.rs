@@ -1,14 +1,14 @@
-use libsqlite3_sys::sqlite3_auto_extension;
 use log::{error, info, trace};
-use sqlite_vec::sqlite3_vec_init;
+use tauri_specta::Event;
 use tokio::sync::Mutex;
 
+use kasa_core::config::global_config::DatabaseType;
 use kasa_core::{
-    config::global_config::get_config_impl,
+    config::global_config::{get_config_impl, set_db_type},
     db::{
         TagQueryOutput,
         db_info::{ThumbsDBInfo, get_thumbs_db_info_impl},
-        migrations::{prepare_main_db, prepare_thumbs_db},
+        migrations::{init_sqlite_vec0, prepare_main_db, prepare_thumbs_db},
         query_tags_impl,
         schema::Media,
     },
@@ -18,25 +18,158 @@ use sqlx::{
     Pool, Sqlite, query,
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
-use std::{path::PathBuf, str::FromStr};
-use tauri::{AppHandle, Manager};
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+use tauri::{App, AppHandle, Manager};
 
 use crate::{
+    config::set_db_path,
     downloaders::{DownloaderState, DownloaderStore},
+    events::DatabaseConnectionEvent,
     remote_client::RemoteClient,
 };
 
-impl Default for DbStore {
-    fn default() -> Self {
-        DbStore::Local(LocalDbStore::default())
-    }
-}
-
 #[derive(Clone)]
 pub enum DbStore {
-    // todo add a third uninitialized type here
+    WaitingForFrontend,
     Local(LocalDbStore),
     Remote(RemoteDbStore),
+    Uninitialized,
+    Errored(String),
+}
+
+impl DbStore {
+    pub async fn connect_to_remote_db(handle: AppHandle, url: String) -> DbStore {
+        let config = get_config_impl();
+        let client = RemoteClient::new(&url);
+        let thumbs_db = Self::connect_to_thumbs_db().await;
+
+        let remote_downloader = DownloaderStore::new_remote(handle.clone(), &config).await;
+
+        let remote_downloader = match remote_downloader {
+            Ok(r) => r,
+            Err(e) => {
+                return DbStore::errored(&e.to_string());
+            }
+        };
+
+        let downloader_store = handle.state::<DownloaderState>();
+        let mut locked = downloader_store.0.lock().await;
+
+        *locked = remote_downloader;
+
+        DbStore::Remote(RemoteDbStore {
+            client,
+            thumbs_db: Some(thumbs_db),
+        })
+    }
+
+    /// Create a new local db and connect to it
+    pub async fn connect_to_new_local_db(handle: AppHandle, path: String) -> DbStore {
+        prepare_main_db(&path).await;
+
+        let db_path_absolute = std::path::absolute(&path)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+
+        let db_options = SqliteConnectOptions::from_str(&db_path_absolute)
+            .unwrap()
+            .pragma("journal_mode", "WAL")
+            .pragma("synchronous", "NORMAL");
+
+        let pool_db = SqlitePoolOptions::new()
+            .max_connections(32)
+            .connect_with(db_options)
+            .await
+            .unwrap();
+
+        let pool_thumbs = Self::connect_to_thumbs_db().await;
+
+        let config = get_config_impl();
+
+        let pool_downloader = pool_db.clone();
+        let pool_thumbs_downloader = pool_thumbs.clone();
+
+        // if we are here, i assume the dbs are mounted properly, load the downloader
+        let handle_downloader = handle.clone();
+        let local_downloader = DownloaderStore::new_local(
+            handle_downloader,
+            pool_downloader,
+            pool_thumbs_downloader,
+            &config,
+        )
+        .await
+        .unwrap();
+
+        let downloader_state = handle.state::<DownloaderState>();
+        {
+            let mut downloader_store = downloader_state.0.lock().await;
+            *downloader_store = local_downloader;
+        }
+
+        DbStore::Local(LocalDbStore {
+            db: Some(pool_db),
+            thumbs_db: Some(pool_thumbs),
+        })
+    }
+    /// Connect to an existing local db, errors out if the db file doesn't exit
+    pub async fn connect_to_existing_local_db(handle: AppHandle, path: String) -> DbStore {
+        let path_converted = Path::new(&path);
+        if !path_converted.exists() {
+            return DbStore::errored(&format!(
+                "The db at {} doesn't exist.",
+                path_converted.to_string_lossy().to_string()
+            ));
+        }
+
+        Self::connect_to_new_local_db(handle.clone(), path).await
+    }
+
+    pub fn errored(message: &str) -> DbStore {
+        DbStore::Errored(message.to_string())
+    }
+
+    async fn emit_update_event(handle: AppHandle) {
+        let db_state = handle.state::<DatabaseState>();
+        let store = db_state.clone_store().await; // locks internally, drops guard
+
+        let event_option = match store {
+            DbStore::Errored(e) => Some(DatabaseConnectionEvent::Failed(e)), // no clone needed now
+            DbStore::Local(_) => Some(DatabaseConnectionEvent::LocalConnected),
+            DbStore::Remote(_) => Some(DatabaseConnectionEvent::RemoteConnected),
+            DbStore::Uninitialized => Some(DatabaseConnectionEvent::Uninitialize),
+            DbStore::WaitingForFrontend => None,
+        };
+
+        if let Some(e) = event_option {
+            e.emit(&handle).unwrap();
+        }
+    }
+
+    async fn connect_to_thumbs_db() -> Pool<Sqlite> {
+        let config = get_config_impl();
+
+        prepare_thumbs_db(&config.thumbs.thumbs_db_path).await;
+
+        let thumbs_path_absolute = std::path::absolute(&config.thumbs.thumbs_db_path)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+
+        let thumbs_options = SqliteConnectOptions::from_str(&thumbs_path_absolute)
+            .unwrap()
+            .pragma("journal_mode", "WAL")
+            .pragma("synchronous", "NORMAL");
+
+        SqlitePoolOptions::new()
+            .max_connections(32)
+            .connect_with(thumbs_options)
+            .await
+            .unwrap()
+    }
 }
 
 #[derive(Default, Clone)]
@@ -56,8 +189,13 @@ pub struct MediaCache {
     pub media: Mutex<Option<Vec<Media>>>,
 }
 
-#[derive(Default)]
 pub struct DatabaseState(pub Mutex<DbStore>);
+
+impl DatabaseState {
+    pub fn wait_for_frontend() -> Self {
+        Self(Mutex::new(DbStore::WaitingForFrontend))
+    }
+}
 
 impl DatabaseState {
     /// Clones the current store out from under the lock so commands can do their
@@ -88,134 +226,79 @@ pub async fn query_tags(tag_name: String, count: i64, handle: AppHandle) -> Vec<
             .query_tags(&tag_name, count)
             .await
             .unwrap(),
+        _ => panic!("db not initialized"),
     }
 }
 
-#[tauri::command(async)]
-#[specta::specta]
-
-pub async fn are_dbs_mounted(handle: AppHandle) -> bool {
-    let db_store = handle.state::<DatabaseState>().clone_store().await;
-
-    match db_store {
-        DbStore::Local(db_store) => {
-            db_store.db.is_some() && db_store.thumbs_db.is_some()
-        }
-        DbStore::Remote(remote_store) => {
-            let response = remote_store.client.ping().await;
-
-            if let Ok(resp) = response
-                && resp == "pong"
-            {
-                return true;
+async fn connect_to_db_impl(
+    handle: AppHandle,
+    path: &str,
+    create_new_db: bool,
+    db_type: DatabaseType,
+) {
+    let db_store = if path == "" {
+        DbStore::Uninitialized
+    } else {
+        match db_type {
+            DatabaseType::Remote => {
+                DbStore::connect_to_remote_db(handle.clone(), path.to_string()).await
             }
+            DatabaseType::Local => {
+                if create_new_db {
+                    DbStore::connect_to_new_local_db(handle.clone(), path.to_string()).await
+                } else {
+                    DbStore::connect_to_existing_local_db(handle.clone(), path.to_string()).await
+                }
+            }
+            DatabaseType::Unknown => {
+                let failed_text =
+                    "The database_type field of the config must either be \"local\" or \"remote\" "
+                        .to_string();
 
-            false
+                DbStore::Errored(failed_text)
+            }
         }
-    }
+    };
+
+    let db_state = handle.state::<DatabaseState>();
+    let mut locked = db_state.0.lock().await;
+    *locked = db_store;
 }
 
 #[tauri::command(async)]
 #[specta::specta]
-/// Mounts the dbs into db_store, runs any pending migrations
-pub async fn connect_dbs(handle: AppHandle) {
+pub async fn connect_to_new_local_db(handle: AppHandle, path: String) {
+    set_db_path(&path);
+    connect_to_db_impl(handle.clone(), &path, true, DatabaseType::Local).await;
+    DbStore::emit_update_event(handle).await;
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn connect_to_existing_local_db(handle: AppHandle, path: String) {
+    set_db_path(&path);
+    set_db_type(DatabaseType::Local);
+    connect_to_db_impl(handle.clone(), &path, false, DatabaseType::Local).await;
+    DbStore::emit_update_event(handle).await;
+}
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn connect_to_remote_db(handle: AppHandle, url: String) {
+    set_db_path(&url);
+    set_db_type(DatabaseType::Remote);
+    connect_to_db_impl(handle.clone(), &url, false, DatabaseType::Remote).await;
+    DbStore::emit_update_event(handle).await;
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn connect_to_db_in_config(handle: AppHandle) {
     let config = get_config_impl();
+    let db_path = config.db.db_path;
+    let db_type = config.db.db_type;
 
-    unsafe {
-        sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
-    }
-
-    prepare_thumbs_db(&config.thumbs.thumbs_db_path).await;
-
-    let thumbs_path_absolute = std::path::absolute(&config.thumbs.thumbs_db_path)
-        .unwrap()
-        .to_string_lossy()
-        .to_string();
-
-    let thumbs_options = SqliteConnectOptions::from_str(&thumbs_path_absolute)
-        .unwrap()
-        .pragma("journal_mode", "WAL")
-        .pragma("synchronous", "NORMAL");
-
-    let pool_thumbs = SqlitePoolOptions::new()
-        .max_connections(32)
-        .connect_with(thumbs_options)
-        .await
-        .unwrap();
-
-    // mount the dbs
-    let handle_db = handle.clone();
-    let state = handle_db.state::<DatabaseState>();
-    let mut db_store = state.0.lock().await;
-
-    let is_server =
-        config.db.db_path.starts_with("http://") || config.db.db_path.starts_with("https://");
-
-    let handle_downloader = handle.clone();
-
-    if is_server {
-        let client = RemoteClient::new(config.db.db_path.clone());
-        *db_store = DbStore::Remote(RemoteDbStore {
-            client,
-            thumbs_db: Some(pool_thumbs),
-        });
-
-        // create the downloader stuff here
-        let downloader_state = handle.state::<DownloaderState>();
-        let mut downloader_store = downloader_state.0.lock().await;
-
-        // todo this breaks the whole app if the websockets fails, handle it more gracefully
-        let remote_downloader = DownloaderStore::new_remote(handle_downloader, &config)
-            .await
-            .unwrap();
-
-        *downloader_store = remote_downloader;
-    }
-    // local db
-    else {
-        prepare_main_db(&config.db.db_path).await;
-
-        let db_path_absolute = std::path::absolute(&config.db.db_path)
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-
-        let db_options = SqliteConnectOptions::from_str(&db_path_absolute)
-            .unwrap()
-            .pragma("journal_mode", "WAL")
-            .pragma("synchronous", "NORMAL");
-
-        let pool_db = SqlitePoolOptions::new()
-            .max_connections(32)
-            .connect_with(db_options)
-            .await
-            .unwrap();
-
-        let pool_downloader = pool_db.clone();
-        let pool_thumbs_downloader = pool_thumbs.clone();
-
-        *db_store = DbStore::Local(LocalDbStore {
-            db: Some(pool_db),
-            thumbs_db: Some(pool_thumbs),
-        });
-
-        // if we are here, i assume the dbs are mounted properly, load the downloader
-        let handle_downloader = handle.clone();
-        let local_downloader = DownloaderStore::new_local(
-            handle_downloader,
-            pool_downloader,
-            pool_thumbs_downloader,
-            &config,
-        )
-        .await
-        .unwrap();
-
-        let downloader_state = handle.state::<DownloaderState>();
-        {
-            let mut downloader_store = downloader_state.0.lock().await;
-            *downloader_store = local_downloader;
-        }
-    }
+    connect_to_db_impl(handle.clone(), &db_path, false, db_type).await;
+    DbStore::emit_update_event(handle).await;
 }
 
 #[tauri::command(async)]
@@ -234,6 +317,7 @@ pub async fn does_the_db_file_exist(handle: AppHandle) -> bool {
             PathBuf::from(config.db.db_path).exists()
         }
         DbStore::Remote(_remote_db_store) => true,
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -287,6 +371,7 @@ pub async fn get_thumbs_db_info(handle: AppHandle) -> Option<ThumbsDBInfo> {
                 None
             }
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -309,6 +394,7 @@ pub async fn nuke_db_versioning(handle: AppHandle) {
         DbStore::Remote(_) => {
             error!("dont do that!");
         }
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -331,5 +417,6 @@ pub async fn get_remote_server_url(handle: AppHandle) -> String {
             "".to_string()
         }
         DbStore::Remote(remote_store) => remote_store.client.url(),
+        _ => panic!("db not initialized"),
     }
 }

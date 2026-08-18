@@ -8,7 +8,6 @@
 	import TagPickerEntry from './TagPickerEntry.svelte';
 	import VirtualList from 'svelte-tiny-virtual-list';
 	import { error, trace } from '@tauri-apps/plugin-log';
-	import { comma } from 'postcss/lib/list';
 	import { SearchStore } from '../Search/SearchStore.svelte';
 	import { emit, listen } from '@tauri-apps/api/event';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -76,21 +75,20 @@
 		trace('load tags');
 	}
 
-	// Try every one second until the tags are first loaded, the as db is usually not instantly mounted
-	// this might call the loadTags() multiple times if it takes long to get the tags
-	const initialLoadInterval = setInterval(async () => {
-		if (!tags && (await commands.areDbsMounted())) {
-			await loadTags();
-		} else {
-			clearInterval(initialLoadInterval);
-		}
-	}, 1000);
-
 	// Prepare the canvas for text width calculations
 	onMount(async () => {
 		await events.tagsUpdatedEvent.listen(async (_) => {
 			trace('tags_updated emitted');
 			await loadTags();
+		});
+
+		await events.databaseConnectionEvent.listen(async (e) => {
+			switch (e.payload.type) {
+				case 'RemoteConnected':
+				case 'LocalConnected':
+					await loadTags();
+					break;
+			}
 		});
 
 		const canvas = document.createElement('canvas');

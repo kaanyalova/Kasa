@@ -1,4 +1,6 @@
+use libsqlite3_sys::sqlite3_auto_extension;
 use log::{error, info};
+use sqlite_vec::sqlite3_vec_init;
 use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions};
 
 use crate::config::global_config::GlobalConfig;
@@ -92,4 +94,12 @@ pub async fn prepare_thumbs_db(db_path: &str) {
         .run(&pool)
         .await
         .unwrap();
+}
+
+pub unsafe fn init_sqlite_vec0() {
+    unsafe {
+        sqlite3_auto_extension(Some(unsafe {
+            std::mem::transmute(sqlite3_vec_init as *const ())
+        }))
+    };
 }

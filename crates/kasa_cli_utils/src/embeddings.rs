@@ -12,12 +12,10 @@ use kasa_core::{
     config::global_config::get_config_impl,
     db::{
         embeddings::{self, EmbeddingResult, insert_embeddings},
-        migrations::{prepare_dbs, prepare_dbs_from_config},
+        migrations::{init_sqlite_vec0, prepare_dbs, prepare_dbs_from_config},
     },
     thumbnail::{extract_frame, get_buffer},
 };
-use libsqlite3_sys::sqlite3_auto_extension;
-use sqlite_vec::sqlite3_vec_init;
 use sqlx::{SqlitePool, query_as, sqlite::SqlitePoolOptions};
 use tokio::{sync::mpsc, task::spawn_blocking};
 
@@ -28,7 +26,7 @@ const EMBEDDING_CHUNK_SIZE: usize = 100;
 pub async fn generate_all_image_embeddings() {
     let config = get_config_impl();
     unsafe {
-        sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
+        init_sqlite_vec0();
     }
 
     prepare_dbs_from_config(&config).await;

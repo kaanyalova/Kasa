@@ -26,17 +26,8 @@ async getTags(hash: string) : Promise<TagWithDetails[] | null> {
 async getEnvVar(envvar: string) : Promise<string> {
     return await TAURI_INVOKE("get_env_var", { envvar });
 },
-async areDbsMounted() : Promise<boolean> {
-    return await TAURI_INVOKE("are_dbs_mounted");
-},
 async getConfig() : Promise<GlobalConfig> {
     return await TAURI_INVOKE("get_config");
-},
-/**
- * Mounts the dbs into db_store, runs any pending migrations
- */
-async connectDbs() : Promise<void> {
-    await TAURI_INVOKE("connect_dbs");
 },
 async getThumbnailFromDb(hash: string) : Promise<string | null> {
     return await TAURI_INVOKE("get_thumbnail_from_db", { hash });
@@ -204,6 +195,18 @@ async getRemoteServerUrl() : Promise<string> {
 },
 async isRemoteDb() : Promise<boolean> {
     return await TAURI_INVOKE("is_remote_db");
+},
+async connectToDbInConfig() : Promise<void> {
+    await TAURI_INVOKE("connect_to_db_in_config");
+},
+async connectToNewLocalDb(path: string) : Promise<void> {
+    await TAURI_INVOKE("connect_to_new_local_db", { path });
+},
+async connectToExistingLocalDb(path: string) : Promise<void> {
+    await TAURI_INVOKE("connect_to_existing_local_db", { path });
+},
+async connectToRemoteDb(url: string) : Promise<void> {
+    await TAURI_INVOKE("connect_to_remote_db", { url });
 }
 }
 
@@ -213,7 +216,7 @@ async isRemoteDb() : Promise<boolean> {
 export const events = __makeEvents__<{
 cacheUpdatedEvent: CacheUpdatedEvent,
 closeMediaModalEvent: CloseMediaModalEvent,
-dbsUpdatedEvent: DbsUpdatedEvent,
+databaseConnectionEvent: DatabaseConnectionEvent,
 downloaderProgressUpdatedEvent: DownloaderProgressUpdatedEvent,
 mediaServerDownEvent: MediaServerDownEvent,
 openMediaModalEvent: OpenMediaModalEvent,
@@ -221,7 +224,7 @@ tagsUpdatedEvent: TagsUpdatedEvent
 }>({
 cacheUpdatedEvent: "cache-updated-event",
 closeMediaModalEvent: "close-media-modal-event",
-dbsUpdatedEvent: "dbs-updated-event",
+databaseConnectionEvent: "database-connection-event",
 downloaderProgressUpdatedEvent: "downloader-progress-updated-event",
 mediaServerDownEvent: "media-server-down-event",
 openMediaModalEvent: "open-media-modal-event",
@@ -237,18 +240,15 @@ tagsUpdatedEvent: "tags-updated-event"
 export type AllTagsOrderingCriteria = "Alphabetic" | "AlphabeticReverse" | "TagCount" | "TagCountReverse"
 export type CacheUpdatedEvent = { reload_virtual_list: boolean }
 export type CloseMediaModalEvent = Record<string, never>
-export type Database = { db_path: string }
+export type Database = { db_path: string; db_type: DatabaseType }
+export type DatabaseConnectionEvent = { type: "RemoteConnected" } | { type: "LocalConnected" } | { type: "Uninitialize" } | { type: "Failed"; data: string }
+export type DatabaseType = "local" | "remote" | "Unknown"
 export type DateOrderCriteria = "NewestFirst" | "OldestFirst" | "None"
 /**
  * Placeholder search until I implement proper search parsing
  * Only supports searching for Media that have the tags
  */
 export type DateRange = { start: number; end: number }
-export type DbsUpdatedEvent = { 
-/**
- * was the db just created
- */
-new_db: boolean }
 export type Downloader = { output_path: string; gdl_config_path: string | null }
 export type DownloaderProgressUpdatedEvent = Record<string, never>
 export type EmbeddingDistance = { hash: string; distance: number }

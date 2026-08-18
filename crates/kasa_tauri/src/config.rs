@@ -47,7 +47,7 @@ pub fn set_config_resolution_value(height: u32, width: u32) {
 #[tauri::command(async)]
 #[specta::specta]
 pub fn set_db_path(path: &str) {
-    set_db_path_impl(&PathBuf::from(path));
+    set_db_path_impl(path);
 }
 
 #[tauri::command(async)]
@@ -86,6 +86,7 @@ pub async fn get_existing_extractor_names(handle: AppHandle) -> Vec<String> {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -106,5 +107,6 @@ pub async fn get_example_metadata_for_extractor(handle: AppHandle, name: String)
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }

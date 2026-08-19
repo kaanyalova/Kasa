@@ -37,7 +37,12 @@ pub trait ScriptableTagExtractor: TagExtractor {
             .filter_map(|f| {
                 let contents = fs::read_to_string(f.path()).ok()?;
                 let file_name = f.file_name().into_string().ok()?;
-                Some((contents, file_name))
+                // strip the python suffixes here
+                let name = file_name.strip_suffix(".py").unwrap_or(&file_name);
+                if name.is_empty() {
+                    return None;
+                }
+                Some((name.to_owned(), contents))
             })
             .collect())
     }

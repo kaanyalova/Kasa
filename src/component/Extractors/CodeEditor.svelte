@@ -32,7 +32,11 @@
 			extensions: [basicSetup, python(), vscodeDark]
 		});
 
-		const contents = await commands.createOrGetExtractorContents(extractorName, fileExtension);
+		let contents = '';
+
+		if (extractorName) {
+			contents = await commands.createOrGetExtractorContents(extractorName, fileExtension);
+		}
 
 		editor.dispatch({
 			changes: {

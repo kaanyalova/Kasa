@@ -54,8 +54,8 @@ impl TaggerWorker {
 
                         let parser_function = scope
                             .globals
-                            .get_item("parse", vm)
-                            .map_err(|_| anyhow::anyhow!("Function 'parse' not found"))?;
+                            .get_item("extract", vm)
+                            .map_err(|_| anyhow::anyhow!("Function 'extract' not found"))?;
 
                         let input = vm.ctx.new_str(job.json_input.as_str());
 

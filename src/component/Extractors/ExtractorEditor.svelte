@@ -33,7 +33,11 @@
 		exampleMetadataJson = example;
 	}
 
-	function getFileName(path: string): string {
+	function getFileName(path: string): string | undefined {
+		if (path === '') {
+			return undefined;
+		}
+
 		const splitBySlashes = path.split('/');
 		const lastPart = splitBySlashes[splitBySlashes.length - 1];
 		const splitByDots = lastPart.split('.');

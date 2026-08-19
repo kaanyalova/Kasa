@@ -3,7 +3,9 @@
   "specifiers": {
     "npm:@alenaksu/json-viewer@^2.1.2": "2.1.2",
     "npm:@babel/runtime@8": "8.0.0",
+    "npm:@codemirror/commands@^6.10.4": "6.10.4",
     "npm:@codemirror/lang-python@^6.2.1": "6.2.1",
+    "npm:@codemirror/view@^6.43.8": "6.43.8",
     "npm:@iconify-json/material-symbols@^1.2.88": "1.2.88",
     "npm:@iconify/tailwind4@^1.2.3": "1.2.3_tailwindcss@4.3.3",
     "npm:@sveltejs/adapter-auto@^7.0.1": "7.0.1_@sveltejs+kit@2.70.2__@sveltejs+vite-plugin-svelte@7.3.0___svelte@5.56.9___vite@8.2.1____sass@1.102.0__svelte@5.56.9__typescript@7.0.2__vite@8.2.1___sass@1.102.0_@sveltejs+vite-plugin-svelte@7.3.0__svelte@5.56.9__vite@8.2.1___sass@1.102.0_svelte@5.56.9_typescript@7.0.2",
@@ -20,7 +22,7 @@
     "npm:@tauri-apps/plugin-os@^2.3.2": "2.3.2",
     "npm:@tauri-apps/plugin-shell@^2.3.5": "2.3.5",
     "npm:@types/eslint@^9.6.1": "9.6.1",
-    "npm:@uiw/codemirror-theme-vscode@^4.25.11": "4.25.11_@codemirror+language@6.12.4_@codemirror+state@6.7.1_@codemirror+view@6.43.7",
+    "npm:@uiw/codemirror-theme-vscode@^4.25.11": "4.25.11_@codemirror+view@6.43.8",
     "npm:clsx@^2.1.1": "2.1.1",
     "npm:codemirror@^6.0.2": "6.0.2",
     "npm:colorjs.io@~0.7.1": "0.7.1",
@@ -72,8 +74,8 @@
         "@lezer/common"
       ]
     },
-    "@codemirror/commands@6.10.3": {
-      "integrity": "sha512-JFRiqhKu+bvSkDLI+rUhJwSxQxYb759W5GBezE8Uc8mHLqC9aV/9aTC7yJSqCtB3F00pylrLCwnyS91Ap5ej4Q==",
+    "@codemirror/commands@6.10.4": {
+      "integrity": "sha512-Ryk9y9T0FFVF0cUGhAknveAyUOl/A1qReTFi+qPKtOh2Z9F4AUBz3XOrYD4ZEgZirdugVzHvd/2/Wcwy5OliTg==",
       "dependencies": [
         "@codemirror/language",
         "@codemirror/state",
@@ -124,8 +126,8 @@
         "@marijn/find-cluster-break"
       ]
     },
-    "@codemirror/view@6.43.7": {
-      "integrity": "sha512-FZsExxkoxnAN+d9TgqXLg5g4A1oQwzX9WlkOT5i2PKkcW7xx3Bmu0vs90g6fo9Mpdsb/l96dnAraQ8932aO4/g==",
+    "@codemirror/view@6.43.8": {
+      "integrity": "sha512-qtItTDssZ/5GFfi94hrILu9j/VUeFPDPkhovEfmWFj2ipTxnzPB8DdHgfbb8HYTzLTYhrndKmyQxXUz/PDLenw==",
       "dependencies": [
         "@codemirror/state",
         "crelt",
@@ -913,13 +915,13 @@
       "os": ["win32"],
       "cpu": ["x64"]
     },
-    "@uiw/codemirror-theme-vscode@4.25.11_@codemirror+language@6.12.4_@codemirror+state@6.7.1_@codemirror+view@6.43.7": {
+    "@uiw/codemirror-theme-vscode@4.25.11_@codemirror+view@6.43.8": {
       "integrity": "sha512-fTQ5676L9iV3Y6UyDBDd8Wt9Gewh55aC5rqnCtIpwyVFb6zJEHJScI4g43lzAD2IKhY7HlozB1ucrS3UqBFNEQ==",
       "dependencies": [
         "@uiw/codemirror-themes"
       ]
     },
-    "@uiw/codemirror-themes@4.25.11_@codemirror+language@6.12.4_@codemirror+state@6.7.1_@codemirror+view@6.43.7": {
+    "@uiw/codemirror-themes@4.25.11_@codemirror+view@6.43.8": {
       "integrity": "sha512-SBNCOgRsCtewGNocRbmjbCkltGXlFcPJsvhxQ351VynQjnWUiPbUrFcEU/haQ3HanROdAAjWXZJPk5bMBxl2jw==",
       "dependencies": [
         "@codemirror/language",
@@ -1820,9 +1822,6 @@
         "svelte"
       ]
     },
-    "svelte-infinite-loading@1.4.0": {
-      "integrity": "sha512-Jo+f/yr/HmZQuIiiKKzAHVFXdAUWHW2RBbrcQTil8JVk1sCm/riy7KTJVzjBgQvHasrFQYKF84zvtc9/Y4lFYg=="
-    },
     "svelte-splitpanes@8.0.12_svelte@5.56.9": {
       "integrity": "sha512-HJ07HgbtY0Q/35TEuJquGy47dtgCVavV7ay9r1FhWRx3boyUs3RpeiHlwMKliznCKy2ZotNeT+8GG+mIoNjgRA==",
       "dependencies": [
@@ -2027,7 +2026,9 @@
       "dependencies": [
         "npm:@alenaksu/json-viewer@^2.1.2",
         "npm:@babel/runtime@8",
+        "npm:@codemirror/commands@^6.10.4",
         "npm:@codemirror/lang-python@^6.2.1",
+        "npm:@codemirror/view@^6.43.8",
         "npm:@iconify-json/material-symbols@^1.2.88",
         "npm:@iconify/tailwind4@^1.2.3",
         "npm:@sveltejs/adapter-auto@^7.0.1",

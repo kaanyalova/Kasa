@@ -40,7 +40,10 @@
 	"type": "module",
 	"dependencies": {
 		"@alenaksu/json-viewer": "^2.1.2",
+		"@codemirror/commands": "^6.10.4",
 		"@codemirror/lang-python": "^6.2.1",
+		"@codemirror/view": "^6.43.8",
+		"codemirror": "^6.0.2",
 		"@iconify-json/material-symbols": "^1.2.88",
 		"@tailwindcss/vite": "^4.3.3",
 		"@tauri-apps/api": "^2.11.1",
@@ -51,7 +54,6 @@
 		"@tauri-apps/plugin-os": "^2.3.2",
 		"@tauri-apps/plugin-shell": "^2.3.5",
 		"@uiw/codemirror-theme-vscode": "^4.25.11",
-		"codemirror": "^6.0.2",
 		"colorjs.io": "^0.7.1",
 		"svelte-splitpanes": "^8.0.12",
 		"svelte-tiny-virtual-list": "4.0.0",

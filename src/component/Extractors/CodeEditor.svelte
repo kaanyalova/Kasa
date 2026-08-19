@@ -4,7 +4,8 @@
 	import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 	import { basicSetup, EditorView } from 'codemirror';
 	import { onDestroy, onMount } from 'svelte';
-
+	import { keymap } from '@codemirror/view';
+	import { indentWithTab } from '@codemirror/commands';
 	let { extractorName, fileExtension }: CodeEditorProps = $props();
 
 	let editor: EditorView;
@@ -33,7 +34,7 @@
 		editor = new EditorView({
 			parent: editorContainer,
 			doc: 'Hello',
-			extensions: [basicSetup, python(), vscodeDark]
+			extensions: [basicSetup, python(), vscodeDark, keymap.of([indentWithTab])]
 		});
 
 		let contents = '';

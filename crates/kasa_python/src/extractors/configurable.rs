@@ -1,8 +1,9 @@
 use std::{
     collections::HashMap,
     fs::{self},
-    path::Path,
+    path::{Path, PathBuf},
     str::FromStr,
+    sync::Mutex,
 };
 
 use log::trace;
@@ -15,7 +16,8 @@ use thiserror::Error;
 use crate::extractors::{ExtractedTagWithCategory, ExtractedTags, TagExtractor};
 
 pub struct ConfigurableExtractor {
-    extractors: HashMap<String, ExtractorConfig>,
+    extractors: Mutex<HashMap<String, ExtractorConfig>>,
+    base_dir: PathBuf,
 }
 
 impl ConfigurableExtractor {
@@ -108,19 +110,28 @@ impl ConfigurableExtractor {
     pub fn init(extractors_path: &Path) -> Result<Self> {
         let extractors = Self::get_extractors_from_path(extractors_path)?;
 
-        Ok(Self { extractors })
+        Ok(Self {
+            extractors: Mutex::new(extractors),
+            base_dir: extractors_path.to_path_buf(),
+        })
     }
 }
 
 impl TagExtractor for ConfigurableExtractor {
     fn extract_tags(&self, extractor: &str, json_input: &Value) -> Result<ExtractedTags> {
-        let extractor = self.extractors.get(extractor);
-        let extractor_config = match extractor {
+        let extractors = self.extractors.lock().unwrap();
+        let extractor_config = match extractors.get(extractor) {
             Some(e) => e,
             None => return Ok(ExtractedTags::NoTags(super::NoTagsInfo::NoExtractorFound)),
         };
 
         Self::extract_tags_with_config(json_input, extractor_config)
+    }
+
+    fn reload(&self) -> Result<()> {
+        let new = Self::get_extractors_from_path(&self.base_dir)?;
+        *self.extractors.lock().unwrap() = new;
+        Ok(())
     }
 }
 

@@ -14,7 +14,8 @@ use kasa_core::{
 };
 use log::{trace, warn};
 use serde_json::json;
-use tokio_tungstenite::{connect_async, tungstenite::stream};
+use tokio::time::{Duration, timeout};
+use tokio_tungstenite::connect_async;
 use tokio_util::sync::CancellationToken;
 
 #[derive(Default, Clone)]
@@ -26,7 +27,7 @@ pub struct RemoteClient {
 // my plan was to generate these using openapi, but theres no rust crate that can do it from
 // openapi 3.1, so i am stuck with manually implementing these
 impl RemoteClient {
-    pub fn new(base_url: String) -> Self {
+    pub fn new(base_url: &str) -> Self {
         // brotli should be enabled by default if i enable the feature but just in case
         let mut reqwest_client = reqwest::Client::builder().brotli(true);
 
@@ -37,7 +38,7 @@ impl RemoteClient {
 
         Self {
             reqwest_client: reqwest_client.build().unwrap(),
-            base_url,
+            base_url: base_url.to_string(),
         }
     }
 
@@ -320,19 +321,37 @@ impl RemoteDownloaderClient {
             .base_url
             .replace("https://", "wss://")
             .replace("http://", "ws://");
-        let (ws_stream, _) =
-            connect_async(format!("{}/listen_for_download_updates", ws_base_url)).await?;
+        let url = format!("{}/listen_for_download_updates", ws_base_url);
+
+        // connection + upgrade timeout
+        let (ws_stream, _) = timeout(Duration::from_secs(10), connect_async(url)).await??;
 
         let (mut write, mut read) = ws_stream.split();
 
         tokio::spawn(async move {
             tokio::select! {
                 _ = async {
-                    while let Some(Ok(msg)) = read.next().await {
-                        if let Ok(text) = msg.into_text()
-                            && let Ok(update) = serde_json::from_str::<DownloaderStateUpdate>(&text) {
+                    loop {
+                        let msg = match timeout(Duration::from_secs(30), read.next()).await {
+                            Ok(Some(Ok(msg))) => msg,
+                            Ok(Some(Err(_))) | Ok(None) => break,
+                            Err(_elapsed) => {
+                                warn!(
+                                    "30 seconds elapsed since last heartbeat, breaking the ws connection"
+                                );
+                                break;
+                            }
+                        };
+
+                        if let Ok(text) = msg.into_text() {
+                            if text == r#"{"type":"heartbeat"}"# {
+                                continue;
+                            }
+
+                            if let Ok(update) = serde_json::from_str::<DownloaderStateUpdate>(&text) {
                                 on_update(update);
                             }
+                        }
                     }
                 } => {},
                 _ = token.cancelled() => {

@@ -3,6 +3,7 @@ use std::env;
 use tauri_specta::collect_events;
 use tokio::sync::Mutex;
 
+use crate::db::{DatabaseState, connect_to_db_in_config};
 use crate::downloaders::{DownloaderState, DownloaderStore};
 use crate::events::*;
 use config::create_or_get_extractor_contents;
@@ -15,10 +16,12 @@ use config::set_config_value_bool;
 use config::set_config_value_f64;
 use config::set_config_value_str;
 use config::set_db_path;
+use config::set_extractor_contents;
 use config::set_thumbs_db_path;
 use db::MediaCache;
-use db::are_dbs_mounted;
-use db::connect_dbs;
+use db::connect_to_existing_local_db;
+use db::connect_to_new_local_db;
+use db::connect_to_remote_db;
 use db::does_the_db_file_exist;
 use db::get_layout_from_cache;
 use db::get_remote_server_url;
@@ -28,6 +31,7 @@ use db::nuke_db_versioning;
 use db::query_tags;
 use downloaders::get_downloader_statuses;
 use downloaders::queue_download_job;
+use downloaders::reload_extractors;
 use file_picker::new_linux_file_picker_dialog_file_select;
 use file_picker::new_linux_file_picker_dialog_multiple_folder_select;
 use file_picker::new_linux_file_picker_dialog_save_file;
@@ -38,6 +42,7 @@ use index::index_path;
 use index::nuke_all_indexes;
 use index::nuke_selected_index;
 use index::*;
+use kasa_core::db::migrations::init_sqlite_vec0;
 use kasa_python::GalleryDlStatus;
 use log::LevelFilter;
 use log::warn;
@@ -112,6 +117,10 @@ pub fn run() {
         //std::env::set_var("__NV_DISABLE_EXPLICIT_SYNC", "1");
     }
 
+    unsafe {
+        init_sqlite_vec0();
+    }
+
     let dotenv = dotenvy::dotenv();
 
     #[cfg(debug_assertions)]
@@ -150,9 +159,7 @@ pub fn run() {
                 update_tags,
                 get_tags,
                 get_env_var,
-                are_dbs_mounted,
                 get_config,
-                connect_dbs,
                 get_thumbnail_from_db,
                 get_thumbs_db_info,
                 set_config_value_str,
@@ -204,16 +211,22 @@ pub fn run() {
                 does_the_db_file_exist,
                 get_remote_server_url,
                 is_remote_db,
+                connect_to_db_in_config,
+                connect_to_new_local_db,
+                connect_to_existing_local_db,
+                connect_to_remote_db,
+                set_extractor_contents,
+                reload_extractors,
             ]
         })
         .events(collect_events![
             DownloaderProgressUpdatedEvent,
             TagsUpdatedEvent,
             CacheUpdatedEvent,
-            DbsUpdatedEvent,
             MediaServerDownEvent,
             OpenMediaModalEvent,
-            CloseMediaModalEvent
+            CloseMediaModalEvent,
+            DatabaseConnectionEvent,
         ]);
 
     #[cfg(all(not(target_os = "android"), debug_assertions))]
@@ -245,18 +258,15 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(builder.invoke_handler())
-        .manage(db::DatabaseState::default())
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
+        .manage(SearchState::default())
+        .manage(DownloaderState::uninitialized())
+        .manage(DatabaseState::wait_for_frontend())
         .setup(move |app| {
             builder.mount_events(app);
-
-            let handle = app.handle();
-            app.manage(DownloaderState(Mutex::new(DownloaderStore::Uninitialized)));
-
             Ok(())
         })
-        .manage(SearchState::default())
         .run(context)
         .expect("error while running tauri application");
 }

@@ -13,10 +13,9 @@ export async function onNewDb(): Promise<string> {
 		return '';
 	}
 
-	await commands.setDbPath(path);
+	commands.connectToNewLocalDb(path);
 	const dbName = path.split('/').pop() || '';
 
-	events.dbsUpdatedEvent.emit({ new_db: true });
 	return dbName;
 }
 
@@ -32,14 +31,12 @@ export async function onOpenDb(): Promise<string> {
 	}
 
 	const dbName = path.split('/').pop() || '';
-	await commands.setDbPath(path);
+	commands.connectToExistingLocalDb(path);
 
-	events.dbsUpdatedEvent.emit({ new_db: false });
 	return dbName;
 }
 
 export async function onConnectToDb(url: string): Promise<string> {
-	await commands.setDbPath(url);
-	await events.dbsUpdatedEvent.emit({ new_db: false });
+	await commands.connectToRemoteDb(url);
 	return url;
 }

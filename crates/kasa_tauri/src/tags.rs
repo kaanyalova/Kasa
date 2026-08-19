@@ -33,6 +33,7 @@ pub async fn update_tags(handle: AppHandle, raw_input: String, hash: String) {
             .update_tags(&raw_input, &hash)
             .await
             .unwrap(),
+        _ => panic!("db not initialized"),
     }
 
     TagsUpdatedEvent {}.emit(&handle).unwrap();
@@ -55,6 +56,7 @@ pub async fn delete_tags(handle: AppHandle, hash: String, tags: Vec<String>) {
         DbStore::Remote(remote_store) => {
             remote_store.client.delete_tags(&hash, tags).await.unwrap()
         }
+        _ => panic!("db not initialized"),
     }
 
     TagsUpdatedEvent {}.emit(&handle).unwrap();
@@ -77,6 +79,7 @@ pub async fn get_tags_as_text(handle: AppHandle, hash: String) -> Option<String>
             }
         }
         DbStore::Remote(remote_store) => remote_store.client.get_tags_as_text(&hash).await.unwrap(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -105,5 +108,6 @@ pub async fn get_list_of_all_tags_with_details(
                 .await
                 .unwrap(),
         ),
+        _ => panic!("db not initialized"),
     }
 }

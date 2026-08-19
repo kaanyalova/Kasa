@@ -25,7 +25,9 @@ pub fn create_or_get_extractor_contents_impl(
     file_extension: &str,
 ) -> Result<String> {
     let path = create_or_get_path_for_extractor_impl(extractor_name, file_extension)?;
-    std::fs::write(&path, DEFAULT_PYTHON_EXTRACTOR)?;
+    if !path.exists() {
+        std::fs::write(&path, DEFAULT_PYTHON_EXTRACTOR)?;
+    }
     Ok(fs::read_to_string(&path)?)
 }
 
@@ -35,6 +37,7 @@ pub async fn get_existing_extractor_names_impl(pool: &Pool<Sqlite>) -> Result<Ve
         .filter_map(|f| f.ok())
         .filter(|f| f.path().extension().is_some_and(|ext| ext == "py"))
         .filter_map(|f| f.file_name().into_string().ok())
+        .map(|f| f.trim_end_matches(".py").to_string())
         .collect();
 
     let found_in_db: Vec<String> = query_scalar("SELECT source FROM MediaSource GROUP BY source")
@@ -63,4 +66,10 @@ pub async fn get_example_metadata_for_extractor_impl(
     let placeholder = r#"{"error" : "No example metadata for the selected extractor found, try downloading something with this extractor first."}"#.to_owned();
 
     Ok(example_metadata.unwrap_or(placeholder))
+}
+
+pub fn set_extractor_contents_impl(name: &str, contents: &str, file_extension: &str) -> Result<()> {
+    let path = create_or_get_path_for_extractor_impl(name, file_extension)?;
+    fs::write(path, contents)?;
+    Ok(())
 }

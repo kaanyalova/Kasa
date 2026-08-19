@@ -3,8 +3,7 @@
 	import '../../fonts.css';
 	import HorizontalDivider from '../Shared/Dividers/HorizontalDivider.svelte';
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
-	import { commands, type GalleryDlStatus } from '$lib/tauri_bindings';
-	import { comma } from 'postcss/lib/list';
+	import { commands, events, type GalleryDlStatus } from '$lib/tauri_bindings';
 	import { onDestroy, onMount } from 'svelte';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
@@ -20,17 +19,9 @@
 	}
 
 	onMount(async () => {
-		unlistenFn = await listen('downloader_progress_updated', async () => {
+		events.downloaderProgressUpdatedEvent.listen(async () => {
 			downloadStatuses = await commands.getDownloaderStatuses();
-			console.log('updating download statuses');
-			console.log(downloadStatuses);
 		});
-	});
-
-	onDestroy(() => {
-		if (unlistenFn) {
-			unlistenFn();
-		}
 	});
 
 	async function onOpenGalleryDlConfigFile() {

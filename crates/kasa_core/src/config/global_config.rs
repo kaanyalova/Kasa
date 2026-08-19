@@ -1,7 +1,7 @@
 use std::{
-    env,
+    default, env,
     fs::{self, create_dir},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use anyhow::Result;
@@ -17,7 +17,8 @@ const DEFAULT_CONFIG: &str = r#"
 
 [Database]
 # Path of the currently open database file
-db_path = "./default.kasa"
+db_path = ""
+db_type = ""
 
 
 [Thumbnails]
@@ -47,12 +48,26 @@ thumbnail_scale = 1.5
 
 pub struct Database {
     pub db_path: String,
+    pub db_type: DatabaseType,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, Default)]
+
+pub enum DatabaseType {
+    #[serde(rename = "local")]
+    Local,
+    #[serde(rename = "remote")]
+    Remote,
+    #[serde(other)]
+    #[default]
+    Unknown,
 }
 
 impl Default for Database {
     fn default() -> Self {
         Self {
-            db_path: "./default.kasa".to_string(),
+            db_path: "".to_string(),
+            db_type: DatabaseType::default(),
         }
     }
 }
@@ -86,10 +101,19 @@ impl Default for Thumbs {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
 pub struct Layout {
     show_filenames: bool,
     thumbnail_scale: f32,
+}
+
+impl Default for Layout {
+    fn default() -> Self {
+        Self {
+            show_filenames: false,
+            thumbnail_scale: 1.5,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialEq, Clone, specta::Type)]
@@ -173,7 +197,7 @@ pub fn set_value(category: &str, key: &str, val: impl Into<Value>) {
     fs::write(path, toml.to_string()).unwrap();
 }
 
-pub fn set_db_path_impl(db_path: &PathBuf) {
+pub fn set_db_path_impl(db_path: &str) {
     let path = get_config_dir().join("config.toml");
 
     find_or_create_config(&path);
@@ -182,12 +206,32 @@ pub fn set_db_path_impl(db_path: &PathBuf) {
 
     let mut toml = f.parse::<DocumentMut>().unwrap();
 
-    toml["Database"]["db_path"] = value(db_path.to_string_lossy().to_string());
+    toml["Database"]["db_path"] = value(db_path);
 
     fs::write(path, toml.to_string()).unwrap();
 }
 
-pub fn set_thumbs_db_path_impl(db_path: &PathBuf) {
+pub fn set_db_type(db_type: DatabaseType) {
+    let path = get_config_dir().join("config.toml");
+
+    find_or_create_config(&path);
+
+    let f = fs::read_to_string(&path).unwrap();
+
+    let mut toml = f.parse::<DocumentMut>().unwrap();
+
+    let db_type_str = match db_type {
+        DatabaseType::Local => "local",
+        DatabaseType::Remote => "remote",
+        DatabaseType::Unknown => "unknown",
+    };
+
+    toml["Database"]["db_type"] = value(db_type_str);
+
+    fs::write(path, toml.to_string()).unwrap();
+}
+
+pub fn set_thumbs_db_path_impl(db_path: &Path) {
     let path = get_config_dir().join("config.toml");
 
     find_or_create_config(&path);
@@ -233,6 +277,8 @@ fn default_config_parse() {
         pub thumbs: Thumbs,
         #[serde(rename = "Downloader")]
         pub downloader: Downloader,
+        #[serde(rename = "Layout")]
+        pub layout: Layout,
     }
 
     let config: GlobalConfig = toml::from_str(DEFAULT_CONFIG).unwrap();

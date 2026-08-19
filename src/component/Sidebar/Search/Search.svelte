@@ -10,7 +10,6 @@
 	import type { SearchTag } from './SearchDropDown';
 	import { stat } from '@tauri-apps/plugin-fs';
 	import { commands, type TagQueryOutput } from '$lib/tauri_bindings';
-	import { comma } from 'postcss/lib/list';
 	import { handleSelect } from './HandleSelect';
 	import { SearchStore } from './SearchStore.svelte';
 

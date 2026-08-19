@@ -67,6 +67,7 @@ ffmpeg = { package = "ffmpeg-next", version = "8.1.0" }
 utoipa = "5.5.0"
 webp = "0.3.1"
 lazy_static = "1.5.0"
+libsqlite3-sys = { workspace = true }
 
 
 [dev-dependencies]
@@ -80,13 +81,8 @@ reqwest = { workspace = true, features = ["blocking"] }
 tar = { workspace = true }
 xz = { workspace = true }
 
-
 [features]
 default = []
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
 ai = ["dep:kasa_ai"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]
-
-
-[patch.crates-io]
-libsqlite3-sys = { version = "0.30.1" }

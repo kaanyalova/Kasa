@@ -130,7 +130,11 @@
 							Video player refuses video/x-matkroska wtf, but video/webm works for all videos
 							https://stackoverflow.com/questions/17018119/how-to-play-mkv-file-in-browser
 							-->
-								<source type="video/webm" src={fileUrl} />
+								<source
+									type="video/webm"
+									src={fileUrl}
+									style="aspect-ratio: {data.aspectRatio} !important;"
+								/>
 							</media-provider>
 							<media-video-layout></media-video-layout>
 						</media-player>
@@ -183,8 +187,20 @@
 
 	.mediaPlayer {
 		height: 100%;
-		object-fit: contain;
 	}
+
+	/*
+	When aspect-ratio is set on media-player, vidstack crops the video to fill
+	the container (object-fit: cover on the inner video). Force contain instead.
+	*/
+	:global(media-player video) {
+		object-fit: contain !important;
+	}
+
+	:global(media-player video) {
+		object-fit: contain !important;
+	}
+
 	.imageWrapper {
 		display: inline-flex;
 		align-items: center;
@@ -224,6 +240,15 @@
 		.dialogContents {
 			left: 0 !important;
 		}
+	}
+
+	/* 
+	 videos with somewhat uncommon aspect ratios are "cropped" 
+	 for some reason?
+	 https://github.com/vidstack/player/issues/799
+	 */
+	:global(video) {
+		height: 100%;
 	}
 
 	svg {

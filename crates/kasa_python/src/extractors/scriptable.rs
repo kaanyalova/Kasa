@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fs::{self},
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
@@ -37,15 +37,20 @@ pub trait ScriptableTagExtractor: TagExtractor {
             .filter_map(|f| {
                 let contents = fs::read_to_string(f.path()).ok()?;
                 let file_name = f.file_name().into_string().ok()?;
-                Some((contents, file_name))
+                // strip the python suffixes here
+                let name = file_name.strip_suffix(".py").unwrap_or(&file_name);
+                if name.is_empty() {
+                    return None;
+                }
+                Some((name.to_owned(), contents))
             })
             .collect())
     }
 
-    fn extractors(&self) -> &HashMap<String, String>;
+    fn extractors(&self) -> &Mutex<HashMap<String, String>>;
 
-    fn get_extractor_code(&self, name: &str) -> Option<&String> {
-        self.extractors().get(name)
+    fn get_extractor_code(&self, name: &str) -> Option<String> {
+        self.extractors().lock().unwrap().get(name).cloned()
     }
 }
 
@@ -61,14 +66,19 @@ pub enum ScriptableTagExtractorError {
 
 pub struct PythonTagExtractor {
     worker: Arc<TaggerWorker>,
-    extractors: HashMap<String, String>,
+    extractors: Mutex<HashMap<String, String>>,
+    base_dir: PathBuf,
 }
 
 impl PythonTagExtractor {
     pub fn init(worker: Arc<TaggerWorker>, base_dir: &Path) -> Result<Self> {
         let extractors = Self::parse_extractor_files(base_dir)?;
 
-        Ok(Self { worker, extractors })
+        Ok(Self {
+            worker,
+            extractors: Mutex::new(extractors),
+            base_dir: base_dir.to_path_buf(),
+        })
     }
 }
 
@@ -76,6 +86,12 @@ impl TagExtractor for PythonTagExtractor {
     fn extract_tags(&self, extractor: &str, json_input: &Value) -> Result<ExtractedTags> {
         let result = self.execute_extractor(extractor, json_input)?;
         Ok(result.unwrap_or(ExtractedTags::NoTags(NoTagsInfo::NoExtractorFound)))
+    }
+
+    fn reload(&self) -> Result<()> {
+        let new = Self::parse_extractor_files(&self.base_dir)?;
+        *self.extractors.lock().unwrap() = new;
+        Ok(())
     }
 }
 
@@ -86,13 +102,11 @@ impl ScriptableTagExtractor for PythonTagExtractor {
         json_input: &Value,
     ) -> Result<Option<ExtractedTags>> {
         let code = self.get_extractor_code(extractor);
-        if code.is_none() {
+        let Some(code) = code else {
             return Ok(None);
-        }
+        };
 
-        let code = code.unwrap().as_str();
-
-        let result = self.worker.push_job(code, json_input)?;
+        let result = self.worker.push_job(&code, json_input)?;
 
         // this waits until the pushed job is done, so its effectively single threaded
         // instead of locking a mutex i do this
@@ -101,7 +115,7 @@ impl ScriptableTagExtractor for PythonTagExtractor {
         Ok(result)
     }
 
-    fn extractors(&self) -> &HashMap<String, String> {
+    fn extractors(&self) -> &Mutex<HashMap<String, String>> {
         &self.extractors
     }
 }

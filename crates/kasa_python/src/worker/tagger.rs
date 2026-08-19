@@ -3,12 +3,12 @@ use std::{
     thread::JoinHandle,
 };
 
-use anyhow::Result;
-use rustpython_vm::compiler;
-use serde_json::Value;
-
 use crate::extractors::ExtractedTags;
 use crate::init_interpreter;
+use anyhow::Result;
+use anyhow::anyhow;
+use rustpython_vm::compiler;
+use serde_json::Value;
 
 struct TaggerWorkerJob {
     code: String,
@@ -47,37 +47,43 @@ impl TaggerWorker {
 
                         let compiled = vm
                             .compile(&job.code, compiler::Mode::Exec, "<embedded>".to_string())
-                            .map_err(|err| anyhow::anyhow!("Compile error: {:?}", err))?;
+                            .map_err(|err| anyhow!("Compile error: {:?}", err))?;
 
                         vm.run_code_obj(compiled, scope.clone())
-                            .map_err(|err| anyhow::anyhow!("Runtime error: {:?}", err))?;
+                            .map_err(|err| anyhow!("Runtime error: {:?}", err))?;
 
                         let parser_function = scope
                             .globals
-                            .get_item("parse", vm)
-                            .map_err(|_| anyhow::anyhow!("Function 'parse' not found"))?;
-
-                        let input = vm.ctx.new_str(job.json_input.as_str());
-
-                        let result = parser_function
-                            .call((input,), vm)
-                            .map_err(|err| anyhow::anyhow!("Execution error: {:?}", err))?;
+                            .get_item("extract", vm)
+                            .map_err(|_| anyhow!("Function 'extract' not found"))?;
 
                         let json_module = vm
                             .import("json", 0)
-                            .map_err(|err| anyhow::anyhow!("Failed to import json: {:?}", err))?;
+                            .map_err(|err| anyhow!("Failed to import json: {:?}", err))?;
+
+                        let loads_function = json_module
+                            .get_attr("loads", vm)
+                            .map_err(|err| anyhow!("json.loads not found: {:?}", err))?;
+
+                        let input = loads_function
+                            .call((vm.ctx.new_str(job.json_input.as_str()),), vm)
+                            .map_err(|err| anyhow!("Input deserialization error: {:?}", err))?;
+
+                        let result = parser_function
+                            .call((input,), vm)
+                            .map_err(|err| anyhow!("Execution error: {:?}", err))?;
 
                         let dumps_function = json_module
                             .get_attr("dumps", vm)
-                            .map_err(|err| anyhow::anyhow!("json.dumps not found: {:?}", err))?;
+                            .map_err(|err| anyhow!("json.dumps not found: {:?}", err))?;
 
                         let json_result = dumps_function
                             .call((result,), vm)
-                            .map_err(|err| anyhow::anyhow!("Serialization error: {:?}", err))?;
+                            .map_err(|err| anyhow!("Serialization error: {:?}", err))?;
 
                         let output = json_result
                             .str(vm)
-                            .map_err(|_| anyhow::anyhow!("Output string conversion error"))?
+                            .map_err(|_| anyhow!("Output string conversion error"))?
                             .to_string();
 
                         let serialized: ExtractedTags = serde_json::from_str(&output)?;

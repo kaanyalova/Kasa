@@ -6,6 +6,7 @@ pub mod scriptable;
 
 pub trait TagExtractor {
     fn extract_tags(&self, extractor: &str, json_input: &Value) -> Result<ExtractedTags>;
+    fn reload(&self) -> Result<()>;
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -33,6 +34,7 @@ struct ExtractedTagWithoutCategory {
 pub enum ExtractedTags {
     WithCategories(Vec<ExtractedTagWithCategory>),
     WithoutCategories(Vec<ExtractedTagWithoutCategory>),
+    Flat(Vec<String>),
     #[serde(skip)]
     NoTags(NoTagsInfo),
 }
@@ -58,6 +60,13 @@ impl ExtractedTags {
                 .map(|t| ExtractedTag {
                     category: None,
                     tag: t.tag,
+                })
+                .collect(),
+            ExtractedTags::Flat(tags) => tags
+                .into_iter()
+                .map(|tag| ExtractedTag {
+                    category: None,
+                    tag,
                 })
                 .collect(),
             ExtractedTags::NoTags(_no_tags_info) => vec![],

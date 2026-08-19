@@ -4,6 +4,7 @@ use kasa_core::config::{
     extractor_scripts::{
         create_or_get_extractor_contents_impl, create_or_get_path_for_extractor_impl,
         get_example_metadata_for_extractor_impl, get_existing_extractor_names_impl,
+        set_extractor_contents_impl,
     },
     global_config::{
         GlobalConfig, get_config_impl, set_db_path_impl, set_thumbs_db_path_impl, set_value,
@@ -47,7 +48,7 @@ pub fn set_config_resolution_value(height: u32, width: u32) {
 #[tauri::command(async)]
 #[specta::specta]
 pub fn set_db_path(path: &str) {
-    set_db_path_impl(&PathBuf::from(path));
+    set_db_path_impl(path);
 }
 
 #[tauri::command(async)]
@@ -86,6 +87,7 @@ pub async fn get_existing_extractor_names(handle: AppHandle) -> Vec<String> {
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
 }
 
@@ -106,5 +108,12 @@ pub async fn get_example_metadata_for_extractor(handle: AppHandle, name: String)
             }
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub fn set_extractor_contents(name: &str, file_extension: &str, contents: &str) {
+    set_extractor_contents_impl(name, contents, file_extension).unwrap();
 }

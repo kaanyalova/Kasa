@@ -8,6 +8,7 @@ export class InfiniteMediaStoreInner {
 
 	showNames: undefined | boolean = $state(undefined);
 	thumbnailScale: undefined | number = $state(undefined);
+	isLoaded: boolean = $state(false);
 
 	addMedia(hash: string) {
 		if (this.selectedHashes.includes(hash as never)) {
@@ -29,6 +30,7 @@ export class InfiniteMediaStoreInner {
 		const config = await commands.getConfig();
 		this.showNames = config.Layout.show_filenames;
 		this.thumbnailScale = config.Layout.thumbnail_scale;
+		this.isLoaded = true;
 	}
 }
 

@@ -84,6 +84,7 @@ pub async fn serve_media(handle: AppHandle, hash: String) {
             });
         }
         DbStore::Remote(_) => todo!(),
+        _ => panic!("db not initialized"),
     };
 }
 

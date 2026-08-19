@@ -14,6 +14,8 @@ use futures_util::{SinkExt, StreamExt};
 use kasa_core::downloaders::download_queue::{DownloadJob, DownloaderStateUpdate};
 use kasa_python::GalleryDlStatus;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
+use tokio::sync::broadcast::error::RecvError;
 use tokio::sync::{broadcast, mpsc};
 use tracing::{error, trace};
 use utoipa::IntoParams;
@@ -53,16 +55,37 @@ async fn handle_download_updates(
 
     let send_whom = who.clone();
     let mut send_task = tokio::spawn(async move {
-        while let Ok(event) = events.recv().await {
-            let serialize_result = serde_json::to_string(&event);
+        let mut heartbeat = tokio::time::interval(Duration::from_secs(10));
+        loop {
+            tokio::select! {
+                event = events.recv() => {
+                    match event {
+                        Ok(event) => {
+                            let serialize_result = serde_json::to_string(&event);
 
-            match serialize_result {
-                Ok(t) => {
-                    trace!("sending msg {:?} to {:?}", &event, &send_whom);
-                    sender.send(Message::text(t)).await.unwrap();
+                            match serialize_result {
+                                Ok(t) => {
+                                    trace!("sending msg {:?} to {:?}", &event, &send_whom);
+                                    sender.send(Message::text(t)).await.unwrap();
+                                }
+                                Err(e) => {
+                                    error!("Failed to serialize event for {:?}: {:?}", &send_whom, e);
+                                }
+                            }
+                        }
+                        Err(RecvError::Lagged(_)) => continue,
+                        Err(RecvError::Closed) => break,
+                    }
                 }
-                Err(e) => {
-                    error!("Failed to serialize event for {:?}: {:?}", &send_whom, e);
+                _ = heartbeat.tick() => {
+                    trace!("sending heartbeat to {:?}", &send_whom);
+                    if sender
+                        .send(Message::text(r#"{"type":"heartbeat"}"#))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    }
                 }
             }
         }

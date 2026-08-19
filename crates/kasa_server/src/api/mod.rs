@@ -83,7 +83,6 @@ pub struct AppState {
 
 fn create_router(dbs: Databases, downloader_state: DownloaderState) -> OpenApiRouter {
     OpenApiRouter::new()
-        .routes(routes!(are_dbs_mounted))
         .routes(routes!(query_tags))
         .routes(routes!(get_thumbnail))
         .routes(routes!(get_info))
@@ -159,15 +158,4 @@ pub async fn run(args: &ServerArgs, dbs: Databases, downloader_state: Downloader
     )
     .await
     .unwrap();
-}
-
-#[utoipa::path(
-    get,
-    path = "/ping",
-    responses(
-        (status = 200, description = "Server is running", body = str),
-    ),
-)]
-async fn are_dbs_mounted() -> &'static str {
-    "pong"
 }

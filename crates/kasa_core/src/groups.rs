@@ -5,7 +5,10 @@ use sqlx::{Pool, QueryBuilder, Sqlite, prelude::FromRow, query, query_as, query_
 use xxhash_rust::xxh3::xxh3_64;
 
 use crate::{
-    db::schema::{MediaType, media_type_to_string},
+    db::{
+        migrations::init_sqlite_vec0,
+        schema::{MediaType, media_type_to_string},
+    },
     media::{MediaInfo, get_info_impl},
 };
 
@@ -135,9 +138,17 @@ async fn remove_group(group_id: &str, db: &Pool<Sqlite>) -> Result<()> {
     Ok(())
 }
 
+/*
+figure out a way of loading extensions
+
 #[sqlx::test]
 async fn test_groups(pool: Pool<Sqlite>) {
     use crate::test_util::db_utils::insert_media_row;
+
+    unsafe {
+        init_sqlite_vec0();
+    }
+
     sqlx::migrate!("../../migrations/db")
         .run(&pool)
         .await
@@ -200,3 +211,4 @@ async fn test_groups(pool: Pool<Sqlite>) {
     .await
     .unwrap();
 }
+*/

@@ -8,7 +8,7 @@ use kasa_core::{
 };
 use kasa_python::extractors::TagExtractor;
 use kasa_python::{GalleryDlStatus, init_interpreter, init_interpreter_with_gallery_dl};
-use log::{error, info};
+use log::{error, info, warn};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -70,6 +70,25 @@ pub async fn get_downloader_statuses(handle: AppHandle) -> HashMap<String, Galle
     }
 }
 
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn reload_extractors(handle: AppHandle) {
+    let state = handle.state::<DownloaderState>();
+    let store = state.0.lock().await;
+
+    match &*store {
+        DownloaderStore::Local(local) => {
+            for extractor in local.extractors.iter() {
+                if let Err(e) = extractor.reload() {
+                    error!("failed to reload extractor: {e}");
+                }
+            }
+        }
+        DownloaderStore::Remote(_) => {}
+        _ => {}
+    }
+}
+
 pub struct LocalDownloaderStore {
     pub tx: mpsc::Sender<DownloadJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
@@ -88,6 +107,12 @@ pub enum DownloaderStore {
 }
 
 pub struct DownloaderState(pub Mutex<DownloaderStore>);
+
+impl DownloaderState {
+    pub fn uninitialized() -> Self {
+        Self(Mutex::new(DownloaderStore::Uninitialized))
+    }
+}
 
 impl DownloaderStore {
     pub async fn new_local(

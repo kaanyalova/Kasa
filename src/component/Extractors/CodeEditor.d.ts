@@ -1,4 +1,4 @@
 type CodeEditorProps = {
-	extractorName: string;
+	extractorName: string | undefined;
 	fileExtension: string;
 };

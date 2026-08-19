@@ -9,11 +9,15 @@
 
 	let selectedExtractor = $state('');
 	let exampleMetadataJson = $state('');
+	let codeEditor: CodeEditor | undefined = $state(undefined);
+	let savedTextVisible = $state(false);
+	let savedTimeout: any | undefined = $state(undefined);
 
 	onMount(async () => {
-		document.addEventListener('keydown', (e) => {
+		document.addEventListener('keydown', async (e) => {
 			if (e.ctrlKey && e.key == 's') {
 				e.preventDefault();
+				await onSave();
 			}
 		});
 	});
@@ -24,6 +28,16 @@
 		await updateExampleMetadataForSelectedExtractor();
 	});
 
+	function showSavedMessage() {
+		savedTextVisible = true;
+		if (savedTimeout) {
+			clearTimeout(savedTimeout);
+		}
+		savedTimeout = setTimeout(() => {
+			savedTextVisible = false;
+		}, 1500);
+	}
+
 	async function getExistingExtractors(): Promise<Array<string>> {
 		return await commands.getExistingExtractorNames();
 	}
@@ -33,11 +47,25 @@
 		exampleMetadataJson = example;
 	}
 
-	function getFileName(path: string): string {
+	function getFileName(path: string): string | undefined {
+		if (path === '') {
+			return undefined;
+		}
+
 		const splitBySlashes = path.split('/');
 		const lastPart = splitBySlashes[splitBySlashes.length - 1];
 		const splitByDots = lastPart.split('.');
-		return splitByDots[0];
+		return splitByDots[0].trim();
+	}
+
+	async function onSave() {
+		const contents = codeEditor?.getCode();
+		let name = getFileName(selectedExtractor);
+		if (contents && name) {
+			await commands.setExtractorContents(name, 'py', contents);
+			await commands.reloadExtractors();
+		}
+		showSavedMessage();
 	}
 </script>
 
@@ -78,13 +106,21 @@
 		<Pane size={55}>
 			<div class="codeEditorSection">
 				<div class="codeEditorActions">
-					<button class="codeEditorActionButton">Save (Ctrl + S)</button>
-					<button class="codeEditorActionButton">Zoom In</button>
-					<button class="codeEditorActionButton">Zoom Out</button>
+					<button class="codeEditorActionButton" onclick={async () => onSave()}
+						>Save (Ctrl + S)</button
+					>
+					<button class="codeEditorActionButton">Zoom In (todo)</button>
+					<button class="codeEditorActionButton">Zoom Out (todo)</button>
+					<div class="savedMessageContainer">
+						<div class="savedMessage" class:savedMessageVisible={savedTextVisible}>Saved</div>
+					</div>
 				</div>
 
 				<div class="editorContainer">
-					<CodeEditor extractorName={getFileName(selectedExtractor)} fileExtension="py"
+					<CodeEditor
+						extractorName={getFileName(selectedExtractor)}
+						fileExtension="py"
+						bind:this={codeEditor}
 					></CodeEditor>
 				</div>
 			</div>
@@ -97,7 +133,7 @@
 			<div class="exampleMetadataWrapper">
 				<div class="exampleMetadataJson">
 					<div class="metadataTitle">
-						Example data for extractor <span class="extractorName"> {selectedExtractor}</span>
+						Example data for extractor <span class="extractorName">{selectedExtractor}</span>
 					</div>
 					{#await updateExampleMetadataForSelectedExtractor() then}
 						<div class="metadataViewerContainer">
@@ -282,5 +318,27 @@
 
 	.extractorButton:hover {
 		border: 1px solid var(--secondary);
+	}
+
+	.savedMessageContainer {
+		display: flex;
+		align-items: center;
+		flex-grow: 1;
+		justify-content: end;
+	}
+
+	.savedMessage {
+		align-self: center;
+		color: white;
+		border: 1px solid var(--secondary-alt);
+		padding: 1px;
+		transition:
+			opacity 300ms,
+			content-visibility 300ms allow-discrete;
+		opacity: 0;
+	}
+
+	.savedMessageVisible {
+		opacity: 1;
 	}
 </style>

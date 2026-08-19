@@ -9,11 +9,13 @@
 
 	let selectedExtractor = $state('');
 	let exampleMetadataJson = $state('');
+	let codeEditor: CodeEditor | undefined = $state(undefined);
 
 	onMount(async () => {
-		document.addEventListener('keydown', (e) => {
+		document.addEventListener('keydown', async (e) => {
 			if (e.ctrlKey && e.key == 's') {
 				e.preventDefault();
+				await onSave();
 			}
 		});
 	});
@@ -42,6 +44,14 @@
 		const lastPart = splitBySlashes[splitBySlashes.length - 1];
 		const splitByDots = lastPart.split('.');
 		return splitByDots[0];
+	}
+
+	async function onSave() {
+		const contents = codeEditor?.getCode();
+		let name = getFileName(selectedExtractor);
+		if (contents && name) {
+			await commands.setExtractorContents(name, 'py', contents);
+		}
 	}
 </script>
 
@@ -82,13 +92,18 @@
 		<Pane size={55}>
 			<div class="codeEditorSection">
 				<div class="codeEditorActions">
-					<button class="codeEditorActionButton">Save (Ctrl + S)</button>
+					<button class="codeEditorActionButton" onclick={async () => onSave()}
+						>Save (Ctrl + S)</button
+					>
 					<button class="codeEditorActionButton">Zoom In</button>
 					<button class="codeEditorActionButton">Zoom Out</button>
 				</div>
 
 				<div class="editorContainer">
-					<CodeEditor extractorName={getFileName(selectedExtractor)} fileExtension="py"
+					<CodeEditor
+						extractorName={getFileName(selectedExtractor)}
+						fileExtension="py "
+						bind:this={codeEditor}
 					></CodeEditor>
 				</div>
 			</div>

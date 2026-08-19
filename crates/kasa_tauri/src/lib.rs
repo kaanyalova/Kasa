@@ -16,6 +16,7 @@ use config::set_config_value_bool;
 use config::set_config_value_f64;
 use config::set_config_value_str;
 use config::set_db_path;
+use config::set_extractor_contents;
 use config::set_thumbs_db_path;
 use db::MediaCache;
 use db::connect_to_existing_local_db;
@@ -213,6 +214,7 @@ pub fn run() {
                 connect_to_new_local_db,
                 connect_to_existing_local_db,
                 connect_to_remote_db,
+                set_extractor_contents,
             ]
         })
         .events(collect_events![

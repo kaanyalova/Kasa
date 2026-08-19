@@ -207,6 +207,9 @@ async connectToExistingLocalDb(path: string) : Promise<void> {
 },
 async connectToRemoteDb(url: string) : Promise<void> {
     await TAURI_INVOKE("connect_to_remote_db", { url });
+},
+async setExtractorContents(name: string, fileExtension: string, contents: string) : Promise<void> {
+    await TAURI_INVOKE("set_extractor_contents", { name, fileExtension, contents });
 }
 }
 

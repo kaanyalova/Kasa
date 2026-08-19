@@ -64,3 +64,9 @@ pub async fn get_example_metadata_for_extractor_impl(
 
     Ok(example_metadata.unwrap_or(placeholder))
 }
+
+pub fn set_extractor_contents_impl(name: &str, contents: &str, file_extension: &str) -> Result<()> {
+    let path = create_or_get_path_for_extractor_impl(name, file_extension)?;
+    fs::write(path, contents)?;
+    Ok(())
+}

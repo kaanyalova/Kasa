@@ -25,6 +25,10 @@
 	});
 	*/
 
+	export function getCode(): string {
+		return editor.state.doc.toString();
+	}
+
 	async function initEditor() {
 		editor = new EditorView({
 			parent: editorContainer,

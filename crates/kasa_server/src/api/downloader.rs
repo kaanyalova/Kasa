@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::sync::broadcast::error::RecvError;
 use tokio::sync::{broadcast, mpsc};
+use tracing::log::warn;
 use tracing::{error, trace};
 use utoipa::IntoParams;
 
@@ -65,6 +66,7 @@ async fn handle_download_updates(
 
                             match serialize_result {
                                 Ok(t) => {
+                                    // println!("sending msg {:?} to {:?}", &event, &send_whom);
                                     trace!("sending msg {:?} to {:?}", &event, &send_whom);
                                     sender.send(Message::text(t)).await.unwrap();
                                 }
@@ -73,7 +75,7 @@ async fn handle_download_updates(
                                 }
                             }
                         }
-                        Err(RecvError::Lagged(_)) => continue,
+                        Err(RecvError::Lagged(l)) => {trace!("skipped {} ws messages because of lag", l)},
                         Err(RecvError::Closed) => break,
                     }
                 }

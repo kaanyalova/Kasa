@@ -31,6 +31,7 @@ use db::nuke_db_versioning;
 use db::query_tags;
 use downloaders::get_downloader_statuses;
 use downloaders::queue_download_job;
+use downloaders::reload_extractors;
 use file_picker::new_linux_file_picker_dialog_file_select;
 use file_picker::new_linux_file_picker_dialog_multiple_folder_select;
 use file_picker::new_linux_file_picker_dialog_save_file;
@@ -215,6 +216,7 @@ pub fn run() {
                 connect_to_existing_local_db,
                 connect_to_remote_db,
                 set_extractor_contents,
+                reload_extractors,
             ]
         })
         .events(collect_events![

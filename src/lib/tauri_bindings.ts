@@ -210,6 +210,9 @@ async connectToRemoteDb(url: string) : Promise<void> {
 },
 async setExtractorContents(name: string, fileExtension: string, contents: string) : Promise<void> {
     await TAURI_INVOKE("set_extractor_contents", { name, fileExtension, contents });
+},
+async reloadExtractors() : Promise<void> {
+    await TAURI_INVOKE("reload_extractors");
 }
 }
 

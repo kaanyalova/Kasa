@@ -6,6 +6,7 @@ pub mod scriptable;
 
 pub trait TagExtractor {
     fn extract_tags(&self, extractor: &str, json_input: &Value) -> Result<ExtractedTags>;
+    fn reload(&self) -> Result<()>;
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]

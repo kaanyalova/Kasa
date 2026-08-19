@@ -63,6 +63,7 @@
 		let name = getFileName(selectedExtractor);
 		if (contents && name) {
 			await commands.setExtractorContents(name, 'py', contents);
+			await commands.reloadExtractors();
 		}
 		showSavedMessage();
 	}

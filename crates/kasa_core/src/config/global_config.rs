@@ -1,5 +1,5 @@
 use std::{
-    env,
+    default, env,
     fs::{self, create_dir},
     path::{Path, PathBuf},
 };
@@ -51,7 +51,7 @@ pub struct Database {
     pub db_type: DatabaseType,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, Default)]
 
 pub enum DatabaseType {
     #[serde(rename = "local")]
@@ -59,20 +59,15 @@ pub enum DatabaseType {
     #[serde(rename = "remote")]
     Remote,
     #[serde(other)]
+    #[default]
     Unknown,
-}
-
-impl Default for DatabaseType {
-    fn default() -> Self {
-        DatabaseType::Local
-    }
 }
 
 impl Default for Database {
     fn default() -> Self {
         Self {
             db_path: "".to_string(),
-            db_type: DatabaseType::Local,
+            db_type: DatabaseType::default(),
         }
     }
 }

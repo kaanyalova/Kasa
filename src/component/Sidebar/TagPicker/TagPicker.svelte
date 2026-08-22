@@ -12,6 +12,7 @@
 	import { emit, listen } from '@tauri-apps/api/event';
 	import { SvelteMap } from 'svelte/reactivity';
 	import TagPresets from './TagPresets.svelte';
+	import { sidebarStore } from '../SidebarStore.svelte';
 
 	let tags: Array<TagWithCount> | undefined | null = $state();
 	let checkedTags: Map<string, TagPickerCheckboxState> = $state(new SvelteMap());
@@ -73,7 +74,16 @@
 	async function loadTags() {
 		tags = await commands.getListOfAllTagsWithDetails('TagCount');
 		trace('load tags');
+		console.log('loading tags');
 	}
+
+	$effect(async () => {
+		sidebarStore.isActive;
+
+		if (sidebarStore.isActive) {
+			await loadTags();
+		}
+	});
 
 	// Prepare the canvas for text width calculations
 	onMount(async () => {

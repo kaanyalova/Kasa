@@ -15,6 +15,7 @@
 	import { SearchStore } from '../Sidebar/Search/SearchStore.svelte';
 	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
 	import '../../fonts.css';
+	import { MediaModalStatusStore } from '../MediaModal/MediaModalStatusStore.svelte';
 
 	let values: Array<ImageRow> = $state([]);
 	let tauri_width = $state(0); // TODO this should be set to initial window size
@@ -80,6 +81,14 @@
 			console.log(`event is -> ${e} `);
 			await updateLayoutFromCache(e.payload.reload_virtual_list);
 			trace('cache_updated event received');
+		});
+
+		await events.openMediaModalEvent.listen((e) => {
+			MediaModalStatusStore.open(e.payload.hash);
+		});
+
+		await events.closeMediaModalEvent.listen((e) => {
+			MediaModalStatusStore.close();
 		});
 
 		const initial_size = await getCurrentWindow().innerSize();

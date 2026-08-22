@@ -13,5 +13,5 @@
 # The code here is not sandboxed, so don't paste random stuff
 # here.
 #
-def extract(input: dict) -> any:
+def extract(data: dict) -> any:
     pass

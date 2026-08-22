@@ -75,6 +75,10 @@
 	.codeEditor {
 		display: flex;
 		flex-grow: 1;
+	}
+
+	:global(.cm-editor .cm-content) {
 		font-family: 'UbuntuMono';
+		font-size: 18px;
 	}
 </style>

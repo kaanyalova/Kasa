@@ -8,7 +8,7 @@
 	import { emit } from '@tauri-apps/api/event';
 	import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
-	let { data, mediaUrl }: SidebarFooterProps = $props();
+	let { data, mediaUrlOrPath }: SidebarFooterProps = $props();
 
 	let showCopySuccessButton = $state(false);
 
@@ -38,7 +38,9 @@
 	}
 
 	async function onOpenExternallyButtonClicked() {
-		await commands.openWithSystemDefaultApp(mediaUrl);
+		if (mediaUrlOrPath) {
+			await commands.openWithSystemDefaultApp(mediaUrlOrPath);
+		}
 	}
 
 	async function onShowOnFileManagerButtonClicked() {

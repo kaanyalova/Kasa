@@ -1,3 +1,5 @@
+import type { MediaInfo } from "$lib/tauri_bindings";
+
 type MediaModalProps = {
 	imageHash: string;
 };

@@ -11,6 +11,8 @@
 	import { DividerSizes } from '../Shared/Dividers/DividerSizes';
 	import ImportInfo from './ImportInfo.svelte';
 	import VideoInfo from './VideoInfo.svelte';
+	import type { SidebarProps } from './MediaModal';
+	import { commands } from '$lib/tauri_bindings';
 
 	let { data, updateTagsTextBoxContents, mediaUrl }: SidebarProps = $props();
 
@@ -107,7 +109,10 @@
 		></TagDisplay>
 	</div>
 
-	<SidebarFooter {data} {mediaUrl}></SidebarFooter>
+	<SidebarFooter
+		{data}
+		mediaUrlOrPath={(await commands.isRemoteDb()) ? mediaUrl : data.pathThatExists}
+	></SidebarFooter>
 </div>
 
 <style>

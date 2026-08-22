@@ -19,6 +19,7 @@
 
 	import 'vidstack/player/styles/default/theme.css';
 	import 'vidstack/player/styles/default/layouts/video.css';
+	import type { MediaModalProps } from './MediaModal';
 
 	let { imageHash: mediaHash }: MediaModalProps = $props();
 

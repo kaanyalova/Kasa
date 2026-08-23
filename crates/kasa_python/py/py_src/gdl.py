@@ -37,7 +37,6 @@ def download(url: str, path: str, config_dir: str, on_progress=None) -> str:
     # wtf is point of having an array for categories of keys but using another key for the options
     # config.set(key_tuple[:-1], key_tuple[-1], option["value"])
     # print(f"loaded config option, val= {option['value']}")
-
     _job = KasaDownloadJob(url, on_progress=on_progress)
     jobs.append(_job)
 

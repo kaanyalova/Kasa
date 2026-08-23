@@ -1,46 +1,49 @@
 <script lang="ts">
-	// This should "technically work" but
-
-	import { invoke } from '@tauri-apps/api/core';
-	import { debug, error, info, trace } from '@tauri-apps/plugin-log';
-	import { onDestroy, onMount, tick } from 'svelte';
-	import VirtualList, { type VirtualListEvents } from 'svelte-tiny-virtual-list';
+	import { error, trace } from '@tauri-apps/plugin-log';
+	import { onDestroy, onMount, untrack } from 'svelte';
+	import VirtualList from 'svelte-tiny-virtual-list';
 	import { sidebarStore } from '../Sidebar/SidebarStore.svelte';
-	import { appWindow } from '../Decoration/utils/window';
-	import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
-	import { emit, listen, type UnlistenFn } from '@tauri-apps/api/event';
+	import { getCurrentWindow } from '@tauri-apps/api/window';
+	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 	import MediaThumbnail from './MediaThumbnail.svelte';
 	import DbFileMissing from '../Shared/DbProblemDialog.svelte';
-	import { commands, events, type GlobalConfig } from '$lib/tauri_bindings';
-	import { SearchStore } from '../Sidebar/Search/SearchStore.svelte';
+	import { commands, events } from '$lib/tauri_bindings';
 	import { InfiniteMediaStore } from './InfiniteMediaStore.svelte';
 	import '../../fonts.css';
 	import { MediaModalStatusStore } from '../MediaModal/MediaModalStatusStore.svelte';
+	import functionThrottle from '$lib/justThrottle';
 
 	let values: Array<ImageRow> = $state([]);
-	let tauri_width = $state(0); // TODO this should be set to initial window size
-	let tauri_height = $state(0);
+	let width = $state(0); // TODO this should be set to initial window size
+	let height = $state(0);
 	let isDatabaseOk = $state(true); // set the true so it doesnt flash if the db does exist
 	let reloadLayoutKey = $state(0);
 	let problemText = $state('');
-	let coolDown = $state(0);
-	let config: GlobalConfig | undefined = $state();
+
+	let previousWidth = $state(0);
+	let previousHeight = $state(0);
 
 	let virtualList: VirtualList | undefined = $state(undefined);
 
-	let window_size_unlisten: UnlistenFn;
+	let windowSizeUnlisten: UnlistenFn;
+	let sidebarResizeUnlisten: () => void | undefined;
 
-	// on cache update run updateLayout();
-
-	$effect(() => {
-		InfiniteMediaStore.showNames;
-		console.log('setshownames updated');
-		updateLayoutFromCache(false);
-	});
+	const throttledResize = functionThrottle(
+		() => {
+			onResize();
+		},
+		250,
+		{ leading: false, trailing: true }
+	);
 
 	onMount(async () => {
 		await InfiniteMediaStore.loadSettings();
-		config = await commands.getConfig();
+
+		// load the window sizes before the events are listened to not reload for an extra time when
+		// this gets set
+		const initial_size = await getCurrentWindow().innerSize();
+		height = initial_size.height;
+		width = initial_size.width;
 
 		events.databaseConnectionEvent.listen(async (e) => {
 			switch (e.payload.type) {
@@ -48,6 +51,7 @@
 				case 'LocalConnected':
 					isDatabaseOk = true;
 					await commands.searchAndReload();
+
 					break;
 				case 'Uninitialize':
 					isDatabaseOk = false;
@@ -91,24 +95,31 @@
 			MediaModalStatusStore.close();
 		});
 
-		const initial_size = await getCurrentWindow().innerSize();
-		tauri_height = initial_size.height;
-		tauri_width = initial_size.width;
+		windowSizeUnlisten = await getCurrentWindow().onResized(({ payload: size }) => {
+			previousHeight = height;
+			previousWidth = width;
 
-		window_size_unlisten = await getCurrentWindow().onResized(({ payload: size }) => {
-			tauri_height = size.height;
-			tauri_width = size.width;
+			// don't reload on same size window reloads (like minimizing the window etc.)
+			if (previousHeight !== size.height || previousWidth !== size.width) {
+				height = size.height;
+				width = size.width;
+				throttledResize();
+			}
+		});
+
+		sidebarResizeUnlisten = sidebarStore.subscribeForResizes(() => {
+			onResize();
 		});
 	});
 
 	onDestroy(() => {
 		trace('ondestroy called!');
-		window_size_unlisten();
+		windowSizeUnlisten();
+		sidebarResizeUnlisten();
 	});
 
 	async function onResize() {
-		//clearTimeout(coolDown);
-		coolDown = setTimeout(updateLayoutFromCache, 100);
+		updateLayoutFromCache(false);
 	}
 
 	function calculateRowHeight(height: number): number {
@@ -128,13 +139,13 @@
 	 * the received values.
 	 */
 	async function updateLayoutFromCache(reloadVirtualList: boolean) {
-		if (!InfiniteMediaStore.isLoaded || tauri_width <= 0) {
+		if (!InfiniteMediaStore.isLoaded || width <= 0) {
 			return;
 		}
 
 		values =
 			(await commands.getLayoutFromCache(
-				tauri_width - sidebarStore.size * 3 - 20,
+				width - sidebarStore.size * 3 - 20,
 				12,
 				InfiniteMediaStore.thumbnailScale!! // its better erroring out than reloading an whole new layout
 			)) ?? [];
@@ -149,17 +160,9 @@
 			reloadLayoutKey += 1;
 		}
 
-		trace(`calculating sizes w:${tauri_width}, h:${tauri_height}`);
-		console.log(`calculating sizes w:${tauri_width} h:${tauri_height}`);
+		trace(`calculating sizes w:${width}, h:${height}`);
+		console.log(`calculating sizes w:${width} h:${height}`);
 	}
-
-	$effect(async () => {
-		tauri_width;
-		tauri_height;
-		sidebarStore.isActive;
-
-		await onResize();
-	});
 </script>
 
 <div class="list">

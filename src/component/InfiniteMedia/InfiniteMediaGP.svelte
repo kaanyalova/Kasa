@@ -198,7 +198,7 @@
 			</VirtualList>
 		{/key}
 		<!--Avoid flashing the dialog for the config file load-->
-	{:else if InfiniteMediaStore.isLoaded}
+	{:else if InfiniteMediaStore.getIsLoaded()}
 		<DbFileMissing {problemText} />
 	{/if}
 </div>

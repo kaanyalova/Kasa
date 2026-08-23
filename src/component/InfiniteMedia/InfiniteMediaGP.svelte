@@ -27,6 +27,7 @@
 
 	let windowSizeUnlisten: UnlistenFn;
 	let sidebarResizeUnlisten: () => void | undefined;
+	let layoutChangeUnlisten: () => void | undefined;
 
 	const throttledResize = functionThrottle(
 		() => {
@@ -110,12 +111,17 @@
 		sidebarResizeUnlisten = sidebarStore.subscribeForResizes(() => {
 			onResize();
 		});
+
+		layoutChangeUnlisten = InfiniteMediaStore.subscribeForLayoutChanges(() => {
+			onResize();
+		});
 	});
 
 	onDestroy(() => {
 		trace('ondestroy called!');
 		windowSizeUnlisten();
-		sidebarResizeUnlisten();
+		sidebarResizeUnlisten?.();
+		layoutChangeUnlisten?.();
 	});
 
 	async function onResize() {
@@ -123,7 +129,7 @@
 	}
 
 	function calculateRowHeight(height: number): number {
-		if (InfiniteMediaStore.showNames) {
+		if (InfiniteMediaStore.getShowNames()) {
 			return height + 30;
 		} else {
 			return height;
@@ -139,7 +145,7 @@
 	 * the received values.
 	 */
 	async function updateLayoutFromCache(reloadVirtualList: boolean) {
-		if (!InfiniteMediaStore.isLoaded || width <= 0) {
+		if (!InfiniteMediaStore.getIsLoaded() || width <= 0) {
 			return;
 		}
 
@@ -147,7 +153,7 @@
 			(await commands.getLayoutFromCache(
 				width - sidebarStore.size * 3 - 20,
 				12,
-				InfiniteMediaStore.thumbnailScale!! // its better erroring out than reloading an whole new layout
+				InfiniteMediaStore.getThumbnailScale()!! // its better erroring out than reloading an whole new layout
 			)) ?? [];
 
 		if (values === null || values.length === 0) {
@@ -166,7 +172,7 @@
 </script>
 
 <div class="list">
-	{#if isDatabaseOk && InfiniteMediaStore.isLoaded}
+	{#if isDatabaseOk && InfiniteMediaStore.getIsLoaded()}
 		{#key reloadLayoutKey}
 			<VirtualList
 				bind:this={virtualList}

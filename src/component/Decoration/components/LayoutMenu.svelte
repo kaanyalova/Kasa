@@ -6,7 +6,7 @@
 	import { commands } from '$lib/tauri_bindings';
 
 	async function toggleShowFileNamesOption() {
-		InfiniteMediaStore.showNames = !InfiniteMediaStore.showNames;
+		InfiniteMediaStore.setShowNames(!InfiniteMediaStore.showNames);
 		await commands.setConfigValueBool('Layout', 'show_filenames', InfiniteMediaStore.showNames);
 	}
 
@@ -17,7 +17,7 @@
 		thumbnailScaleDisplay = scale;
 		clearTimeout(thumbnailScaleTimer);
 		thumbnailScaleTimer = setTimeout(async () => {
-			InfiniteMediaStore.thumbnailScale = scale;
+			InfiniteMediaStore.setThumbnailScale(scale);
 			commands.setConfigValueF64('Layout', 'thumbnail_scale', scale);
 		}, 200);
 	}

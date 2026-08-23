@@ -6,11 +6,15 @@
 	import { commands } from '$lib/tauri_bindings';
 
 	async function toggleShowFileNamesOption() {
-		InfiniteMediaStore.setShowNames(!InfiniteMediaStore.showNames);
-		await commands.setConfigValueBool('Layout', 'show_filenames', InfiniteMediaStore.showNames);
+		InfiniteMediaStore.setShowNames(!InfiniteMediaStore.getShowNames());
+		await commands.setConfigValueBool(
+			'Layout',
+			'show_filenames',
+			InfiniteMediaStore.getShowNames() ?? true
+		);
 	}
 
-	let thumbnailScaleDisplay = $state(InfiniteMediaStore.thumbnailScale);
+	let thumbnailScaleDisplay = $state(InfiniteMediaStore.getThumbnailScale());
 
 	let thumbnailScaleTimer: number = 0;
 	function onChangeThumbnailScale(scale: number) {
@@ -28,7 +32,7 @@
 		<li class="layoutMenuItem">
 			<Checkbox
 				onCheck={async () => await toggleShowFileNamesOption()}
-				state={InfiniteMediaStore.showNames ?? false}
+				state={InfiniteMediaStore.getShowNames() ?? false}
 			></Checkbox>
 			<button
 				class="layoutMenuItemDescription"
@@ -53,7 +57,7 @@
 							type="range"
 							min="0.5"
 							max="3"
-							step="0.2"
+							step="0.1"
 							bind:value={() => thumbnailScaleDisplay, (v) => onChangeThumbnailScale(v ?? 1.0)}
 						/>
 					</div>

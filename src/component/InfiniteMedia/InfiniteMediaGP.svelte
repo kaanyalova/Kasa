@@ -169,6 +169,13 @@
 		trace(`calculating sizes w:${width}, h:${height}`);
 		console.log(`calculating sizes w:${width} h:${height}`);
 	}
+
+	function estimateRowHeight(): number {
+		console.log('estimate row height');
+		const scale = InfiniteMediaStore.getThumbnailScale() ?? 1.5;
+		const rowHeight = 200 / scale + 12;
+		return calculateRowHeight(rowHeight);
+	}
 </script>
 
 <div class="list">
@@ -180,6 +187,7 @@
 				height="100%"
 				itemCount={values.length}
 				itemSize={getItemSize}
+				estimatedItemSize={estimateRowHeight()}
 			>
 				{#snippet item({ style, index })}
 					<div class="mediaRow" {style}>

@@ -61,9 +61,7 @@
 	<div
 		class="fakeImage"
 		style="transform:translate3d({offset_x}px,0px, 0px); height:{height}px; width:{width}px"
-	>
-		<div class="loader"></div>
-	</div>
+	></div>
 {:then thumbnail}
 	<img
 		class="thumbnail"
@@ -95,7 +93,7 @@
 	<!--
 	TODO figure a way of setting the padding and sizes dynamically
 	-->
-	{#if InfiniteMediaStore.showNames}
+	{#if InfiniteMediaStore.getShowNames()}
 		<div
 			class="nameInfoBox"
 			style="transform: translate3d({offset_x}px, {height}px, 0px); width: {width}px; height: 30px"
@@ -138,27 +136,6 @@
 		align-items: center;
 		justify-content: center;
 		position: absolute;
-	}
-
-	/* HTML: <div class="loader"></div> */
-	.loader {
-		width: 48px;
-		height: 48px;
-		border: 5px solid var(--text);
-		border-bottom-color: transparent;
-		border-radius: 50%;
-		display: inline-block;
-		box-sizing: border-box;
-		animation: rotation 1s linear infinite;
-	}
-
-	@keyframes rotation {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
-			transform: rotate(360deg);
-		}
 	}
 
 	.nameInfoBox {

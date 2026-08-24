@@ -46,7 +46,7 @@
 		height = initial_size.height;
 		width = initial_size.width;
 
-		events.databaseConnectionEvent.listen(async (e) => {
+		await events.databaseConnectionEvent.listen(async (e) => {
 			switch (e.payload.type) {
 				case 'RemoteConnected':
 				case 'LocalConnected':
@@ -68,9 +68,12 @@
 			}
 		});
 
-		// this has to come after the db event listener otherwise the first
-		// load will fail
-		await commands.connectToDbInConfig();
+		// never loads.
+		await events.cacheUpdatedEvent.listen(async (e) => {
+			console.log(`event is -> ${e} `);
+			await updateLayoutFromCache(e.payload.reload_virtual_list);
+			trace('cache_updated event received');
+		});
 
 		// drag and drop support
 		await listen('tauri://drag-drop', (event: any) => {
@@ -78,14 +81,8 @@
 			const paths: Array<string> = event.event.paths;
 
 			paths.forEach((path) => {
-				commands.addIndexSource;
+				commands.addIndexSource(path);
 			});
-		});
-
-		await events.cacheUpdatedEvent.listen(async (e) => {
-			console.log(`event is -> ${e} `);
-			await updateLayoutFromCache(e.payload.reload_virtual_list);
-			trace('cache_updated event received');
 		});
 
 		await events.openMediaModalEvent.listen((e) => {
@@ -95,6 +92,10 @@
 		await events.closeMediaModalEvent.listen((e) => {
 			MediaModalStatusStore.close();
 		});
+
+		// this has to come after the db & cache updated event listeners
+		// otherwise the first load will fail
+		await commands.connectToDbInConfig();
 
 		windowSizeUnlisten = await getCurrentWindow().onResized(({ payload: size }) => {
 			previousHeight = height;
@@ -149,16 +150,17 @@
 			return;
 		}
 
-		values =
-			(await commands.getLayoutFromCache(
-				width - sidebarStore.size * 3 - 20,
-				12,
-				InfiniteMediaStore.getThumbnailScale()!! // its better erroring out than reloading an whole new layout
-			)) ?? [];
+		const layout = await commands.getLayoutFromCache(
+			width - sidebarStore.size * 3 - 20,
+			12,
+			InfiniteMediaStore.getThumbnailScale()!! // its better erroring out than reloading an whole new layout
+		);
 
-		if (values === null || values.length === 0) {
+		if (layout === null) {
 			error('Could not get layout from the rust cache');
 		}
+
+		values = layout ?? [];
 
 		virtualList?.recomputeSizes(0);
 

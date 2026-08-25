@@ -72,6 +72,7 @@
 		role="figure"
 		class:selected={isSelected}
 		decoding="async"
+		loading="lazy"
 	/>
 
 	{#if mediaType === 'Video'}

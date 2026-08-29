@@ -70,9 +70,7 @@
 
 		// never loads.
 		await events.cacheUpdatedEvent.listen(async (e) => {
-			console.log(`event is -> ${e} `);
 			await updateLayoutFromCache(e.payload.reload_virtual_list);
-			trace('cache_updated event received');
 		});
 
 		await events.openMediaModalEvent.listen((e) => {
@@ -136,6 +134,8 @@
 	 * the received values.
 	 */
 	async function updateLayoutFromCache(reloadVirtualList: boolean) {
+		const startTime = performance.now();
+
 		if (!InfiniteMediaStore.getIsLoaded() || width <= 0) {
 			return;
 		}
@@ -158,14 +158,17 @@
 			reloadLayoutKey += 1;
 		}
 
-		trace(`calculating sizes w:${width}, h:${height}`);
-		console.log(`calculating sizes w:${width} h:${height}`);
+		const endTime = performance.now();
+		console.log(
+			`calculating layout where width: ${width}px, height: ${height}px, which took ${Math.round(endTime - startTime)}ms`
+		);
 	}
 
 	function estimateRowHeight(): number {
-		console.log('estimate row height');
 		const scale = InfiniteMediaStore.getThumbnailScale() ?? 1.5;
 		const rowHeight = 200 / scale + 12;
+		console.log(`estimated row height at ${Math.round(rowHeight)}px`);
+
 		return calculateRowHeight(rowHeight);
 	}
 </script>

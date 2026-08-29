@@ -75,16 +75,6 @@
 			trace('cache_updated event received');
 		});
 
-		// drag and drop support
-		await listen('tauri://drag-drop', (event: any) => {
-			// what is the type for the drag and drop event?
-			const paths: Array<string> = event.event.paths;
-
-			paths.forEach((path) => {
-				commands.addIndexSource(path);
-			});
-		});
-
 		await events.openMediaModalEvent.listen((e) => {
 			MediaModalStatusStore.open(e.payload.hash);
 		});

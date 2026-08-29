@@ -55,6 +55,7 @@ use media::get_swf_resolution;
 use media::get_tags;
 use media::get_tags_grouped_by_source_categories;
 use media::get_top_n_closest_for_media;
+use media::get_valid_path;
 use media::get_video_length;
 use media::set_media_favorite;
 use media_server::MediaServerStore;
@@ -217,6 +218,7 @@ pub fn run() {
                 connect_to_remote_db,
                 set_extractor_contents,
                 reload_extractors,
+                get_valid_path,
             ]
         })
         .events(collect_events![
@@ -257,6 +259,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_drag::init())
         .invoke_handler(builder.invoke_handler())
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())

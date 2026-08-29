@@ -14,6 +14,7 @@
 		clickOutsideTagName
 	} from '$lib/clickOutside';
 	import { formatDurationShort } from '$lib/formatDuration';
+	import { startDrag } from '@crabnebula/tauri-plugin-drag';
 
 	let { hash, width, height, offset_x, offset_y }: ImageProps = $props();
 
@@ -52,6 +53,23 @@
 	async function getMediaName(): Promise<string> {
 		return commands.getMediaName(hash);
 	}
+
+	async function onDrag(e: DragEvent) {
+		e.preventDefault();
+		const icon = await getThumbnail(hash);
+		console.log(`dragging an image with the hash ${hash}`);
+
+		await startDrag(
+			{
+				item: [await commands.getValidPath(hash)],
+				icon: icon,
+				mode: 'copy'
+			},
+			(e) => {
+				console.log(e);
+			}
+		);
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -72,6 +90,7 @@
 		role="figure"
 		class:selected={isSelected}
 		decoding="async"
+		ondragstart={async (e) => await onDrag(e)}
 	/>
 
 	{#if mediaType === 'Video'}

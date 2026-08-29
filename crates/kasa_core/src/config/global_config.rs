@@ -28,7 +28,8 @@ thumbs_db_path = "./thumbs.kasa"
 # The max resolution for thumbnails, [width, height]
 resolution = [256, 256]
 
-# The file format for thumbnails
+# The file format for thumbnails 
+# it can be one of "png", "jpeg", "webp_lossy", "webp_lossless"
 thumbnail_format = "png"
 
 

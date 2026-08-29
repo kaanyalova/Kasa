@@ -11,7 +11,8 @@ use kasa_core::{
     media::{
         MediaInfo, SourceCategoryGroupedTags, TagWithDetails, get_info_impl, get_media_name_impl,
         get_media_sources_impl, get_media_type_impl, get_tags_detailed_impl,
-        get_tags_grouped_by_source_categories_impl, get_video_length_impl, set_media_favorite_impl,
+        get_tags_grouped_by_source_categories_impl, get_valid_path_impl, get_video_length_impl,
+        set_media_favorite_impl,
     },
 };
 use serde::Deserialize;
@@ -225,4 +226,27 @@ pub async fn get_top_n_closest_for_media(
         .unwrap();
 
     (StatusCode::OK, Json(distances))
+}
+
+#[derive(Deserialize, IntoParams)]
+
+pub struct GetValidPathParams {
+    hash: String,
+}
+
+#[utoipa::path(
+    get,
+    path = "/get_valid_path",
+    params(GetValidPathParams),
+    responses(
+        (status = 200, description = "Query Successful", body = String),
+    ),
+)]
+pub async fn get_valid_path(
+    State(dbs): State<Databases>,
+    Query(params): Query<GetValidPathParams>,
+) -> (StatusCode, String) {
+    let path = get_valid_path_impl(&params.hash, &dbs.db).await;
+
+    (StatusCode::OK, path)
 }

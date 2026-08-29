@@ -11,7 +11,8 @@ use kasa_core::groups::get_group_info_impl;
 use kasa_core::media::{
     MediaInfo, SourceCategoryGroupedTags, TagWithDetails, get_info_impl, get_media_name_impl,
     get_media_sources_impl, get_media_type_impl, get_tags_detailed_impl,
-    get_tags_grouped_by_source_categories_impl, get_video_length_impl, set_media_favorite_impl,
+    get_tags_grouped_by_source_categories_impl, get_valid_path_impl, get_video_length_impl,
+    set_media_favorite_impl,
 };
 use kasa_core::thumbnail::thumbnail_flash::get_flash_resolution_impl;
 use log::error;
@@ -33,6 +34,25 @@ pub async fn get_info(handle: AppHandle, hash: String) -> Option<MediaInfo> {
         }
 
         DbStore::Remote(remote_store) => remote_store.client.get_info(&hash).await.unwrap(),
+        _ => panic!("db not initialized"),
+    }
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn get_valid_path(handle: AppHandle, hash: String) -> String {
+    let db_store = handle.state::<DatabaseState>().clone_store().await;
+
+    match db_store {
+        DbStore::Local(db_store) => {
+            if let Some(pool) = db_store.db.as_ref() {
+                get_valid_path_impl(&hash, pool).await
+            } else {
+                "".to_string()
+            }
+        }
+
+        DbStore::Remote(remote_store) => remote_store.client.get_valid_path(&hash).await.unwrap(),
         _ => panic!("db not initialized"),
     }
 }

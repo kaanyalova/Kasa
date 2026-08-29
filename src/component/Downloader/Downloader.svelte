@@ -73,7 +73,7 @@
 
 			<div class="versions">
 				<span class="code">gallery_dl</span> version <span class="code"> 1.32.9</span>
-				<span class="code">rustpython</span> version <span class="code"> 365434b </span>
+				<span class="code">rustpython</span> version <span class="code"> 65bf2f3 </span>
 			</div>
 		</div>
 	</div>

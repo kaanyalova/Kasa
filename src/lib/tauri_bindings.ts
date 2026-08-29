@@ -213,6 +213,9 @@ async setExtractorContents(name: string, fileExtension: string, contents: string
 },
 async reloadExtractors() : Promise<void> {
     await TAURI_INVOKE("reload_extractors");
+},
+async getValidPath(hash: string) : Promise<string> {
+    return await TAURI_INVOKE("get_valid_path", { hash });
 }
 }
 

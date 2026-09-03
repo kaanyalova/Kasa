@@ -198,6 +198,17 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
     }
 }
 
+pub async fn get_valid_path_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
+    let paths: Vec<String> = query_scalar("SELECT path FROM Path WHERE hash = ?")
+        .bind(hash)
+        .fetch_all(pool)
+        .await
+        .unwrap();
+
+    let path_that_exists = paths.iter().find(|p| Path::new(p).exists()).cloned();
+    path_that_exists.unwrap_or("".to_string())
+}
+
 /// Gets the tags of a media grouped by their source categories
 pub async fn group_tags_by_source_category(tags: &[TagWithDetails]) -> SourceCategoryGroupedTags {
     let mut tags_without_source_categories = vec![];

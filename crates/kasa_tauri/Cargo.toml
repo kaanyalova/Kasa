@@ -63,6 +63,7 @@ serde_urlencoded = "0.7.1"
 tokio-tungstenite = "0.30.0"
 futures-util = "0.3.33"
 tokio-util = "0.7.19"
+tauri-plugin-drag = {git = "https://github.com/kaanyalova/drag-rs"}
 
 
 [features]

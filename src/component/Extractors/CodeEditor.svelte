@@ -33,7 +33,7 @@
 	async function initEditor() {
 		editor = new EditorView({
 			parent: editorContainer,
-			doc: 'Hello',
+			doc: '',
 			extensions: [basicSetup, python(), vscodeDark, keymap.of([indentWithTab])]
 		});
 

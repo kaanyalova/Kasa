@@ -1,6 +1,6 @@
 use anyhow::Result;
 use sqlx::{Pool, Sqlite, query_scalar};
-use std::{fs, path::PathBuf};
+use std::{fs, io::Write, path::PathBuf};
 
 use crate::config::global_config::get_tag_extractors_dir;
 
@@ -14,7 +14,8 @@ pub fn create_or_get_path_for_extractor_impl(
     let extractor_path = extractors_dir.join(format!("{}.{}", extractor_name, file_extension));
 
     if !extractor_path.exists() {
-        fs::File::create_new(&extractor_path)?;
+        let mut f = fs::File::create_new(&extractor_path)?;
+        f.write_all(DEFAULT_PYTHON_EXTRACTOR.as_bytes())?;
     }
 
     Ok(extractor_path)
@@ -25,9 +26,7 @@ pub fn create_or_get_extractor_contents_impl(
     file_extension: &str,
 ) -> Result<String> {
     let path = create_or_get_path_for_extractor_impl(extractor_name, file_extension)?;
-    if !path.exists() {
-        std::fs::write(&path, DEFAULT_PYTHON_EXTRACTOR)?;
-    }
+
     Ok(fs::read_to_string(&path)?)
 }
 

@@ -72,9 +72,10 @@
 	);
 
 	async function loadTags() {
+		const startTime = performance.now();
 		tags = await commands.getListOfAllTagsWithDetails('TagCount');
-		trace('load tags');
-		console.log('loading tags');
+		const endTime = performance.now();
+		console.log(`loaded ${tags?.length} tags which tool ${Math.round(endTime - startTime)}ms`);
 	}
 
 	$effect(async () => {

@@ -270,6 +270,19 @@ impl RemoteClient {
         Ok(response)
     }
 
+    pub async fn get_valid_path(&self, hash: &str) -> Result<String> {
+        let url = format!("{}/get_valid_path", self.base_url);
+        let response: String = self
+            .reqwest_client
+            .get(&url)
+            .query(&[("hash", hash)])
+            .send()
+            .await?
+            .text()
+            .await?;
+        Ok(response)
+    }
+
     pub fn url(&self) -> String {
         self.base_url.clone()
     }

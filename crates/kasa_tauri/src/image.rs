@@ -24,7 +24,7 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                 let image = generate_or_get_thumbnail_from_db_impl(&hash, pool, pool_thumbs).await;
 
                 return Some(format!(
-                    r#"data:{};base64, {}"#,
+                    r#"data:{};base64,{}"#,
                     image.format.to_mime(),
                     BASE64_STANDARD.encode(image.bytes)
                 ));
@@ -38,7 +38,7 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                     && thumbnail.is_valid()
                 {
                     return Some(format!(
-                        r#"data:{};base64, {}"#,
+                        r#"data:{};base64,{}"#,
                         thumbnail.format.to_mime(),
                         BASE64_STANDARD.encode(thumbnail.bytes)
                     ));
@@ -75,7 +75,7 @@ pub async fn get_thumbnail_from_db(hash: String, handle: AppHandle) -> Option<St
                     .await;
 
                     return Some(format!(
-                        r#"data:{};base64, {}"#,
+                        r#"data:{};base64,{}"#,
                         format_.to_mime(),
                         BASE64_STANDARD.encode(bytes)
                     ));

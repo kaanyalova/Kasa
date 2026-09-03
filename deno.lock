@@ -6,6 +6,7 @@
     "npm:@codemirror/commands@^6.10.4": "6.10.4",
     "npm:@codemirror/lang-python@^6.2.1": "6.2.1",
     "npm:@codemirror/view@^6.43.8": "6.43.8",
+    "npm:@crabnebula/tauri-plugin-drag@^2.1.0": "2.1.0",
     "npm:@iconify-json/material-symbols@^1.2.88": "1.2.88",
     "npm:@iconify/tailwind4@^1.2.3": "1.2.3_tailwindcss@4.3.3",
     "npm:@sveltejs/adapter-auto@^7.0.1": "7.0.1_@sveltejs+kit@2.70.2__@sveltejs+vite-plugin-svelte@7.3.0___svelte@5.56.9___vite@8.2.1____sass@1.102.0__svelte@5.56.9__typescript@7.0.2__vite@8.2.1___sass@1.102.0_@sveltejs+vite-plugin-svelte@7.3.0__svelte@5.56.9__vite@8.2.1___sass@1.102.0_svelte@5.56.9_typescript@7.0.2",
@@ -133,6 +134,12 @@
         "crelt",
         "style-mod",
         "w3c-keyname"
+      ]
+    },
+    "@crabnebula/tauri-plugin-drag@2.1.0": {
+      "integrity": "sha512-LnUXAZwQt1cdMoGDLJ6ogW9wFCYServCZXlGadS7CA+CZ9eXS7L+Q7QyQW6g/zGw9YI2MwKFqf1aSNBGyWw+OA==",
+      "dependencies": [
+        "@tauri-apps/api"
       ]
     },
     "@cyberalien/svg-utils@1.2.15": {
@@ -2029,6 +2036,7 @@
         "npm:@codemirror/commands@^6.10.4",
         "npm:@codemirror/lang-python@^6.2.1",
         "npm:@codemirror/view@^6.43.8",
+        "npm:@crabnebula/tauri-plugin-drag@^2.1.0",
         "npm:@iconify-json/material-symbols@^1.2.88",
         "npm:@iconify/tailwind4@^1.2.3",
         "npm:@sveltejs/adapter-auto@^7.0.1",

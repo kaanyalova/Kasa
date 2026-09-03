@@ -26,6 +26,7 @@ use crate::api::media::__path_get_media_type;
 use crate::api::media::__path_get_tags;
 use crate::api::media::__path_get_tags_grouped_by_source_categories;
 use crate::api::media::__path_get_top_n_closest_for_media;
+use crate::api::media::__path_get_valid_path;
 use crate::api::media::__path_get_video_length;
 use crate::api::media::__path_set_media_favorite;
 use crate::api::media::get_info;
@@ -35,6 +36,7 @@ use crate::api::media::get_media_type;
 use crate::api::media::get_tags;
 use crate::api::media::get_tags_grouped_by_source_categories;
 use crate::api::media::get_top_n_closest_for_media;
+use crate::api::media::get_valid_path;
 use crate::api::media::get_video_length;
 use crate::api::media::set_media_favorite;
 use crate::api::media_server::__path_serve_media;
@@ -102,6 +104,7 @@ fn create_router(dbs: Databases, downloader_state: DownloaderState) -> OpenApiRo
         .routes(routes!(get_list_of_all_tags_with_details))
         .routes(routes!(listen_for_download_updates))
         .routes(routes!(push_download))
+        .routes(routes!(get_valid_path))
         .with_state(AppState {
             dbs,
             downloader_state,

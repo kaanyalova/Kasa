@@ -99,6 +99,7 @@
 		class:selected={isSelected}
 		decoding="async"
 		ondragstart={async (e) => await onDrag(e)}
+		loading="lazy"
 	/>
 
 	{#if mediaType === 'Video'}

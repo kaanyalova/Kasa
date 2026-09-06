@@ -57,11 +57,19 @@
 	async function onDrag(e: DragEvent) {
 		e.preventDefault();
 		const icon = await getThumbnail(hash);
-		console.log(`dragging an image with the hash ${hash}`);
+		let path;
+
+		if (await commands.isRemoteDb()) {
+			path = `${await commands.getRemoteServerUrl()}/media?hash=${hash}`;
+		} else {
+			path = await commands.getValidPath(hash);
+		}
+
+		console.log(`dragging an image with the hash ${hash} and path ${path}`);
 
 		await startDrag(
 			{
-				item: [await commands.getValidPath(hash)],
+				item: [path],
 				icon: icon,
 				mode: 'copy'
 			},

@@ -1,0 +1,23 @@
+[package]
+name = "kasa_client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+kasa_core = {path = "../kasa_core"}
+kasa_python = { workspace = true }
+anyhow.workspace = true
+async-trait = "0.1"
+sqlx = { workspace = true, features = ["sqlite"] }
+tokio = { workspace = true, features = ["sync", "time", "rt", "macros"] }
+serde = { workspace = true, features = ["derive"] }
+specta.workspace = true
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+reqwest = { workspace = true, features = ["brotli", "json"] }
+serde_json = { workspace = true }
+log = { workspace = true }
+image.workspace = true
+futures-util = "0.3.33"
+tokio-tungstenite = "0.30.0"
+tokio-util = "0.7.19"
+thiserror.workspace = true

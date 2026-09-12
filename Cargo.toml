@@ -14,7 +14,8 @@ members = [
     "crates/kasa_bench",
     "crates/kasa_python",
     "crates/kasa_ai",
-    "crates/kasa_server",
+    "crates/kasa_server", 
+    "crates/kasa_client",
     #"kasa_gpui",
 
 

@@ -5022,6 +5022,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "kasa_client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures-util",
+ "image",
+ "kasa_core",
+ "kasa_python",
+ "log",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "specta",
+ "sqlx",
+ "tauri-specta",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-tungstenite 0.30.0",
+ "tokio-util",
+]
+
+[[package]]
 name = "kasa_core"
 version = "0.1.0"
 dependencies = [

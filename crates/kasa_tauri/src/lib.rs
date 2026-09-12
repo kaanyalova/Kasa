@@ -261,9 +261,11 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_drag::init())
         .invoke_handler(builder.invoke_handler())
+        // tauri specific state
         .manage(MediaCache::default())
         .manage(MediaServerStore::default())
         .manage(SearchState::default())
+        // state relevant to everywhere
         .manage(DownloaderState::uninitialized())
         .manage(DatabaseState::wait_for_frontend())
         .setup(move |app| {

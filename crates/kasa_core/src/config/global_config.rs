@@ -45,14 +45,14 @@ show_filenames = false
 thumbnail_scale = 1.5
 "#;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 
 pub struct Database {
     pub db_path: String,
     pub db_type: DatabaseType,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, Default, uniffi::Enum)]
 
 pub enum DatabaseType {
     #[serde(rename = "local")]
@@ -73,15 +73,17 @@ impl Default for Database {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 
 pub struct Thumbs {
-    pub resolution: [u32; 2],
+    pub resolution: Vec<u32>,
     pub thumbnail_format: ThumbnailFormat,
     pub thumbs_db_path: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone)]
+#[derive(
+    Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone, uniffi::Record,
+)]
 pub struct Downloader {
     pub output_path: String,
     // The plan was to have gallery-dl config options inside the config.toml
@@ -95,14 +97,14 @@ pub struct Downloader {
 impl Default for Thumbs {
     fn default() -> Self {
         Self {
-            resolution: [256, 256],
+            resolution: vec![256, 256],
             thumbnail_format: ThumbnailFormat::Png,
             thumbs_db_path: "./thumbs.kasa".to_string(),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 pub struct Layout {
     show_filenames: bool,
     thumbnail_scale: f32,
@@ -117,7 +119,9 @@ impl Default for Layout {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, Clone, specta::Type)]
+#[derive(
+    Serialize, Deserialize, Debug, Default, PartialEq, Clone, specta::Type, uniffi::Record,
+)]
 pub struct GlobalConfig {
     #[serde(rename = "Database")]
     pub db: Database,

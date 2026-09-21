@@ -14,9 +14,9 @@ use crate::{
         downloader::DownloaderStore,
         local::{database::LocalDb, downloader::LocalDownloader},
     },
-    errors::ClientError,
+    errors::{ClientError, ClientResult as Result},
 };
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use async_trait::async_trait;
 use kasa_core::{
     config::global_config::GlobalConfig,
@@ -46,7 +46,7 @@ use sqlx::{
 };
 use tokio::sync::{Mutex as AsyncMutex, mpsc};
 
-struct LocalKasaClient {
+pub struct LocalKasaClient {
     pub database: Mutex<DbStore<LocalDb>>,
     pub downloader: AsyncMutex<DownloaderStore<LocalDownloader>>,
     pub on_event: Option<EventCallback>,
@@ -123,7 +123,7 @@ impl LocalKasaClient {
             return Ok(db.clone());
         }
 
-        Err(ClientError::InvalidDb.into())
+        Err(ClientError::InvalidDb)
     }
 
     async fn connect_to_db(path: &str) -> Result<Pool<Sqlite>> {
@@ -141,6 +141,10 @@ impl LocalKasaClient {
 
         Ok(pool_db)
     }
+
+    fn set_event_handler(&mut self, callback: EventCallback) {
+        self.on_event = Some(callback);
+    }
 }
 
 #[async_trait]
@@ -149,10 +153,6 @@ impl KasaClient for LocalKasaClient {
         if let Some(on_event) = &self.on_event {
             on_event(event);
         }
-    }
-
-    fn set_event_handler(&mut self, callback: EventCallback) {
-        self.on_event = Some(callback);
     }
 
     async fn get_info(&self, hash: &str) -> Result<Option<MediaInfo>> {

@@ -36,6 +36,6 @@ libc = "0.2"
 
 [build-dependencies]
 flate2 = { workspace = true }
-reqwest = { workspace = true, features = ["blocking", "rustls-tls"] }
+reqwest = { workspace = true}
 tar = { workspace = true }
 diffy = { workspace = true }

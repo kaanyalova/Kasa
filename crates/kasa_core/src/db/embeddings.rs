@@ -60,7 +60,7 @@ pub async fn insert_embeddings(pool: &Pool<Sqlite>, results: Vec<EmbeddingResult
     Ok(())
 }
 
-#[derive(Debug, FromRow, specta::Type, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, FromRow, specta::Type, Serialize, Deserialize, ToSchema, uniffi::Record)]
 pub struct EmbeddingDistance {
     pub hash: String,
     pub distance: f32,

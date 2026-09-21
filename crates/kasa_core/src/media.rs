@@ -299,7 +299,7 @@ pub async fn get_video_length_impl(hash: &str, pool: &Pool<Sqlite>) -> Option<f6
     result.map(|(len,)| len)
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
     pub meta: Vec<MetaEntry>,
@@ -318,7 +318,7 @@ pub struct MediaInfo {
     pub path_that_exists: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
 #[serde(rename_all = "camelCase")]
 pub struct MetaEntry {
     pub name: String,
@@ -327,20 +327,22 @@ pub struct MetaEntry {
     pub is_one_line: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportInfo {
     pub import_source: String,
     pub import_link: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, specta::Type, Clone, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, specta::Type, Clone, ToSchema, uniffi::Record)]
 pub struct SourceCategoryGroupedTags {
     tags_with_source_categories: HashMap<String, Vec<TagWithDetails>>,
     tags_without_source_categories: Vec<TagWithDetails>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, sqlx::FromRow, specta::Type, ToSchema)]
+#[derive(
+    Clone, Debug, Serialize, Deserialize, sqlx::FromRow, specta::Type, ToSchema, uniffi::Record,
+)]
 pub struct TagWithDetails {
     #[sqlx(flatten)]
     hash_tag_pair: HashTagPair,

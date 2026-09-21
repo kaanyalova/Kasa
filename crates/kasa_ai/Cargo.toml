@@ -4,17 +4,23 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ort = { version = "2.0.0-rc.11", features = [
+ort = { version = "2.0.0-rc.13", features = [
     "cuda",
     "rocm",
     "load-dynamic",
-] } # should we build it from source?
+    "tls-rustls",
+    "std",
+    "ndarray",
+    "tracing",
+    "copy-dylibs",
+    "api-28"
+], default-features = false } # should we build it from source?
 ndarray = "0.17.2"
 csv = { version = "1.3.1" }
 image = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 anyhow.workspace = true
-fastembed = {version = "5.13.0"}
+fastembed = {version = "5.13.0", default-features = false, features = ["image-models", "ort-download-binaries-rustls-tls", "hf-hub-rustls-tls"]}
 candle-core = {version = "0.9.1", optional = true}
 
 [features]

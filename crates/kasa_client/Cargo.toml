@@ -21,3 +21,8 @@ futures-util = "0.3.33"
 tokio-tungstenite = "0.30.0"
 tokio-util = "0.7.19"
 thiserror.workspace = true
+uniffi = {workspace = true}
+
+[lib]
+crate-type = ["cdylib"]
+name = "kasa_client" 

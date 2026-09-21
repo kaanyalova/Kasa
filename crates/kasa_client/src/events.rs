@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, uniffi::Enum)]
 pub enum KasaEvent {
     DownloaderProgressUpdated(DownloaderProgressUpdatedEvent),
     TagsUpdated(TagsUpdatedEvent),
@@ -9,31 +9,42 @@ pub enum KasaEvent {
     CloseMediaModal(CloseMediaModalEvent),
     DatabaseConnection(DatabaseConnectionEvent),
 }
-
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(
+    uniffi::Record, Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event,
+)]
 pub struct DownloaderProgressUpdatedEvent {}
 
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(
+    uniffi::Record, Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event,
+)]
 pub struct TagsUpdatedEvent {}
 
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(
+    uniffi::Record, Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event,
+)]
 pub struct CacheUpdatedEvent {
     pub reload_virtual_list: bool,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(
+    uniffi::Record, Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event,
+)]
 pub struct MediaServerDownEvent {}
 
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(
+    uniffi::Record, Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event,
+)]
 
 pub struct OpenMediaModalEvent {
     pub hash: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(
+    uniffi::Record, Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event,
+)]
 pub struct CloseMediaModalEvent {}
 
-#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+#[derive(Clone, Debug, Serialize, Deserialize, specta::Type, tauri_specta::Event, uniffi::Enum)]
 #[serde(tag = "type", content = "data")]
 pub enum DatabaseConnectionEvent {
     RemoteConnected,

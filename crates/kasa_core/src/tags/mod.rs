@@ -265,7 +265,7 @@ pub async fn get_tags_as_text_impl(hash: &str, pool: &Pool<Sqlite>) -> String {
     tags.iter().join(", ")
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow, specta::Type, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, FromRow, specta::Type, ToSchema, uniffi::Record)]
 pub struct TagWithCount {
     pub tag_name: String,
     pub count: u32,
@@ -273,7 +273,7 @@ pub struct TagWithCount {
     pub details: TagDetail,
 }
 
-#[derive(Debug, specta::Type, Deserialize, Serialize, ToSchema, Display)]
+#[derive(Debug, specta::Type, Deserialize, Serialize, ToSchema, Display, uniffi::Enum)]
 pub enum AllTagsOrderingCriteria {
     Alphabetic,
     AlphabeticReverse,

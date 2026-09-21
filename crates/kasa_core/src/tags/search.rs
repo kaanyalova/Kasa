@@ -37,13 +37,33 @@ pub fn parse() {
 /// Placeholder search until I implement proper search parsing
 /// Only supports searching for Media that have the tags
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, IntoParams)]
+#[derive(
+    Debug,
+    PartialEq,
+    Default,
+    specta::Type,
+    Serialize,
+    Deserialize,
+    ToSchema,
+    IntoParams,
+    uniffi::Record,
+)]
 pub struct DateRange {
     start: u64,
     end: u64,
 }
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, IntoParams)]
+#[derive(
+    Debug,
+    PartialEq,
+    Default,
+    specta::Type,
+    Serialize,
+    Deserialize,
+    ToSchema,
+    IntoParams,
+    uniffi::Record,
+)]
 pub struct SearchCriteria {
     contains_tags: Vec<String>,
     contains_tags_or_group: Vec<Vec<String>>,
@@ -54,7 +74,9 @@ pub struct SearchCriteria {
     favorites_only: bool,
 }
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, Display, ToSchema)]
+#[derive(
+    Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, Display, ToSchema, uniffi::Enum,
+)]
 enum DateOrderCriteria {
     #[default]
     NewestFirst,
@@ -62,7 +84,9 @@ enum DateOrderCriteria {
     None,
 }
 
-#[derive(Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema)]
+#[derive(
+    Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, uniffi::Enum,
+)]
 enum ResolutionOrderCriteria {
     #[default]
     None,

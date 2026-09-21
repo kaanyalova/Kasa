@@ -10,10 +10,9 @@ use crate::{
         downloader::DownloaderStore,
         remote::{database::RemoteDb, downloader::RemoteDownloader, rest_client::RemoteClient},
     },
-    errors::ClientError,
+    errors::{ClientError, ClientResult as Result},
     events::{CacheUpdatedEvent, KasaEvent, TagsUpdatedEvent},
 };
-use anyhow::Result;
 use async_trait::async_trait;
 use kasa_core::{
     config::global_config::GlobalConfig,
@@ -42,7 +41,7 @@ use sqlx::{
 };
 use tokio::sync::{Mutex as AsyncMutex, mpsc};
 
-struct RemoteKasaClient {
+pub struct RemoteKasaClient {
     pub database: Mutex<DbStore<RemoteDb>>,
     pub downloader: AsyncMutex<DownloaderStore<RemoteDownloader>>,
     pub on_event: Option<EventCallback>,
@@ -111,7 +110,7 @@ impl RemoteKasaClient {
             return Ok(db.clone());
         }
 
-        Err(ClientError::InvalidDb.into())
+        Err(ClientError::InvalidDb)
     }
 
     async fn connect_to_db(path: &str) -> Result<Pool<Sqlite>> {
@@ -129,6 +128,10 @@ impl RemoteKasaClient {
 
         Ok(pool_db)
     }
+
+    fn set_event_handler(&mut self, callback: EventCallback) {
+        self.on_event = Some(callback);
+    }
 }
 
 #[async_trait]
@@ -139,18 +142,14 @@ impl KasaClient for RemoteKasaClient {
         }
     }
 
-    fn set_event_handler(&mut self, callback: EventCallback) {
-        self.on_event = Some(callback);
-    }
-
     async fn get_info(&self, hash: &str) -> Result<Option<MediaInfo>> {
         let db = self.get_dbs()?;
-        db.client.get_info(hash).await
+        Ok(db.client.get_info(hash).await?)
     }
 
     async fn get_tags(&self, hash: &str) -> Result<Vec<TagWithDetails>> {
         let db = self.get_dbs()?;
-        db.client.get_tags(hash).await
+        Ok(db.client.get_tags(hash).await?)
     }
 
     async fn get_media_type(&self, hash: &str) -> Result<String> {
@@ -162,7 +161,9 @@ impl KasaClient for RemoteKasaClient {
         }
 
         let media_type_str = db.client.get_media_type(hash).await?;
-        let media_type = media_type_str.parse::<MediaType>()?;
+        let media_type = media_type_str
+            .parse::<MediaType>()
+            .map_err(|e| ClientError::Anyhow(e.to_string()))?;
         insert_media_type_to_remote_cache(hash, media_type, &db.thumbs_pool).await?;
 
         Ok(media_type_str)
@@ -173,7 +174,10 @@ impl KasaClient for RemoteKasaClient {
         hash: &str,
     ) -> Result<SourceCategoryGroupedTags> {
         let db = self.get_dbs()?;
-        db.client.get_tags_grouped_by_source_categories(hash).await
+        Ok(db
+            .client
+            .get_tags_grouped_by_source_categories(hash)
+            .await?)
     }
 
     async fn get_media_name(&self, hash: &str) -> Result<String> {
@@ -192,7 +196,7 @@ impl KasaClient for RemoteKasaClient {
 
     async fn get_media_sources(&self, hash: &str) -> Result<Vec<MediaSource>> {
         let db = self.get_dbs()?;
-        db.client.get_media_sources(hash).await
+        Ok(db.client.get_media_sources(hash).await?)
     }
 
     async fn set_media_favorite(&self, hash: &str, is_favorite: bool) -> Result<()> {
@@ -229,17 +233,17 @@ impl KasaClient for RemoteKasaClient {
         n: i64,
     ) -> Result<Vec<EmbeddingDistance>> {
         let db = self.get_dbs()?;
-        db.client.get_top_n_closest_for_media(hash, n).await
+        Ok(db.client.get_top_n_closest_for_media(hash, n).await?)
     }
 
     async fn get_valid_path(&self, hash: &str) -> Result<String> {
         let db = self.get_dbs()?;
-        db.client.get_valid_path(hash).await
+        Ok(db.client.get_valid_path(hash).await?)
     }
 
     async fn query_tags(&self, query: &str, limit: i64) -> Result<Vec<TagQueryOutput>> {
         let db = self.get_dbs()?;
-        db.client.query_tags(query, limit).await
+        Ok(db.client.query_tags(query, limit).await?)
     }
 
     async fn get_thumbnail(&self, hash: &str) -> Result<Vec<u8>> {
@@ -281,12 +285,12 @@ impl KasaClient for RemoteKasaClient {
 
     async fn serve_media(&self, hash: &str) -> Result<Vec<u8>> {
         let db = self.get_dbs()?;
-        db.client.serve_media(hash).await
+        Ok(db.client.serve_media(hash).await?)
     }
 
     async fn search(&self, criteria: SearchCriteria) -> Result<Vec<Media>> {
         let db = self.get_dbs()?;
-        db.client.search(&criteria).await
+        Ok(db.client.search(&criteria).await?)
     }
 
     async fn update_tags(&self, raw_input: &str, hash: &str) -> Result<()> {
@@ -309,7 +313,7 @@ impl KasaClient for RemoteKasaClient {
 
     async fn get_tags_as_text(&self, hash: &str) -> Result<Option<String>> {
         let db = self.get_dbs()?;
-        db.client.get_tags_as_text(hash).await
+        Ok(db.client.get_tags_as_text(hash).await?)
     }
 
     async fn get_list_of_all_tags_with_details(
@@ -317,9 +321,10 @@ impl KasaClient for RemoteKasaClient {
         ordering_criteria: AllTagsOrderingCriteria,
     ) -> Result<Vec<TagWithCount>> {
         let db = self.get_dbs()?;
-        db.client
+        Ok(db
+            .client
             .get_list_of_all_tags_with_details(ordering_criteria)
-            .await
+            .await?)
     }
 
     async fn push_download(&self, url: &str) -> Result<()> {

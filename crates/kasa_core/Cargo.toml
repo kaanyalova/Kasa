@@ -9,6 +9,11 @@ edition = "2024"
 #ffmpeg = { git = "https://github.com/zmwangx/rust-ffmpeg", package = "ffmpeg-next", features = [
 #    # "static", # TODO only enable in Android and non-linux systems
 #] }
+
+kasa_python = { workspace = true }
+kasa_ai = { path = "../kasa_ai" }
+
+
 base64 = { workspace = true }
 chrono = { workspace = true }
 dirs = { workspace = true }
@@ -44,12 +49,10 @@ toml_edit = { workspace = true, features = ["serde"] }
 xxhash-rust = { workspace = true, features = ["xxh3"] }
 anyhow.workspace = true
 walkdir = { workspace = true }
-kasa_python = { workspace = true }
 image = { workspace = true }
 axum = { workspace = true }
 rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 axum-macros = { workspace = true }
-kasa_ai = { path = "../kasa_ai", optional = true }
 
 # Dependencies for flash thumbnailer support
 ruffle_core = { git = "https://github.com/ruffle-rs/ruffle", features = [
@@ -63,12 +66,12 @@ sha1 = "0.10.6"
 hex = "0.4.3"
 sqlite-vec = "0.1.9"
 bytemuck = "1.25.0"
-ffmpeg = { package = "ffmpeg-next", version = "9.0.0", features = ["build"]}
+ffmpeg = { package = "ffmpeg-next", version = "9.0.0", features = ["build"] }
 utoipa = "5.5.0"
 webp = "0.3.1"
 lazy_static = "1.5.0"
 libsqlite3-sys = { workspace = true }
-uniffi = {workspace = true}
+uniffi = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
@@ -84,5 +87,4 @@ xz = { workspace = true }
 [features]
 default = []
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
-ai = ["dep:kasa_ai"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]

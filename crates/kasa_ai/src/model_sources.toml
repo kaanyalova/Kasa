@@ -1,0 +1,57 @@
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+linux_x64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-1.28.3.tgz"
+linux_x64_sha256 = "db14e4863bd37893fc59729d986ab2a0d043d10b7d44da1913c4982b7e3d009c"
+linux_x64_cuda_13_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-gpu_cuda13-1.28.3.tgz"
+linux_x64_cuda_13_sha256 = "33e91f819324449bede2d1e853c8d46bb6253fa8890bac98ae676f041c8f73a6"
+linux_x64_cuda_12_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-gpu_cuda12-1.28.3.tgz"
+linux_x64_cuda_12_sha256 = "4e16d2ec66521a24fe917bd848eb8ae3a9107cb8b4aec978fb2b3ab1a640fcb7"
+linux_arm64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-aarch64-1.28.3.tgz"
+linux_arm64_sha256 = "6c6b1ae96d7b0be9f555092857c6a4f2b0b5587a5298d732d9e52e8253038ce7"
+windows_x64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-1.28.3.zip"
+windows_x64_sha256 = "1d6fab48e85f948436af7c8c971d2c145cf224e2c444755dec894f8b0de11a83"
+windows_x64_cuda_12_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-gpu_cuda12-1.28.3.zip"
+windows_x64_cuda_12_sha256 = "65d7f956649df80a8ccdcafa7843e4b02f38bfc9e6de28711ed8384508040330"
+windows_x64_cuda_13_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-gpu_cuda13-1.28.3.zip"
+windows_x64_cuda_13_sha256 = "a7216e498c14fb4783a42667ffddcf1590ae262429307ed0dc5889d9c365584e"
+windows_arm64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-arm64-1.28.3.zip"
+windows_arm64_sha256 = "76d5e5a23fb7fdbc2ca0c3214bad1b58b2a41016c7052e74e60ed8004bea71b1"
+windows_arm64_x_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-arm64x-1.28.3.zip"
+windows_arm64_x_sha256 = "3b1d0f1cf65731dfb2a024411d3050d9f845207067f030f9aec5be08d24a02c9"
+osx_arm64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-osx-arm64-1.28.3.tgz"
+osx_arm64_sha256 = "c436bd9f47dbce6f6311ccc21de97f829b3c862c09d24aa321958cb72f0a1d32"
+
+
+[[OcrModel]]
+name = "PP-OcrV6-Small"
+reference_url = "https://huggingface.co/collections/PaddlePaddle/pp-ocrv6"
+det_model_url = "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/main/inference.onnx?download=true"
+det_model_sha256 = "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e"
+rec_model_url = "https://huggingface.co/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.onnx?download=true"
+rec_model_sha256 = "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634"
+dict_url = "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/refs/heads/main/ppocr/utils/dict/ppocrv6_dict.txt"
+dict_sha256 = "b5f2bfe2bdd9448429e3e82b51c789775d9b42f2403d082b00662eb77e401c5d"
+
+
+[[TextEmbeddingModel]]
+name = "nomic-embed-text-v1.5"
+reference_url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5"
+model_url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/onnx/model_fp16.onnx?download=true"
+model_sha256 = "cf5b5a86edb00f895561803cfc04729090a958340b8ca2ad76c143f565f6bb04"
+tokenizer_file_url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/tokenizer.json"
+tokenizer_file_sha256 = "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+config_file_url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/config.json"
+config_file_sha256 = "9ab00bd92cee80a569f708140b7b6c1661a65891ff3765b1519e181ba2f2c92b"
+special_tokens_map_file_url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/special_tokens_map.json"
+special_tokens_map_file_sha256 = "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a"
+tokenizer_config_file_url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/main/tokenizer_config.json"
+tokenizer_config_file_sha256 = "d7e0000bcc80134debd2222220427e6bf5fa20a669f40a0d0d1409cc18e0a9bc"
+
+
+[[ImageEmbeddingModel]]
+name = "nomic-embed-vision-v1.5"
+reference_url = "https://huggingface.co/nomic-ai/nomic-embed-vision-v1.5"
+model_url = "https://huggingface.co/nomic-ai/nomic-embed-vision-v1.5/resolve/main/onnx/model_fp16.onnx"
+model_sha256 = "6adad2d74c1da0452d1f90a1427679735bae0a1ee7e17b57a0bf70d8a795ca3d"
+preprocessor_config_url = "https://huggingface.co/nomic-ai/nomic-embed-vision-v1.5/resolve/main/preprocessor_config.json"
+preprocessor_config_sha256 = "77436fccc0108364dd52185181d65cace7e830113e3b81b2bad8009a47f59b34"

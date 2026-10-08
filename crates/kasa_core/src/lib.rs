@@ -1,5 +1,6 @@
 uniffi::setup_scaffolding!();
 
+pub mod ai;
 pub mod ai_slop;
 pub mod config;
 pub mod db;

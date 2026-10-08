@@ -8,14 +8,15 @@ use std::{
 use chrono::{DateTime, Local, TimeZone, Utc};
 use human_bytes::human_bytes;
 use itertools::Itertools;
+use kasa_ai::{BoundingBox, Point, TextRegion};
 use rustpython_vm::common::str;
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Sqlite, query, query_as, query_scalar};
+use sqlx::{Pool, Sqlite, query, query_as, query_scalar, types::Json};
 use utoipa::ToSchema;
 
 use crate::{
     db::schema::{
-        HashTagPair, Image, Media, MediaSource, MediaType, RawTagsField, TagDetail, Video,
+        HashTagPair, Image, Media, MediaSource, MediaType, OcrData, RawTagsField, TagDetail, Video,
     },
     index::index_video::VideoMetadata,
 };
@@ -167,6 +168,12 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
     // Group the tags according to their `source_category`s
     let source_grouped_tags = group_tags_by_source_category(&tags).await;
 
+    let ocr_data: Option<OcrData> = query_as("SELECT * FROM OcrData WHERE hash = ?")
+        .bind(hash)
+        .fetch_optional(pool)
+        .await
+        .unwrap();
+
     MediaInfo {
         tags,
         meta,
@@ -193,8 +200,9 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
         file_name,
         source_category_grouped_tags: source_grouped_tags,
         is_favorite: media.is_favorite,
-        video_metadata: video_metadata,
+        video_metadata,
         path_that_exists,
+        ocr_data: ocr_data.map(|data| data.regions.0.into_iter().map(Into::into).collect()),
     }
 }
 
@@ -299,6 +307,54 @@ pub async fn get_video_length_impl(hash: &str, pool: &Pool<Sqlite>) -> Option<f6
     result.map(|(len,)| len)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
+#[serde(rename_all = "camelCase")]
+pub struct OcrPoint {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
+#[serde(rename_all = "camelCase")]
+pub struct OcrBoundingBox {
+    pub points: Vec<OcrPoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
+#[serde(rename_all = "camelCase")]
+pub struct OcrTextRegion {
+    pub bounding_box: OcrBoundingBox,
+    pub confidence: Option<f32>,
+    pub text: Option<String>,
+}
+
+impl From<Point> for OcrPoint {
+    fn from(point: Point) -> Self {
+        Self {
+            x: point.x,
+            y: point.y,
+        }
+    }
+}
+
+impl From<BoundingBox> for OcrBoundingBox {
+    fn from(bounding_box: BoundingBox) -> Self {
+        Self {
+            points: bounding_box.points.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<TextRegion> for OcrTextRegion {
+    fn from(region: TextRegion) -> Self {
+        Self {
+            bounding_box: region.bounding_box.into(),
+            confidence: region.confidence,
+            text: region.text.map(|text| text.to_string()),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -316,6 +372,7 @@ pub struct MediaInfo {
     pub is_favorite: bool,
     pub video_metadata: Option<VideoMetadata>,
     pub path_that_exists: Option<String>,
+    pub ocr_data: Option<Vec<OcrTextRegion>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]

@@ -1,3 +1,4 @@
+use kasa_ai::TextRegion;
 use rayon::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{Encode, prelude::FromRow, types::Json};
@@ -176,4 +177,10 @@ pub struct RemoteMediaCache {
     pub filename: Option<String>,
     pub media_type: String,
     pub video_length: Option<f64>,
+}
+
+#[derive(Debug, FromRow)]
+pub struct OcrData {
+    pub hash: String,
+    pub regions: SqlxJson<Vec<TextRegion>>,
 }

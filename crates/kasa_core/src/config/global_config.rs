@@ -81,6 +81,13 @@ pub struct Thumbs {
     pub thumbs_db_path: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
+pub struct Ai {
+    pub models_path: String,
+    pub onnx_rt_path: String,
+    pub model_config_override: Option<String>,
+}
+
 #[derive(
     Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone, uniffi::Record,
 )]

@@ -3,7 +3,8 @@ pub use ort::session::Session;
 pub mod image_embeddings;
 pub mod model_manager;
 pub mod model_sources;
-pub mod wdv_tagger;
+
+pub use model_manager::wdv_tagger;
 
 pub use oar_ocr::oarocr::TextRegion;
 pub use oar_ocr::processors::{BoundingBox, Point};

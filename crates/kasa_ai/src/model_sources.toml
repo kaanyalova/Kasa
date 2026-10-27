@@ -1,25 +1,104 @@
 [[OnnxRTVersion]]
 version_reference = "v1.28.3"
-linux_x64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-1.28.3.tgz"
-linux_x64_sha256 = "db14e4863bd37893fc59729d986ab2a0d043d10b7d44da1913c4982b7e3d009c"
-linux_x64_cuda_13_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-gpu_cuda13-1.28.3.tgz"
-linux_x64_cuda_13_sha256 = "33e91f819324449bede2d1e853c8d46bb6253fa8890bac98ae676f041c8f73a6"
-linux_x64_cuda_12_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-gpu_cuda12-1.28.3.tgz"
-linux_x64_cuda_12_sha256 = "4e16d2ec66521a24fe917bd848eb8ae3a9107cb8b4aec978fb2b3ab1a640fcb7"
-linux_arm64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-aarch64-1.28.3.tgz"
-linux_arm64_sha256 = "6c6b1ae96d7b0be9f555092857c6a4f2b0b5587a5298d732d9e52e8253038ce7"
-windows_x64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-1.28.3.zip"
-windows_x64_sha256 = "1d6fab48e85f948436af7c8c971d2c145cf224e2c444755dec894f8b0de11a83"
-windows_x64_cuda_12_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-gpu_cuda12-1.28.3.zip"
-windows_x64_cuda_12_sha256 = "65d7f956649df80a8ccdcafa7843e4b02f38bfc9e6de28711ed8384508040330"
-windows_x64_cuda_13_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-gpu_cuda13-1.28.3.zip"
-windows_x64_cuda_13_sha256 = "a7216e498c14fb4783a42667ffddcf1590ae262429307ed0dc5889d9c365584e"
-windows_arm64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-arm64-1.28.3.zip"
-windows_arm64_sha256 = "76d5e5a23fb7fdbc2ca0c3214bad1b58b2a41016c7052e74e60ed8004bea71b1"
-windows_arm64_x_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-arm64x-1.28.3.zip"
-windows_arm64_x_sha256 = "3b1d0f1cf65731dfb2a024411d3050d9f845207067f030f9aec5be08d24a02c9"
-osx_arm64_url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-osx-arm64-1.28.3.tgz"
-osx_arm64_sha256 = "c436bd9f47dbce6f6311ccc21de97f829b3c862c09d24aa321958cb72f0a1d32"
+os = "linux"
+arch = "x86_64"
+execution_provider_name = "cpu"
+is_cuda = false
+uses_gpu = false
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-1.28.3.tgz"
+sha256 = "db14e4863bd37893fc59729d986ab2a0d043d10b7d44da1913c4982b7e3d009c"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "linux"
+arch = "x86_64"
+execution_provider_name = "cpu"
+is_cuda = true
+uses_gpu = true
+execution_provider_version = "13"
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-gpu_cuda13-1.28.3.tgz"
+sha256 = "33e91f819324449bede2d1e853c8d46bb6253fa8890bac98ae676f041c8f73a6"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "linux"
+arch = "x86_64"
+execution_provider_name = "cuda"
+is_cuda = true
+uses_gpu = true
+execution_provider_version = "12"
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-x64-gpu_cuda12-1.28.3.tgz"
+sha256 = "4e16d2ec66521a24fe917bd848eb8ae3a9107cb8b4aec978fb2b3ab1a640fcb7"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "linux"
+arch = "aarch64"
+is_cuda = false
+uses_gpu = false
+execution_provider_name = "cpu"
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-linux-aarch64-1.28.3.tgz"
+sha256 = "6c6b1ae96d7b0be9f555092857c6a4f2b0b5587a5298d732d9e52e8253038ce7"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "windows"
+arch = "x86_64"
+execution_provider_name = "cpu"
+is_cuda = false
+uses_gpu = false
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-1.28.3.zip"
+sha256 = "1d6fab48e85f948436af7c8c971d2c145cf224e2c444755dec894f8b0de11a83"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "windows"
+arch = "x86_64"
+execution_provider_name = "cuda"
+is_cuda = true
+uses_gpu = true
+execution_provider_version = "12"
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-gpu_cuda12-1.28.3.zip"
+sha256 = "65d7f956649df80a8ccdcafa7843e4b02f38bfc9e6de28711ed8384508040330"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "windows"
+arch = "x86_64"
+execution_provider_name = "cuda"
+is_cuda = true
+uses_gpu = true
+execution_provider_version = "13"
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-x64-gpu_cuda13-1.28.3.zip"
+sha256 = "a7216e498c14fb4783a42667ffddcf1590ae262429307ed0dc5889d9c365584e"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "windows"
+arch = "aarch64"
+execution_provider_name = "cpu"
+is_cuda = false
+uses_gpu = false
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-win-arm64-1.28.3.zip"
+sha256 = "76d5e5a23fb7fdbc2ca0c3214bad1b58b2a41016c7052e74e60ed8004bea71b1"
+
+
+[[OnnxRTVersion]]
+version_reference = "v1.28.3"
+os = "macos"
+arch = "aarch64"
+execution_provider_name = "cpu"
+is_cuda = false
+uses_gpu = false
+url = "https://github.com/microsoft/onnxruntime/releases/download/v1.28.3/onnxruntime-osx-arm64-1.28.3.tgz"
+sha256 = "c436bd9f47dbce6f6311ccc21de97f829b3c862c09d24aa321958cb72f0a1d32"
 
 
 [[OcrModel]]

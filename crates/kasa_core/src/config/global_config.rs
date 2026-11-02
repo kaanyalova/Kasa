@@ -153,14 +153,22 @@ pub fn get_config_dir() -> PathBuf {
     os_config_dir.join("kasa")
 }
 
-pub fn get_config_impl() -> GlobalConfig {
-    let path = get_config_dir().join("config.toml");
-    find_or_create_config(&path);
+pub fn get_config_from_raw(contents: &str) -> GlobalConfig {
+    toml::from_str(&contents).unwrap()
+}
+
+pub fn get_config_from_path(path: &Path) -> GlobalConfig {
+    find_or_create_config(&path.into());
 
     let f = fs::read_to_string(path).unwrap();
 
     let config: GlobalConfig = toml::from_str(&f).unwrap();
     config
+}
+
+pub fn get_config_impl() -> GlobalConfig {
+    let path = get_config_dir().join("config.toml");
+    get_config_from_path(&path)
 }
 
 pub fn get_tag_extractors_dir() -> Result<PathBuf> {

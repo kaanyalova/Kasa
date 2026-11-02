@@ -1,17 +1,33 @@
+<<<<<<< HEAD
+use std::{
+    path,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
+=======
 use std::{path, str::FromStr, sync::Mutex};
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 mod database;
 mod downloader;
 mod rest_client;
 
 use crate::{
     clients::{
+<<<<<<< HEAD
+        EventCallback, KasaClient, KasaSharedMethods,
+=======
         EventCallback, KasaClient,
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
         database::DbStore,
         downloader::DownloaderStore,
         remote::{database::RemoteDb, downloader::RemoteDownloader, rest_client::RemoteClient},
     },
     errors::{ClientError, ClientResult as Result},
     events::{CacheUpdatedEvent, KasaEvent, TagsUpdatedEvent},
+<<<<<<< HEAD
+    runtime,
+=======
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 };
 use async_trait::async_trait;
 use kasa_core::{
@@ -43,7 +59,11 @@ use tokio::sync::{Mutex as AsyncMutex, mpsc};
 
 pub struct RemoteKasaClient {
     pub database: Mutex<DbStore<RemoteDb>>,
+<<<<<<< HEAD
+    pub downloader: Arc<AsyncMutex<DownloaderStore<RemoteDownloader>>>,
+=======
     pub downloader: AsyncMutex<DownloaderStore<RemoteDownloader>>,
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     pub on_event: Option<EventCallback>,
 }
 
@@ -51,12 +71,20 @@ impl RemoteKasaClient {
     pub fn wait_for_frontend() -> Self {
         Self {
             database: Mutex::new(DbStore::WaitingForFrontend),
+<<<<<<< HEAD
+            downloader: Arc::new(AsyncMutex::new(DownloaderStore::Uninitialized)),
+=======
             downloader: AsyncMutex::new(DownloaderStore::Uninitialized),
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
             on_event: None,
         }
     }
 
+<<<<<<< HEAD
+    pub async fn initialize(&self, config: &GlobalConfig) {
+=======
     pub async fn initialize(&mut self, config: &GlobalConfig) {
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
         match self.initialize_impl(config).await {
             Ok(db) => {
                 let mut guard = self.database.lock().unwrap();
@@ -80,7 +108,11 @@ impl RemoteKasaClient {
         }
     }
 
+<<<<<<< HEAD
+    pub fn error_out(&self, message: &str) {
+=======
     pub fn error_out(&mut self, message: &str) {
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
         let mut guard = self.database.lock().unwrap();
         *guard = DbStore::Errored(message.to_owned());
     }
@@ -144,16 +176,53 @@ impl KasaClient for RemoteKasaClient {
 
     async fn get_info(&self, hash: &str) -> Result<Option<MediaInfo>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.get_info(&hash).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.get_info(hash).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_tags(&self, hash: &str) -> Result<Vec<TagWithDetails>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.get_tags(&hash).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.get_tags(hash).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_media_type(&self, hash: &str) -> Result<String> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move {
+                if let Ok(Some(media_type)) =
+                    get_media_type_from_remote_cache(&hash, &db.thumbs_pool).await
+                {
+                    return Ok(media_type_to_string(&media_type));
+                }
+
+                let media_type_str = db.client.get_media_type(&hash).await?;
+                let media_type = media_type_str
+                    .parse::<MediaType>()
+                    .map_err(|e| ClientError::Anyhow(e.to_string()))?;
+                insert_media_type_to_remote_cache(&hash, media_type, &db.thumbs_pool).await?;
+
+                Ok(media_type_str)
+            })
+            .await
+            .unwrap()
+=======
 
         if let Ok(Some(media_type)) = get_media_type_from_remote_cache(hash, &db.thumbs_pool).await
         {
@@ -167,6 +236,7 @@ impl KasaClient for RemoteKasaClient {
         insert_media_type_to_remote_cache(hash, media_type, &db.thumbs_pool).await?;
 
         Ok(media_type_str)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_tags_grouped_by_source_categories(
@@ -174,14 +244,45 @@ impl KasaClient for RemoteKasaClient {
         hash: &str,
     ) -> Result<SourceCategoryGroupedTags> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move {
+                Ok(db
+                    .client
+                    .get_tags_grouped_by_source_categories(&hash)
+                    .await?)
+            })
+            .await
+            .unwrap()
+=======
         Ok(db
             .client
             .get_tags_grouped_by_source_categories(hash)
             .await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_media_name(&self, hash: &str) -> Result<String> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move {
+                if let Ok(Some(media_name)) =
+                    get_media_name_from_remote_cache(&hash, &db.thumbs_pool).await
+                {
+                    return Ok(media_name);
+                }
+
+                let media_name = db.client.get_media_name(&hash).await?;
+                insert_media_name_to_remote_cache(&hash, &media_name, &db.thumbs_pool).await?;
+
+                Ok(media_name)
+            })
+            .await
+            .unwrap()
+=======
 
         if let Ok(Some(media_name)) = get_media_name_from_remote_cache(hash, &db.thumbs_pool).await
         {
@@ -192,16 +293,33 @@ impl KasaClient for RemoteKasaClient {
         insert_media_name_to_remote_cache(hash, &media_name, &db.thumbs_pool).await?;
 
         Ok(media_name)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_media_sources(&self, hash: &str) -> Result<Vec<MediaSource>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.get_media_sources(&hash).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.get_media_sources(hash).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn set_media_favorite(&self, hash: &str, is_favorite: bool) -> Result<()> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { db.client.set_media_favorite(&hash, is_favorite).await })
+            .await
+            .unwrap()?;
+=======
         db.client.set_media_favorite(hash, is_favorite).await?;
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 
         self.call_event(KasaEvent::CacheUpdated(CacheUpdatedEvent {
             reload_virtual_list: false,
@@ -212,6 +330,26 @@ impl KasaClient for RemoteKasaClient {
 
     async fn get_video_length(&self, hash: &str) -> Result<Option<f64>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move {
+                if let Ok(Some(video_length)) =
+                    get_video_length_from_remote_cache(&hash, &db.thumbs_pool).await
+                {
+                    return Ok(Some(video_length));
+                }
+
+                let video_length = db.client.get_video_length(&hash).await?;
+                if let Some(length) = video_length {
+                    insert_video_length_to_remote_cache(&hash, length, &db.thumbs_pool).await?;
+                }
+
+                Ok(video_length)
+            })
+            .await
+            .unwrap()
+=======
 
         if let Ok(Some(video_length)) =
             get_video_length_from_remote_cache(hash, &db.thumbs_pool).await
@@ -225,6 +363,7 @@ impl KasaClient for RemoteKasaClient {
         }
 
         Ok(video_length)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_top_n_closest_for_media(
@@ -233,21 +372,85 @@ impl KasaClient for RemoteKasaClient {
         n: i64,
     ) -> Result<Vec<EmbeddingDistance>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.get_top_n_closest_for_media(&hash, n).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.get_top_n_closest_for_media(hash, n).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_valid_path(&self, hash: &str) -> Result<String> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.get_valid_path(&hash).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.get_valid_path(hash).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn query_tags(&self, query: &str, limit: i64) -> Result<Vec<TagQueryOutput>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let query = query.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.query_tags(&query, limit).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.query_tags(query, limit).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_thumbnail(&self, hash: &str) -> Result<Vec<u8>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move {
+                if let Some(thumbnail) = get_thumbnail_from_db_impl(&hash, &db.thumbs_pool).await {
+                    if thumbnail.is_valid() {
+                        return Ok(thumbnail.bytes);
+                    }
+                }
+
+                let bytes = db.client.get_thumbnail(&hash).await?;
+
+                if let Ok(image) = image::load_from_memory(&bytes) {
+                    let format = match image::guess_format(&bytes) {
+                        Ok(image::ImageFormat::Png) => ThumbnailFormat::Png,
+                        Ok(image::ImageFormat::Jpeg) => ThumbnailFormat::Jpeg,
+                        Ok(image::ImageFormat::Avif) => ThumbnailFormat::Avif,
+                        Ok(image::ImageFormat::WebP) => ThumbnailFormat::WebpLossy,
+                        _ => ThumbnailFormat::Png,
+                    };
+
+                    insert_thumbnail_into_db_impl(
+                        &hash,
+                        &Thumbnail {
+                            x: image.width(),
+                            y: image.height(),
+                            bytes: bytes.clone(),
+                            format,
+                            success: true,
+                        },
+                        &db.thumbs_pool,
+                    )
+                    .await;
+                }
+
+                Ok(bytes)
+            })
+            .await
+            .unwrap()
+=======
 
         if let Some(thumbnail) = get_thumbnail_from_db_impl(hash, &db.thumbs_pool).await {
             if thumbnail.is_valid() {
@@ -281,21 +484,46 @@ impl KasaClient for RemoteKasaClient {
         }
 
         Ok(bytes)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn serve_media(&self, hash: &str) -> Result<Vec<u8>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.serve_media(&hash).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.serve_media(hash).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn search(&self, criteria: SearchCriteria) -> Result<Vec<Media>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        runtime()
+            .spawn(async move { Ok(db.client.search(&criteria).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.search(&criteria).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn update_tags(&self, raw_input: &str, hash: &str) -> Result<()> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let raw_input = raw_input.to_owned();
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { db.client.update_tags(&raw_input, &hash).await })
+            .await
+            .unwrap()?;
+=======
         db.client.update_tags(raw_input, hash).await?;
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 
         self.call_event(KasaEvent::TagsUpdated(TagsUpdatedEvent {}));
 
@@ -304,7 +532,16 @@ impl KasaClient for RemoteKasaClient {
 
     async fn delete_tags(&self, hash: &str, tags: &[String]) -> Result<()> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        let tags = tags.to_vec();
+        runtime()
+            .spawn(async move { db.client.delete_tags(&hash, tags).await })
+            .await
+            .unwrap()?;
+=======
         db.client.delete_tags(hash, tags.to_vec()).await?;
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 
         self.call_event(KasaEvent::TagsUpdated(TagsUpdatedEvent {}));
 
@@ -313,7 +550,15 @@ impl KasaClient for RemoteKasaClient {
 
     async fn get_tags_as_text(&self, hash: &str) -> Result<Option<String>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        let hash = hash.to_owned();
+        runtime()
+            .spawn(async move { Ok(db.client.get_tags_as_text(&hash).await?) })
+            .await
+            .unwrap()
+=======
         Ok(db.client.get_tags_as_text(hash).await?)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
     }
 
     async fn get_list_of_all_tags_with_details(
@@ -321,6 +566,42 @@ impl KasaClient for RemoteKasaClient {
         ordering_criteria: AllTagsOrderingCriteria,
     ) -> Result<Vec<TagWithCount>> {
         let db = self.get_dbs()?;
+<<<<<<< HEAD
+        runtime()
+            .spawn(async move {
+                Ok(db
+                    .client
+                    .get_list_of_all_tags_with_details(ordering_criteria)
+                    .await?)
+            })
+            .await
+            .unwrap()
+    }
+
+    async fn push_download(&self, url: &str) -> Result<()> {
+        let downloader = self.downloader.clone();
+        let url = url.to_owned();
+        runtime()
+            .spawn(async move {
+                let downloader = downloader.lock().await;
+                if let DownloaderStore::Initialized(downloader) = &*downloader {
+                    downloader.push_download(&url).await
+                } else {
+                    Ok(())
+                }
+            })
+            .await
+            .unwrap()?;
+        Ok(())
+    }
+
+    fn load_config_from_path(&self, path: &str) -> GlobalConfig {
+        KasaSharedMethods::load_config_from_path(path)
+    }
+    fn load_config_from_raw(&self, config_contents: &str) -> GlobalConfig {
+        KasaSharedMethods::load_config_from_raw(config_contents)
+    }
+=======
         Ok(db
             .client
             .get_list_of_all_tags_with_details(ordering_criteria)
@@ -334,4 +615,5 @@ impl KasaClient for RemoteKasaClient {
         }
         Ok(())
     }
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 }

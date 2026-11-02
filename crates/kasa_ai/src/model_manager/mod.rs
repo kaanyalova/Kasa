@@ -27,19 +27,71 @@ pub struct ModelManager {
     onnx_rt_dynamic_lib_path: PathBuf,
     is_onnx_rt_loaded: bool,
     pub models: ModelManagerModels,
+    pub on_progress: Box<dyn Fn(AiProgress) + Send + Sync>,
 
     // the other models are going to process large batches so they can just be
     // loaded when they are running, but the embedding models should be loaded
     // so the user can make searches without waiting for the model to load
     loaded_text_embedding_model: HashMap<String, TextEmbedding>,
     loaded_image_embedding_model: HashMap<String, ImageEmbedding>,
+
+    job_id_counter: u64,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct AiProgressValues {
+    pub id: u64,
+    pub total_to_process: u32,
+    // if processing fails for one of the items in the batch, the
+    // actual count reflects that
+    pub expected_process_count: u32,
+    pub actual_process_count: u32,
+    pub batch_size: u32,
+}
+
+impl AiProgressValues {
+    pub fn new(
+        id: u64,
+        total_to_process: u32,
+        expected_process_count: u32,
+        actual_process_count: u32,
+        batch_size: u32,
+    ) -> Self {
+        Self {
+            total_to_process,
+            expected_process_count,
+            actual_process_count,
+            batch_size,
+            id,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum AiProgress {
+    OcrProgress(AiProgressValues),
+    ImageEmbeddingProgress(AiProgressValues),
+    TextEmbeddingProgress(AiProgressValues),
+    WdvTaggerProgress(AiProgressValues),
+}
+
+impl AiProgress {
+    pub fn inner(&self) -> AiProgressValues {
+        match self {
+            AiProgress::OcrProgress(v) => *v,
+            AiProgress::ImageEmbeddingProgress(v) => *v,
+            AiProgress::TextEmbeddingProgress(v) => *v,
+            AiProgress::WdvTaggerProgress(v) => *v,
+        }
+    }
 }
 
 impl ModelManager {
     pub fn new(
         rt_path: &Path,
         models_path: &Path,
-        on_progress: Box<dyn Fn(ModelDownloadProgress) + Send + Sync>,
+        on_download_progress: Box<dyn Fn(ModelDownloadProgress) + Send + Sync>,
+        on_ai_progress: Box<dyn Fn(AiProgress) + Send + Sync>,
     ) -> Self {
         Self {
             onnx_rt_dynamic_lib_path: rt_path.to_owned(),
@@ -48,10 +100,12 @@ impl ModelManager {
                 model_sources: ModelSources::default(),
                 models_base_path: models_path.to_owned(),
                 reqwest: reqwest::Client::new(),
-                on_progress,
+                on_progress: on_download_progress,
             },
+            on_progress: on_ai_progress,
             loaded_text_embedding_model: HashMap::new(),
             loaded_image_embedding_model: HashMap::new(),
+            job_id_counter: 0,
         }
     }
 
@@ -64,7 +118,7 @@ impl ModelManager {
     }
 
     pub fn load_default_sources(&mut self) -> Result<()> {
-        let config: ModelSourcesConfig = toml::from_str(include_str!("./model_sources.toml"))?;
+        let config: ModelSourcesConfig = toml::from_str(include_str!("../model_sources.toml"))?;
         self.models.model_sources = config.map_to_names();
         Ok(())
     }
@@ -87,8 +141,20 @@ impl ModelManager {
     pub fn load_model_sources(&mut self, model_sources: ModelSourcesConfig) {
         self.models.model_sources = model_sources.map_to_names();
     }
+
+    fn next_job_id(&mut self) -> u64 {
+        self.job_id_counter += 1;
+        self.job_id_counter - 1
+    }
 }
 
+#[derive(Debug, Error)]
+enum ModelError {
+    #[error("The model {0} does not exist in the model sources")]
+    ModelDoesNotExistInSources(String),
+}
+
+/*
 #[tokio::test]
 async fn test_ocr() {
     let mut model_manager = ModelManager::new(
@@ -125,8 +191,4 @@ async fn test_ocr() {
     let results = model_manager.ocr_images("PP-OcrV6-Small", images).unwrap();
 }
 
-#[derive(Debug, Error)]
-enum ModelError {
-    #[error("The model {0} does not exist in the model sources")]
-    ModelDoesNotExistInSources(String),
-}
+*/

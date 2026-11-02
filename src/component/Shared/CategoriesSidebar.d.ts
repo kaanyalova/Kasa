@@ -1,0 +1,4 @@
+
+type CategoriesSidebarProps = {
+    children: any,
+}

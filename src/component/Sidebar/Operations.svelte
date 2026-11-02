@@ -19,6 +19,15 @@
 			maximized: true
 		});
 	}
+
+	function onClickAiOperations() {
+		const webView = new WebviewWindow('ai_operations', {
+			title: 'Ai Operations',
+			url: 'ai_operations',
+			decorations: false,
+			maximized: true
+		});
+	}
 </script>
 
 <div class="operations sidebarContent">
@@ -40,6 +49,12 @@
 		<li>
 			<SidebarButton text="Extractors" onClick={onClickExtractors}>
 				<span class="icon-[material-symbols--label] w-5 h-5"></span>
+			</SidebarButton>
+		</li>
+
+		<li>
+			<SidebarButton text="Ai Operations" onClick={onClickAiOperations}>
+				<span class="icon-[material-symbols--robot] w-5 h-5"></span>
 			</SidebarButton>
 		</li>
 	</ul>

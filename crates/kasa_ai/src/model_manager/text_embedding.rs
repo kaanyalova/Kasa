@@ -3,7 +3,7 @@ use std::fs;
 use anyhow::{Context, Result};
 use fastembed::{InitOptionsUserDefined, TextEmbedding, TokenizerFiles, UserDefinedEmbeddingModel};
 
-use super::{ModelManager, ModelManagerModels};
+use super::{AiProgress, AiProgressValues, ModelManager, ModelManagerModels};
 use crate::model_sources::{Model, TextEmbeddingModel};
 
 impl ModelManager {
@@ -13,6 +13,7 @@ impl ModelManager {
         model_name: &str,
         text: &str,
     ) -> Result<Vec<f32>> {
+        let job_id = self.next_job_id();
         let loaded_model = self
             .loaded_text_embedding_model
             .get_mut(model_name)
@@ -23,6 +24,10 @@ impl ModelManager {
 
         let texts = vec![text];
         let embedded = loaded_model.embed(texts, Some(1))?.remove(0);
+
+        (self.on_progress)(AiProgress::TextEmbeddingProgress(AiProgressValues::new(
+            job_id, 1, 1, 1, 1,
+        )));
 
         Ok(embedded)
     }

@@ -78,9 +78,7 @@
 		console.log(`loaded ${tags?.length} tags which tool ${Math.round(endTime - startTime)}ms`);
 	}
 
-	$effect(async () => {
-		sidebarStore.isActive;
-
+	sidebarStore.subscribeForResizes(async () => {
 		if (sidebarStore.isActive) {
 			await loadTags();
 		}

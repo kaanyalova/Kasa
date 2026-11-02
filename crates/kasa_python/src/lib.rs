@@ -178,14 +178,14 @@ pub struct GalleryDlStatus {
 }
 
 impl GalleryDlStatus {
-    pub fn new_placeholder(url: &str) -> Self {
+    pub fn new_placeholder(url: &str, extractor: &str) -> Self {
         Self {
             bytes_total: 0,
             bytes_downloaded: 0,
             bytes_per_second: 0,
             url_hash: hash_url(url),
             url: url.to_owned(),
-            extractor: "".to_string(),
+            extractor: extractor.to_string(),
         }
     }
 }

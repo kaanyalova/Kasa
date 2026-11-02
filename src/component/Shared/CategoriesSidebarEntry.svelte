@@ -1,14 +1,15 @@
 <script lang="ts">
-	import VerticalDivider from '../../Shared/Dividers/VerticalDivider.svelte';
+	import VerticalDivider from './Dividers/VerticalDivider.svelte';
 
-	let { onClick, name, category, selectedCategory }: SidebarEntryProps = $props();
+	let { onClick, name, category, selectedCategory, children }: CategoriesSidebarEntryProps =
+		$props();
 </script>
 
 <button onclick={() => onClick()} class:isSelected={category === selectedCategory}>
 	<div class="buttonInner">
 		<VerticalDivider width={4}></VerticalDivider>
 
-		<slot></slot>
+		{@render children?.()}
 		<div class="buttonInnerText">{name}</div>
 	</div>
 </button>

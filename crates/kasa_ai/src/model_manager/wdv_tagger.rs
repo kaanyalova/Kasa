@@ -8,7 +8,7 @@ use ort::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{ModelManager, ModelManagerModels};
+use super::{AiProgress, AiProgressValues, ModelManager, ModelManagerModels};
 use crate::model_sources::{Model, WdvModel};
 
 static WDV_IMAGE_BATCH_COUNT: usize = 10;
@@ -54,11 +54,12 @@ impl ModelManager {
     /// tags the given images, keeping the original indices of the input image_paths
     /// if something goes wrong while tagging an image it returns None for that index
     pub fn tag_images_wdv(
-        &self,
+        &mut self,
         model_name: &str,
         image_paths: Vec<&Path>,
         thresholds: &TaggerThresholds,
     ) -> Result<Vec<Option<TaggerOutput>>> {
+        let job_id = self.next_job_id();
         assert!(self.is_onnx_rt_loaded);
 
         let model = self
@@ -77,7 +78,14 @@ impl ModelManager {
             .commit_from_file(&model.paths.model_path)
             .map_err(ort_error)?;
 
-        tag_images_wdv(&mut session, image_paths, &labels, thresholds)
+        tag_images_wdv(
+            job_id,
+            &mut session,
+            image_paths,
+            &labels,
+            thresholds,
+            self.on_progress.as_ref(),
+        )
     }
 }
 
@@ -114,12 +122,18 @@ impl ModelManagerModels {
 /// runs the tagger over a batch of images, keeping the original indices of the input image_paths
 /// if something goes wrong while tagging an image it returns None for that index
 pub fn tag_images_wdv(
+    job_id: u64,
     session: &mut Session,
     image_paths: Vec<&Path>,
     tag_labels: &Labels,
     thresholds: &TaggerThresholds,
+    on_progress: &(dyn Fn(AiProgress) + Send + Sync),
 ) -> Result<Vec<Option<TaggerOutput>>> {
     let input_dims = input_dimensions(session);
+
+    let total_to_process = image_paths.len() as u32;
+    let mut expected_process_count = 0;
+    let mut actual_process_count = 0;
 
     let mut all_results = Vec::with_capacity(image_paths.len());
 
@@ -135,6 +149,18 @@ pub fn tag_images_wdv(
             mapped_results[orig_idx] =
                 tag_image_with_dims(session, path, tag_labels, thresholds, input_dims).ok();
         }
+
+        // images that failed to tag are not included in the results
+        expected_process_count += image_batch.len() as u32;
+        actual_process_count += mapped_results.iter().filter(|r| r.is_some()).count() as u32;
+
+        on_progress(AiProgress::WdvTaggerProgress(AiProgressValues::new(
+            job_id,
+            total_to_process,
+            expected_process_count,
+            actual_process_count,
+            WDV_IMAGE_BATCH_COUNT as u32,
+        )));
 
         all_results.extend(mapped_results);
     }

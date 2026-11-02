@@ -1,14 +1,13 @@
 use anyhow::{Ok, Result};
 use kasa_core::config::global_config::{GlobalConfig, get_tag_extractors_dir};
 use kasa_core::downloaders::download_queue::{
-    DownloadJob, DownloaderStateUpdate, DownloaderWorker, DownloaderWorkerContext, init_extractors,
+    DownloadJob, DownloaderStateUpdate, DownloaderWorker, Extractors,
 };
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
-use kasa_python::extractors::TagExtractor;
 use kasa_python::{GalleryDlStatus, init_interpreter, init_interpreter_with_gallery_dl};
-use log::{error, info, warn};
+use log::info;
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -89,13 +88,7 @@ pub async fn reload_extractors(handle: AppHandle) {
     let store = state.0.lock().await;
 
     match &*store {
-        DownloaderStore::Local(local) => {
-            for extractor in local.extractors.iter() {
-                if let Err(e) = extractor.reload() {
-                    error!("failed to reload extractor: {e}");
-                }
-            }
-        }
+        DownloaderStore::Local(local) => local.extractors.reload(),
         DownloaderStore::Remote(_) => {}
         _ => {}
     }
@@ -104,7 +97,7 @@ pub async fn reload_extractors(handle: AppHandle) {
 pub struct LocalDownloaderStore {
     pub tx: mpsc::Sender<DownloadJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
-    pub extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
+    pub extractors: Extractors,
 }
 
 pub struct RemoteDownloaderStore {
@@ -135,49 +128,48 @@ impl DownloaderStore {
     ) -> Result<Self> {
         let statuses = Arc::new(SyncMutex::new(HashMap::new()));
 
-        let statuses_on_progress = statuses.clone();
-        let handle_on_progress = handle.clone();
-        let on_progress = move |status: &GalleryDlStatus| {
-            let mut locked = statuses_on_progress.lock().unwrap();
-            locked.insert(status.url_hash.clone(), status.clone());
+        let statuses_on_update = statuses.clone();
+        let handle_on_update = handle.clone();
+        let on_update = move |update: DownloaderStateUpdate| match update {
+            DownloaderStateUpdate::OnProgress(status) => {
+                statuses_on_update
+                    .lock()
+                    .unwrap()
+                    .insert(status.url_hash.clone(), status);
 
-            DownloaderProgressUpdatedEvent {}
-                .emit(&handle_on_progress)
-                .unwrap();
+                DownloaderProgressUpdatedEvent {}
+                    .emit(&handle_on_update)
+                    .unwrap();
+            }
+            DownloaderStateUpdate::OnDone(hash) => {
+                statuses_on_update.lock().unwrap().remove(&hash);
+
+                DownloaderProgressUpdatedEvent {}
+                    .emit(&handle_on_update)
+                    .unwrap();
+
+                TagsUpdatedEvent {}.emit(&handle_on_update).unwrap();
+
+                let handle_search = handle_on_update.clone();
+                tokio::spawn(async move {
+                    search(handle_search).await;
+                });
+            }
+            DownloaderStateUpdate::OnError { url_hash, .. } => {
+                statuses_on_update.lock().unwrap().remove(&url_hash);
+
+                DownloaderProgressUpdatedEvent {}
+                    .emit(&handle_on_update)
+                    .unwrap();
+            }
         };
 
-        let statuses_on_done = statuses.clone();
-        let handle_on_done = handle.clone();
-        let on_done = move |hash: String| {
-            let mut locked = statuses_on_done.lock().unwrap();
-            locked.remove(&hash);
+        let (mut downloader, tx) = DownloaderWorker::init(db, thumbs_db, config.clone())?;
 
-            DownloaderProgressUpdatedEvent {}
-                .emit(&handle_on_done)
-                .unwrap();
-
-            TagsUpdatedEvent {}.emit(&handle_on_done).unwrap();
-
-            let handle_search = handle_on_done.clone();
-            tokio::spawn(async move {
-                search(handle_search).await;
-            });
-        };
-
-        let (mut downloader, tx) =
-            DownloaderWorker::init(db, thumbs_db, config.clone(), on_progress, on_done);
-
-        let tagger_worker = downloader.python_workers.tagger_worker.clone();
-        let statuses_run = statuses.clone();
-
-        let extractors = init_extractors(tagger_worker, config)?;
-
-        let extractors_clone = extractors.clone();
-        downloader.set_extractors(extractors_clone);
+        let extractors = downloader.extractors();
 
         tokio::spawn(async move {
-            let ctx = DownloaderWorkerContext::from_values(statuses_run);
-            downloader.run(&ctx).await;
+            downloader.run(on_update).await;
         });
 
         Ok(Self::Local(LocalDownloaderStore {
@@ -211,6 +203,12 @@ impl DownloaderStore {
                 tokio::spawn(async move {
                     search(handle_search).await;
                 });
+            }
+            DownloaderStateUpdate::OnError { url_hash, .. } => {
+                let mut locked = statuses_update_clone.lock().unwrap();
+                locked.remove(&url_hash);
+
+                DownloaderProgressUpdatedEvent {}.emit(&handle).unwrap();
             }
         };
 

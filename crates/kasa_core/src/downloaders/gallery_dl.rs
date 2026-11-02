@@ -2,7 +2,6 @@ use std::{path::Path, sync::Arc};
 
 use anyhow::Result;
 use kasa_python::{
-    GalleryDlStatus,
     extractors::TagExtractor,
     worker::downloader::{DownloadJob, GalleryDlDownloadWorker},
 };
@@ -25,7 +24,6 @@ pub async fn download_and_index_impl(
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
     when_done: impl Fn(String) + Send + Sync,
-    on_progress: impl Fn(&GalleryDlStatus) + Send + Sync + Clone + 'static,
     extractors: &Vec<&(dyn TagExtractor + Send + Sync)>,
 ) -> Result<()> {
     let config = get_config_impl();
@@ -33,10 +31,6 @@ pub async fn download_and_index_impl(
     if !Path::new(output_path).is_absolute() {
         return Err(DownloaderError::NotAnAbsolutePath.into());
     }
-
-    let url_owned = url.to_owned();
-
-    let output_path_owned = output_path.to_owned();
 
     let download_result = worker.push_job(
         DownloadJob {
@@ -47,19 +41,6 @@ pub async fn download_and_index_impl(
     )?;
 
     let downloader_output = download_result.recv()??;
-
-    //let downloader_output = tokio::task::spawn_blocking(move || {
-    //    kasa_python::gdl_download(
-    //        &interpreter.0,
-    //        &url_owned,
-    //        &output_path_owned,
-    //        config.downloader.gdl_config_path,
-    //        on_progress,
-    //    )
-    //})
-    //.await
-    //.unwrap()
-    //.unwrap();
 
     for url_extractor in downloader_output.url_extractors {
         index(&url_extractor.path, pool, pool_thumbs).await;

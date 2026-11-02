@@ -32,6 +32,6 @@ impl AiWorker {
     }
 
     fn update_progress_state(&mut self, progress: AiProgress) {
-        self.ai_progress.insert(progress.inner().id, progress);
+        //self.ai_progress.insert(progress.inner().id, progress);
     }
 }

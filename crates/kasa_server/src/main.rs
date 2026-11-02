@@ -5,11 +5,8 @@ use axum::Router;
 use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
     db::migrations::{init_sqlite_vec0, prepare_main_db, prepare_thumbs_db},
-    downloaders::download_queue::{
-        DownloaderStateUpdate, DownloaderWorker, DownloaderWorkerContext, init_extractors,
-    },
+    downloaders::download_queue::{DownloaderStateUpdate, DownloaderWorker},
 };
-use kasa_python::GalleryDlStatus;
 use libsqlite3_sys::sqlite3_auto_extension;
 use sqlite_vec::sqlite3_vec_init;
 use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
@@ -83,44 +80,21 @@ async fn main() {
             // set up the callbacks and channels for the downloader
             let (update_tx, _) = broadcast::channel(32);
 
-            let update_tx_progress = update_tx.clone();
+            let update_tx_updates = update_tx.clone();
 
-            let on_progress = move |status: &GalleryDlStatus| match update_tx_progress
-                .send(DownloaderStateUpdate::OnProgress(status.clone()))
+            let on_update = move |update: DownloaderStateUpdate| match update_tx_updates.send(update)
             {
-                Ok(n) => trace!("broadcasted OnProgress to {n} receivers"),
-                Err(e) => trace!("no receivers for OnProgress: {e}"),
+                Ok(n) => trace!("broadcasted download update to {n} receivers"),
+                Err(e) => trace!("no receivers for download update: {e}"),
             };
 
-            let update_tx_done = update_tx.clone();
-
-            let on_done = move |hash: String| match update_tx_done
-                .send(DownloaderStateUpdate::OnDone(hash))
-            {
-                Ok(n) => trace!("broadcasted OnDone to {n} receivers"),
-                Err(e) => trace!("no receivers for OnDone: {e}"),
-            };
-
-            let (mut downloader, tx_download_job) = DownloaderWorker::init(
-                pool.clone(),
-                thumbs_pool.clone(),
-                config,
-                on_progress,
-                on_done,
-            );
-            let extractors = init_extractors(
-                downloader.python_workers.tagger_worker.clone(),
-                &kasa_config,
-            )
-            .unwrap();
-
-            downloader.set_extractors(extractors);
+            let (mut downloader, tx_download_job) =
+                DownloaderWorker::init(pool.clone(), thumbs_pool.clone(), config).unwrap();
 
             // this isn't used anywhere in the server yet
-            let downloader_context = DownloaderWorkerContext::new();
 
             tokio::spawn(async move {
-                downloader.run(&downloader_context).await;
+                downloader.run(on_update).await;
             });
 
             let downloader_state = DownloaderState {

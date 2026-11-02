@@ -8,7 +8,7 @@ use kasa_core::{
     config::global_config::{get_config_impl, get_tag_extractors_dir},
     db::migrations::{prepare_dbs, prepare_dbs_from_config},
     downloaders::{
-        download_queue::{DownloaderWorker, DownloaderWorkerContext, init_extractors},
+        download_queue::{DownloaderStateUpdate, DownloaderWorker},
         gallery_dl::download_and_index_impl,
     },
 };
@@ -37,24 +37,17 @@ pub async fn gdl(url: &str) {
         .await
         .unwrap();
 
-    let (mut downloader, job_tx) = DownloaderWorker::init(
-        pool.clone(),
-        pool_thumbs.clone(),
-        config.clone(),
-        |_| {},
-        |hash| {
+    let on_update = |update: DownloaderStateUpdate| {
+        if let DownloaderStateUpdate::OnDone(hash) = update {
             println!("Download done for hash: {}", hash);
             process::exit(0);
-        },
-    );
+        }
+    };
 
-    let extractors =
-        init_extractors(downloader.python_workers.tagger_worker.clone(), &config).unwrap();
-    downloader.set_extractors(extractors);
-
-    let downloader_context = DownloaderWorkerContext::new();
+    let (mut downloader, job_tx) =
+        DownloaderWorker::init(pool.clone(), pool_thumbs.clone(), config.clone()).unwrap();
 
     tokio::spawn(async move {
-        downloader.run(&downloader_context).await;
+        downloader.run(on_update).await;
     });
 }

@@ -5,13 +5,13 @@ use axum::Router;
 use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
     db::migrations::{init_sqlite_vec0, prepare_main_db, prepare_thumbs_db},
-    downloaders::download_queue::{DownloaderStateUpdate, DownloaderWorker},
+    downloaders::download_queue::{DownloaderStateUpdate, job_channel, run as run_downloader},
 };
 use libsqlite3_sys::sqlite3_auto_extension;
 use sqlite_vec::sqlite3_vec_init;
 use sqlx::{Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
 use tokio::sync::broadcast;
-use tracing::{info, trace};
+use tracing::{error, info, trace};
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::api::downloader::DownloaderState;
@@ -82,19 +82,22 @@ async fn main() {
 
             let update_tx_updates = update_tx.clone();
 
-            let on_update = move |update: DownloaderStateUpdate| match update_tx_updates.send(update)
-            {
-                Ok(n) => trace!("broadcasted download update to {n} receivers"),
-                Err(e) => trace!("no receivers for download update: {e}"),
-            };
+            let on_update =
+                move |update: DownloaderStateUpdate| match update_tx_updates.send(update) {
+                    Ok(n) => trace!("broadcasted download update to {n} receivers"),
+                    Err(e) => trace!("no receivers for download update: {e}"),
+                };
 
-            let (mut downloader, tx_download_job) =
-                DownloaderWorker::init(pool.clone(), thumbs_pool.clone(), config).unwrap();
-
-            // this isn't used anywhere in the server yet
+            let (tx_download_job, rx_download_job) = job_channel();
+            let db = pool.clone();
+            let thumbs_db = thumbs_pool.clone();
 
             tokio::spawn(async move {
-                downloader.run(on_update).await;
+                if let Err(e) =
+                    run_downloader(db, thumbs_db, config, rx_download_job, on_update).await
+                {
+                    error!("downloader failed: {e}");
+                }
             });
 
             let downloader_state = DownloaderState {

@@ -43,6 +43,10 @@ output_path = ""
 [Layout]
 show_filenames = false
 thumbnail_scale = 1.5
+
+[Ai]
+onnx_rt_path = ""
+models_base_path = ""
 "#;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
@@ -138,6 +142,8 @@ pub struct GlobalConfig {
     pub downloader: Downloader,
     #[serde(rename = "Layout")]
     pub layout: Layout,
+    #[serde(rename = "Ai")]
+    pub ai: AiConfig,
 }
 
 pub fn get_config_dir() -> PathBuf {
@@ -285,6 +291,14 @@ fn find_or_create_config(path: &PathBuf) {
     }
 }
 
+#[derive(
+    Debug, Default, Serialize, Deserialize, PartialEq, Clone, uniffi::Record, specta::Type,
+)]
+pub struct AiConfig {
+    pub onnx_rt_path: String,
+    pub models_base_path: String,
+}
+
 #[test]
 fn default_config_parse() {
     #[derive(Serialize, Deserialize, Debug, Default, PartialEq)]
@@ -299,6 +313,8 @@ fn default_config_parse() {
         pub downloader: Downloader,
         #[serde(rename = "Layout")]
         pub layout: Layout,
+        #[serde(rename = "Ai")]
+        pub ai: AiConfig,
     }
 
     let config: GlobalConfig = toml::from_str(DEFAULT_CONFIG).unwrap();
@@ -308,7 +324,7 @@ fn default_config_parse() {
 
 #[test]
 fn test_config_creation() {
-    let tempdir = tempfile::tempdir().unwrap().into_path();
+    let tempdir = tempfile::tempdir().unwrap().keep();
 
     let config_path = tempdir.join("kasa").join("config.toml");
 

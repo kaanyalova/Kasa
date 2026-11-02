@@ -11,7 +11,7 @@ use axum::{
     response::IntoResponse,
 };
 use futures_util::{SinkExt, StreamExt};
-use kasa_core::downloaders::download_queue::{DownloadJob, DownloaderStateUpdate};
+use kasa_core::downloaders::download_queue::{DownloadJob, DownloaderJob, DownloaderStateUpdate};
 use kasa_python::GalleryDlStatus;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -23,7 +23,7 @@ use utoipa::IntoParams;
 
 #[derive(Clone, Debug)]
 pub struct DownloaderState {
-    pub job_tx: mpsc::Sender<DownloadJob>,
+    pub job_tx: mpsc::Sender<DownloaderJob>,
     pub update_broadcast: broadcast::Sender<DownloaderStateUpdate>,
 }
 
@@ -137,7 +137,7 @@ pub async fn push_download(
         .update_broadcast
         .send(DownloaderStateUpdate::OnProgress(placeholder));
 
-    let job = DownloadJob { url: request.url };
+    let job = DownloaderJob::Download(DownloadJob { url: request.url });
     downloader_state.job_tx.send(job).await.unwrap();
     StatusCode::OK
 }

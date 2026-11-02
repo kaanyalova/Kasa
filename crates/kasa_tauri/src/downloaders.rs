@@ -1,13 +1,13 @@
 use anyhow::{Ok, Result};
 use kasa_core::config::global_config::{GlobalConfig, get_tag_extractors_dir};
 use kasa_core::downloaders::download_queue::{
-    DownloadJob, DownloaderStateUpdate, DownloaderWorker, Extractors,
+    DownloadJob, DownloaderJob, DownloaderStateUpdate, job_channel, run as run_downloader,
 };
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
 };
 use kasa_python::{GalleryDlStatus, init_interpreter, init_interpreter_with_gallery_dl};
-use log::info;
+use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -47,7 +47,7 @@ pub async fn queue_download_job(handle: AppHandle, url: String) {
 
             local
                 .tx
-                .send(DownloadJob { url: url.clone() })
+                .send(DownloaderJob::Download(DownloadJob { url: url.clone() }))
                 .await
                 .unwrap()
         }
@@ -88,16 +88,19 @@ pub async fn reload_extractors(handle: AppHandle) {
     let store = state.0.lock().await;
 
     match &*store {
-        DownloaderStore::Local(local) => local.extractors.reload(),
+        DownloaderStore::Local(local) => {
+            if let Err(e) = local.tx.send(DownloaderJob::ReloadExtractors).await {
+                error!("failed to queue extractor reload: {e}");
+            }
+        }
         DownloaderStore::Remote(_) => {}
         _ => {}
     }
 }
 
 pub struct LocalDownloaderStore {
-    pub tx: mpsc::Sender<DownloadJob>,
+    pub tx: mpsc::Sender<DownloaderJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
-    pub extractors: Extractors,
 }
 
 pub struct RemoteDownloaderStore {
@@ -164,19 +167,16 @@ impl DownloaderStore {
             }
         };
 
-        let (mut downloader, tx) = DownloaderWorker::init(db, thumbs_db, config.clone())?;
-
-        let extractors = downloader.extractors();
+        let (tx, rx) = job_channel();
+        let config = config.clone();
 
         tokio::spawn(async move {
-            downloader.run(on_update).await;
+            if let Err(e) = run_downloader(db, thumbs_db, config, rx, on_update).await {
+                error!("downloader failed: {e}");
+            }
         });
 
-        Ok(Self::Local(LocalDownloaderStore {
-            tx,
-            statuses,
-            extractors,
-        }))
+        Ok(Self::Local(LocalDownloaderStore { tx, statuses }))
     }
 
     pub async fn new_remote(handle: AppHandle, config: &GlobalConfig) -> Result<Self> {

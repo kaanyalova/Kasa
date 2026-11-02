@@ -29,111 +29,103 @@ pub struct DownloadJob {
     pub url: String,
 }
 
-#[derive(Clone)]
-pub struct Extractors(Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>);
-
-impl Extractors {
-    pub fn reload(&self) {
-        for extractor in self.0.iter() {
-            if let Err(e) = extractor.reload() {
-                error!("failed to reload extractor: {e}");
-            }
-        }
-    }
+pub enum DownloaderJob {
+    Download(DownloadJob),
+    ReloadExtractors,
 }
 
-pub struct DownloaderWorker {
-    rx: mpsc::Receiver<DownloadJob>,
+pub fn job_channel() -> (mpsc::Sender<DownloaderJob>, mpsc::Receiver<DownloaderJob>) {
+    mpsc::channel(32)
+}
+
+pub async fn run<F>(
     db: Pool<Sqlite>,
     thumbs_db: Pool<Sqlite>,
     config: GlobalConfig,
-    extractors: Extractors,
-}
+    mut rx: mpsc::Receiver<DownloaderJob>,
+    on_update: F,
+) -> Result<()>
+where
+    F: Fn(DownloaderStateUpdate) + Send + Sync + Clone + 'static,
+{
+    let extractors = init_extractors()?;
 
-impl DownloaderWorker {
-    pub fn init(
-        db: Pool<Sqlite>,
-        thumbs_db: Pool<Sqlite>,
-        config: GlobalConfig,
-    ) -> Result<(Self, mpsc::Sender<DownloadJob>)> {
-        let (tx, rx) = mpsc::channel::<DownloadJob>(32);
+    let on_update_progress = on_update.clone();
+    let on_progress = move |status: &GalleryDlStatus| {
+        on_update_progress(DownloaderStateUpdate::OnProgress(status.clone()));
+    };
 
-        let extractors = init_extractors()?;
+    let downloader_worker = Arc::new(GalleryDlDownloadWorker::new(on_progress).unwrap());
 
-        Ok((
-            Self {
-                rx,
-                db: db.clone(),
-                thumbs_db: thumbs_db.clone(),
-                config,
-                extractors,
-            },
-            tx,
-        ))
-    }
-
-    pub async fn run<F>(&mut self, on_update: F)
-    where
-        F: Fn(DownloaderStateUpdate) + Send + Sync + Clone + 'static,
-    {
-        let on_update_progress = on_update.clone();
-        let on_progress = move |status: &GalleryDlStatus| {
-            on_update_progress(DownloaderStateUpdate::OnProgress(status.clone()));
-        };
-
-        let downloader_worker = Arc::new(GalleryDlDownloadWorker::new(on_progress).unwrap());
-
-        info!("python runtimes initialized, waiting for download jobs...");
-        while let Some(job) = self.rx.recv().await {
-            self.process_download_job(&downloader_worker, on_update.clone(), job)
+    info!("python runtimes initialized, waiting for download jobs...");
+    while let Some(job) = rx.recv().await {
+        match job {
+            DownloaderJob::Download(job) => {
+                process_download_job(
+                    &downloader_worker,
+                    &db,
+                    &thumbs_db,
+                    &config,
+                    &extractors,
+                    &on_update,
+                    job,
+                )
                 .await;
+            }
+            DownloaderJob::ReloadExtractors => {
+                for extractor in extractors.iter() {
+                    if let Err(e) = extractor.reload() {
+                        error!("failed to reload extractor: {e}");
+                    }
+                }
+            }
         }
-        info!("download loop done?");
     }
+    info!("download loop done?");
+    Ok(())
+}
 
-    async fn process_download_job<F>(
-        &mut self,
-        downloader_worker: &Arc<GalleryDlDownloadWorker>,
-        on_update: F,
-        job: DownloadJob,
-    ) where
-        F: Fn(DownloaderStateUpdate) + Send + Sync + Clone + 'static,
+async fn process_download_job<F>(
+    downloader_worker: &Arc<GalleryDlDownloadWorker>,
+    db: &Pool<Sqlite>,
+    thumbs_db: &Pool<Sqlite>,
+    config: &GlobalConfig,
+    extractors: &Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
+    on_update: &F,
+    job: DownloadJob,
+) where
+    F: Fn(DownloaderStateUpdate) + Send + Sync + Clone + 'static,
+{
+    let on_update_error = on_update.clone();
+    let on_done = {
+        let on_update = on_update.clone();
+        move |hash: String| on_update(DownloaderStateUpdate::OnDone(hash))
+    };
+
+    let output_path = config.downloader.output_path.clone();
+
+    let extractor_refs: Vec<&(dyn TagExtractor + Send + Sync)> =
+        extractors.iter().map(|e| e.as_ref()).collect();
+
+    if let Err(e) = download_and_index_impl(
+        downloader_worker.clone(),
+        &job.url,
+        &output_path,
+        db,
+        thumbs_db,
+        on_done,
+        &extractor_refs,
+    )
+    .await
     {
-        let on_update_error = on_update.clone();
-        let on_done = move |hash: String| on_update(DownloaderStateUpdate::OnDone(hash));
-        let interpreter = downloader_worker.clone();
-        let db = self.db.clone();
-        let thumbs_db = self.thumbs_db.clone();
-        let output_path = self.config.downloader.output_path.clone();
-        let extractors = self.extractors.clone();
-
-        let extractor_refs: Vec<&(dyn TagExtractor + Send + Sync)> =
-            extractors.0.iter().map(|e| e.as_ref()).collect();
-
-        if let Err(e) = download_and_index_impl(
-            interpreter,
-            &job.url,
-            &output_path,
-            &db,
-            &thumbs_db,
-            on_done,
-            &extractor_refs,
-        )
-        .await
-        {
-            on_update_error(DownloaderStateUpdate::OnError {
-                url_hash: hash_url(&job.url),
-                error: e.to_string(),
-            });
-        }
-    }
-
-    pub fn extractors(&self) -> Extractors {
-        self.extractors.clone()
+        on_update_error(DownloaderStateUpdate::OnError {
+            url_hash: hash_url(&job.url),
+            error: e.to_string(),
+        });
     }
 }
 
-pub fn init_extractors() -> Result<Extractors> {
+pub fn init_extractors() -> Result<Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>> {
     let extractors_dir = get_tag_extractors_dir()?;
 
     // should i get rid of this oop shit?
@@ -142,8 +134,8 @@ pub fn init_extractors() -> Result<Extractors> {
 
     let configurable_exactor = ConfigurableExtractor::init(&extractors_dir)?;
 
-    Ok(Extractors(Arc::new(vec![
+    Ok(Arc::new(vec![
         Box::new(python_extractor),
         Box::new(configurable_exactor),
-    ])))
+    ]))
 }

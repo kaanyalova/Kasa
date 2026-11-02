@@ -6,7 +6,7 @@ use anyhow::Result;
 use kasa_core::{
     config::global_config::GlobalConfig,
     downloaders::download_queue::{
-        DownloadJob, DownloaderStateUpdate, DownloaderWorker, Extractors,
+        DownloadJob, DownloaderJob, DownloaderStateUpdate, job_channel, run as run_downloader,
     },
 };
 use kasa_python::GalleryDlStatus;
@@ -19,9 +19,8 @@ use crate::events::{DownloaderProgressUpdatedEvent, KasaEvent, TagsUpdatedEvent}
 
 #[derive(Clone)]
 pub struct LocalDownloader {
-    pub tx: mpsc::Sender<DownloadJob>,
+    pub tx: mpsc::Sender<DownloaderJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
-    pub extractors: Extractors,
     on_event: Option<EventCallback>,
 }
 
@@ -72,18 +71,18 @@ impl LocalDownloader {
             }
         };
 
-        let (mut downloader, tx) = DownloaderWorker::init(db, thumbs_db, config.clone())?;
-
-        let extractors = downloader.extractors();
+        let (tx, rx) = job_channel();
+        let config = config.clone();
 
         tokio::spawn(async move {
-            downloader.run(on_update).await;
+            if let Err(e) = run_downloader(db, thumbs_db, config, rx, on_update).await {
+                eprintln!("downloader failed: {e}");
+            }
         });
 
         Ok(Self {
             tx,
             statuses,
-            extractors,
             on_event,
         })
     }
@@ -105,9 +104,9 @@ impl LocalDownloader {
         }
 
         self.tx
-            .send(DownloadJob {
+            .send(DownloaderJob::Download(DownloadJob {
                 url: url.to_string(),
-            })
+            }))
             .await
             .unwrap();
     }
@@ -116,7 +115,9 @@ impl LocalDownloader {
         self.statuses.lock().unwrap().clone()
     }
 
-    pub fn reload_extractors(&self) {
-        self.extractors.reload();
+    pub async fn reload_extractors(&self) {
+        if let Err(e) = self.tx.send(DownloaderJob::ReloadExtractors).await {
+            eprintln!("failed to queue extractor reload: {e}");
+        }
     }
 }

@@ -1,5 +1,6 @@
 
 type SettingsSidebarProps = {
     selectedCategory: string,
-    updateSelectedCategory: Function
+    updateSelectedCategory: Function,
+    children: any,
 }

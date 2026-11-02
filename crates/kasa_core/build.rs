@@ -69,6 +69,7 @@ fn main() {
 
     // workaround for
     // https://github.com/rust-lang/rust/issues/109717
+    /*
     let target = std::env::var("TARGET").unwrap();
     if target == "x86_64-linux-android" {
         let ndk_home = std::env::var("NDK_HOME").unwrap();
@@ -78,4 +79,5 @@ fn main() {
             ndk_home
         );
     }
+    */
 }

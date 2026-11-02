@@ -1,3 +1,4 @@
+use kasa_ai::TextRegion;
 use rayon::str;
 use serde::{Deserialize, Serialize};
 use sqlx::{Encode, prelude::FromRow, types::Json};
@@ -9,7 +10,7 @@ use utoipa::ToSchema;
 use crate::{index::index_video::VideoMetadata, tags::presets::TagPresetData};
 
 /// Info about Media of all types
-#[derive(FromRow, Serialize, Deserialize, Debug, Clone, PartialEq, ToSchema)]
+#[derive(FromRow, Serialize, Deserialize, Debug, Clone, PartialEq, ToSchema, uniffi::Record)]
 pub struct Media {
     pub hash: String,
     pub media_type: String,
@@ -75,7 +76,7 @@ pub struct Tag {
 }
 
 /// File-tag pairs
-#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type, ToSchema)]
+#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type, ToSchema, uniffi::Record)]
 pub struct HashTagPair {
     pub hash: String,
     pub tag_name: String,
@@ -110,7 +111,7 @@ pub struct RawTagsField {
 
 /// Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
 /// of virtual tables
-#[derive(Debug, FromRow, Clone, Serialize, Deserialize, specta::Type, ToSchema)]
+#[derive(Debug, FromRow, Clone, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
 #[allow(unused)]
 pub struct TagDetail {
     name: String,
@@ -141,7 +142,7 @@ pub struct MediaGroupEntry {
     hash: String,
 }
 
-#[derive(Debug, sqlx::FromRow, Serialize, Deserialize, specta::Type, ToSchema)]
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize, specta::Type, ToSchema, uniffi::Record)]
 #[allow(unused)]
 pub struct MediaSource {
     hash: String,
@@ -176,4 +177,10 @@ pub struct RemoteMediaCache {
     pub filename: Option<String>,
     pub media_type: String,
     pub video_length: Option<f64>,
+}
+
+#[derive(Debug, FromRow)]
+pub struct OcrData {
+    pub hash: String,
+    pub regions: SqlxJson<Vec<TextRegion>>,
 }

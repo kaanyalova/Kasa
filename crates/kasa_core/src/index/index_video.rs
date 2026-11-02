@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema, uniffi::Record)]
 pub struct VideoAudioStreamMetadata {
     pub codec: String,
     pub codec_long_name: Option<String>,
@@ -23,7 +23,7 @@ pub struct VideoAudioStreamMetadata {
     pub channel_layout: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema, uniffi::Record)]
 pub struct VideoVideoStreamMeta {
     pub codec: String,
     pub codec_long_name: Option<String>,
@@ -44,7 +44,7 @@ pub struct VideoVideoStreamMeta {
     pub intra_dc_precision: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, specta::Type, ToSchema, uniffi::Record)]
 pub struct VideoMetadata {
     pub duration: f64,
     pub bit_rate: i64,

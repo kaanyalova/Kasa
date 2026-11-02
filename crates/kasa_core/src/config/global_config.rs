@@ -45,14 +45,14 @@ show_filenames = false
 thumbnail_scale = 1.5
 "#;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 
 pub struct Database {
     pub db_path: String,
     pub db_type: DatabaseType,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, Default, uniffi::Enum)]
 
 pub enum DatabaseType {
     #[serde(rename = "local")]
@@ -73,15 +73,24 @@ impl Default for Database {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 
 pub struct Thumbs {
-    pub resolution: [u32; 2],
+    pub resolution: Vec<u32>,
     pub thumbnail_format: ThumbnailFormat,
     pub thumbs_db_path: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
+pub struct Ai {
+    pub models_path: String,
+    pub onnx_rt_path: String,
+    pub model_config_override: Option<String>,
+}
+
+#[derive(
+    Serialize, Deserialize, Debug, Default, PartialEq, specta::Type, Clone, uniffi::Record,
+)]
 pub struct Downloader {
     pub output_path: String,
     // The plan was to have gallery-dl config options inside the config.toml
@@ -95,14 +104,14 @@ pub struct Downloader {
 impl Default for Thumbs {
     fn default() -> Self {
         Self {
-            resolution: [256, 256],
+            resolution: vec![256, 256],
             thumbnail_format: ThumbnailFormat::Png,
             thumbs_db_path: "./thumbs.kasa".to_string(),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 pub struct Layout {
     show_filenames: bool,
     thumbnail_scale: f32,
@@ -117,7 +126,9 @@ impl Default for Layout {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq, Clone, specta::Type)]
+#[derive(
+    Serialize, Deserialize, Debug, Default, PartialEq, Clone, specta::Type, uniffi::Record,
+)]
 pub struct GlobalConfig {
     #[serde(rename = "Database")]
     pub db: Database,
@@ -142,14 +153,22 @@ pub fn get_config_dir() -> PathBuf {
     os_config_dir.join("kasa")
 }
 
-pub fn get_config_impl() -> GlobalConfig {
-    let path = get_config_dir().join("config.toml");
-    find_or_create_config(&path);
+pub fn get_config_from_raw(contents: &str) -> GlobalConfig {
+    toml::from_str(&contents).unwrap()
+}
+
+pub fn get_config_from_path(path: &Path) -> GlobalConfig {
+    find_or_create_config(&path.into());
 
     let f = fs::read_to_string(path).unwrap();
 
     let config: GlobalConfig = toml::from_str(&f).unwrap();
     config
+}
+
+pub fn get_config_impl() -> GlobalConfig {
+    let path = get_config_dir().join("config.toml");
+    get_config_from_path(&path)
 }
 
 pub fn get_tag_extractors_dir() -> Result<PathBuf> {

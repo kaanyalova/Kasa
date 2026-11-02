@@ -5,8 +5,10 @@ mod gdl;
 mod index_all_ai_images;
 mod index_folder;
 mod nuke_db_versioning;
+mod ocr;
 mod populate_tags;
 mod thumbnail;
+
 use std::path::PathBuf;
 
 use ai_tag_images::ai_tag_images;
@@ -25,7 +27,7 @@ use populate_tags::populate_tags;
 #[cfg(feature = "qwen3")]
 use kasa_ai::image_embeddings::qwen3_generate_image_embeddings_single;
 
-use crate::embeddings::generate_all_image_embeddings;
+use crate::{embeddings::generate_all_image_embeddings, ocr::show_ocr_image_info};
 
 #[derive(Parser)] // requires `derive` feature
 enum KasaCli {
@@ -52,6 +54,8 @@ enum KasaCli {
     GenerateAllImageEmbeddings,
     #[cfg(feature = "qwen3")]
     GenerateImageEmbeddingQwen3(ImageEmbeddingArgs),
+    #[command(alias = "ocr")]
+    OcrImage(OcrArgs),
 }
 
 #[derive(clap::Args)]
@@ -111,6 +115,20 @@ struct ThumbnailArgs {
     out_path: std::path::PathBuf,
 }
 
+#[derive(clap::Args)]
+#[command(version, about, long_about = None)]
+struct OcrArgs {
+    #[arg(long, short)]
+    file_path: PathBuf,
+    #[arg(long, short)]
+    rt_path: PathBuf,
+    #[arg(long, short)]
+    models_path: PathBuf,
+    #[arg(long, short)]
+    #[clap(default_value_t = "PP-OcrV6-Small".to_string())]
+    model_name: String,
+}
+
 #[tokio::main]
 async fn main() {
     env_logger::init();
@@ -137,5 +155,13 @@ async fn main() {
             qwen3_generate_image_embeddings_single(&args.path)
         }
         KasaCli::GenerateAllImageEmbeddings => generate_all_image_embeddings().await,
+        KasaCli::OcrImage(ocr_args) => show_ocr_image_info(
+            &ocr_args.file_path,
+            &ocr_args.rt_path,
+            &ocr_args.models_path,
+            &ocr_args.model_name,
+        )
+        .await
+        .unwrap(),
     }
 }

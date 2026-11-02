@@ -1,0 +1,95 @@
+mod database;
+mod downloader;
+pub mod local;
+pub mod remote;
+
+use std::{path::Path, sync::Arc};
+
+use async_trait::async_trait;
+use kasa_core::{
+    config::global_config::{
+        GlobalConfig, get_config_from_path, get_config_from_raw, get_config_impl,
+    },
+    db::{
+        TagQueryOutput,
+        embeddings::EmbeddingDistance,
+        schema::{Media, MediaSource},
+    },
+    media::{MediaInfo, SourceCategoryGroupedTags, TagWithDetails},
+    tags::{AllTagsOrderingCriteria, TagWithCount, search::SearchCriteria},
+};
+
+use crate::{errors::ClientError, events::KasaEvent};
+
+type EventCallback = Arc<dyn Fn(KasaEvent) + Send + Sync + 'static>;
+
+#[uniffi::export]
+#[async_trait]
+pub trait KasaClient: Send + Sync {
+    fn call_event(&self, event: KasaEvent);
+
+    async fn get_info(&self, hash: &str) -> Result<Option<MediaInfo>, ClientError>;
+
+    async fn get_tags(&self, hash: &str) -> Result<Vec<TagWithDetails>, ClientError>;
+
+    async fn get_media_type(&self, hash: &str) -> Result<String, ClientError>;
+
+    async fn get_tags_grouped_by_source_categories(
+        &self,
+        hash: &str,
+    ) -> Result<SourceCategoryGroupedTags, ClientError>;
+
+    async fn get_media_name(&self, hash: &str) -> Result<String, ClientError>;
+
+    async fn get_media_sources(&self, hash: &str) -> Result<Vec<MediaSource>, ClientError>;
+
+    async fn set_media_favorite(&self, hash: &str, is_favorite: bool) -> Result<(), ClientError>;
+
+    async fn get_video_length(&self, hash: &str) -> Result<Option<f64>, ClientError>;
+
+    async fn get_top_n_closest_for_media(
+        &self,
+        hash: &str,
+        n: i64,
+    ) -> Result<Vec<EmbeddingDistance>, ClientError>;
+
+    async fn get_valid_path(&self, hash: &str) -> Result<String, ClientError>;
+
+    async fn query_tags(&self, query: &str, limit: i64)
+    -> Result<Vec<TagQueryOutput>, ClientError>;
+
+    async fn get_thumbnail(&self, hash: &str) -> Result<Vec<u8>, ClientError>;
+
+    async fn serve_media(&self, hash: &str) -> Result<Vec<u8>, ClientError>;
+
+    async fn search(&self, criteria: SearchCriteria) -> Result<Vec<Media>, ClientError>;
+
+    async fn update_tags(&self, raw_input: &str, hash: &str) -> Result<(), ClientError>;
+
+    async fn delete_tags(&self, hash: &str, tags: &[String]) -> Result<(), ClientError>;
+
+    async fn get_tags_as_text(&self, hash: &str) -> Result<Option<String>, ClientError>;
+
+    async fn get_list_of_all_tags_with_details(
+        &self,
+        ordering_criteria: AllTagsOrderingCriteria,
+    ) -> Result<Vec<TagWithCount>, ClientError>;
+
+    async fn push_download(&self, url: &str) -> Result<(), ClientError>;
+
+    fn load_config_from_path(&self, path: &str) -> GlobalConfig;
+    fn load_config_from_raw(&self, config_contents: &str) -> GlobalConfig;
+}
+
+// uniffi cannot have default traits implementations now, they are here for now
+pub struct KasaSharedMethods {}
+
+impl KasaSharedMethods {
+    pub fn load_config_from_path(path: &str) -> GlobalConfig {
+        get_config_from_path(Path::new(path))
+    }
+
+    pub fn load_config_from_raw(config_contents: &str) -> GlobalConfig {
+        get_config_from_raw(config_contents)
+    }
+}

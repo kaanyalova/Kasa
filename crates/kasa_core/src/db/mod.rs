@@ -14,7 +14,7 @@ use crate::index::media_types::FirstPass;
 
 use schema::{Media, TagDetail};
 
-#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type, ToSchema)]
+#[derive(Serialize, Deserialize, FromRow, Debug, Clone, specta::Type, ToSchema, uniffi::Record)]
 pub struct TagQueryOutput {
     name: String,
     #[sqlx(rename = "tag_count")]

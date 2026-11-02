@@ -6,7 +6,7 @@ use kasa_core::{
     config::global_config::{GlobalConfig, get_config_impl},
     db::migrations::{init_sqlite_vec0, prepare_main_db, prepare_thumbs_db},
     downloaders::download_queue::{
-        Downloader, DownloaderContext, DownloaderStateUpdate, init_extractors,
+        DownloaderStateUpdate, DownloaderWorker, DownloaderWorkerContext, init_extractors,
     },
 };
 use kasa_python::GalleryDlStatus;
@@ -101,20 +101,23 @@ async fn main() {
                 Err(e) => trace!("no receivers for OnDone: {e}"),
             };
 
-            let (mut downloader, tx_download_job) = Downloader::init(
+            let (mut downloader, tx_download_job) = DownloaderWorker::init(
                 pool.clone(),
                 thumbs_pool.clone(),
                 config,
                 on_progress,
                 on_done,
             );
-            let extractors =
-                init_extractors(downloader.workers.tagger_worker.clone(), &kasa_config).unwrap();
+            let extractors = init_extractors(
+                downloader.python_workers.tagger_worker.clone(),
+                &kasa_config,
+            )
+            .unwrap();
 
             downloader.set_extractors(extractors);
 
             // this isn't used anywhere in the server yet
-            let downloader_context = DownloaderContext::new();
+            let downloader_context = DownloaderWorkerContext::new();
 
             tokio::spawn(async move {
                 downloader.run(&downloader_context).await;

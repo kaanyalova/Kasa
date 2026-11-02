@@ -58,7 +58,7 @@ use crate::api::downloader::push_download;
 
 use axum::extract::FromRef;
 use futures_util::lock::Mutex;
-use kasa_core::downloaders::download_queue::Downloader;
+use kasa_core::downloaders::download_queue::DownloaderWorker;
 use kasa_python::Interpreter;
 use sqlx::{Pool, Sqlite};
 use tokio::sync::broadcast;

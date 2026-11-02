@@ -4,8 +4,11 @@ use kasa_ai::model_manager::{AiProgress, ModelManager};
 
 pub mod ocr_types;
 
-struct AIWorker {
+struct AiWorker {
     model_manager: Option<ModelManager>,
+}
+
+struct AiWorkerContext {
     ai_progress: HashMap<u64, AiProgress>,
 }
 
@@ -13,20 +16,19 @@ enum AIJob {
     OcrImageBatch(Vec<String>),
     ImageEmbeddingBatch(Vec<String>),
     TextEmbedding(String),
-    WdvTagingBatch(Vec<String>),
+    WdvTaggingBatch(Vec<String>),
 }
 
-impl AIWorker {
+impl AiWorker {
     pub fn uninitialized() -> Self {
         Self {
             model_manager: None,
-            ai_progress: HashMap::new(),
         }
     }
 
     pub fn initialize(&mut self) {
-        self.model_manager =
-            ModelManager::new(rt_path, models_path, on_download_progress, on_ai_progress)
+        // self.model_manager =
+        //    ModelManager::new(rt_path, models_path, on_download_progress, on_ai_progress)
     }
 
     fn update_progress_state(&mut self, progress: AiProgress) {

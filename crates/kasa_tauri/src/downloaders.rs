@@ -1,7 +1,7 @@
 use anyhow::{Ok, Result};
 use kasa_core::config::global_config::{GlobalConfig, get_tag_extractors_dir};
 use kasa_core::downloaders::download_queue::{
-    DownloadJob, Downloader, DownloaderContext, DownloaderStateUpdate, init_extractors,
+    DownloadJob, DownloaderStateUpdate, DownloaderWorker, DownloaderWorkerContext, init_extractors,
 };
 use kasa_core::{
     config::global_config::get_config_impl, downloaders::gallery_dl::download_and_index_impl,
@@ -165,9 +165,9 @@ impl DownloaderStore {
         };
 
         let (mut downloader, tx) =
-            Downloader::init(db, thumbs_db, config.clone(), on_progress, on_done);
+            DownloaderWorker::init(db, thumbs_db, config.clone(), on_progress, on_done);
 
-        let tagger_worker = downloader.workers.tagger_worker.clone();
+        let tagger_worker = downloader.python_workers.tagger_worker.clone();
         let statuses_run = statuses.clone();
 
         let extractors = init_extractors(tagger_worker, config)?;
@@ -176,7 +176,7 @@ impl DownloaderStore {
         downloader.set_extractors(extractors_clone);
 
         tokio::spawn(async move {
-            let ctx = DownloaderContext::from_values(statuses_run);
+            let ctx = DownloaderWorkerContext::from_values(statuses_run);
             downloader.run(&ctx).await;
         });
 

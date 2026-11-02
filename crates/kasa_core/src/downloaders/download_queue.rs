@@ -35,14 +35,13 @@ pub struct DownloadJob {
     pub url: String,
 }
 
-// this is the stuff thats on the "client" side
-// what should tauri implement for the server/local modes,
-// things that are updated by ws etc.
-pub struct DownloaderContext {
+// part of the worker that needs to be synchronized when ran
+// in the server/client mode,
+pub struct DownloaderWorkerContext {
     statuses: Arc<Mutex<HashMap<String, GalleryDlStatus>>>,
 }
 
-impl DownloaderContext {
+impl DownloaderWorkerContext {
     pub fn from_values(statuses: Arc<Mutex<HashMap<String, GalleryDlStatus>>>) -> Self {
         Self { statuses }
     }
@@ -55,8 +54,8 @@ impl DownloaderContext {
 }
 
 // this is the stuff for the "server" side
-pub struct Downloader<FP: Fn(&GalleryDlStatus) + Send + Sync, FD: Fn(String) + Send + Sync> {
-    pub workers: PythonWorkers,
+pub struct DownloaderWorker<FP: Fn(&GalleryDlStatus) + Send + Sync, FD: Fn(String) + Send + Sync> {
+    pub python_workers: PythonWorkers,
     rx: mpsc::Receiver<DownloadJob>,
     // url hashes mapped to the current download statuses
     db: Pool<Sqlite>,
@@ -67,7 +66,7 @@ pub struct Downloader<FP: Fn(&GalleryDlStatus) + Send + Sync, FD: Fn(String) + S
     extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
 }
 
-impl<FP, FD> Downloader<FP, FD>
+impl<FP, FD> DownloaderWorker<FP, FD>
 where
     FP: Fn(&GalleryDlStatus) + Send + Sync + Clone + 'static,
     FD: Fn(String) + Send + Sync + Clone + 'static,
@@ -90,7 +89,7 @@ where
 
         (
             Self {
-                workers: interpreters,
+                python_workers: interpreters,
                 rx,
                 on_downloader_done: on_done,
                 on_downloader_progress: on_progress,
@@ -103,7 +102,7 @@ where
         )
     }
 
-    pub async fn run(&mut self, ctx: &DownloaderContext) {
+    pub async fn run(&mut self, ctx: &DownloaderWorkerContext) {
         info!("python runtimes initialized, waiting for download jobs...");
         while let Some(job) = self.rx.recv().await {
             self.process_download_job(ctx, job).await;
@@ -111,12 +110,12 @@ where
         info!("download loop done?");
     }
 
-    async fn process_download_job(&mut self, ctx: &DownloaderContext, job: DownloadJob) {
+    async fn process_download_job(&mut self, ctx: &DownloaderWorkerContext, job: DownloadJob) {
         let statuses_progress = ctx.statuses.clone();
         let statuses_done = ctx.statuses.clone();
         let on_progress_cb = self.on_downloader_progress.clone();
         let on_done_cb = self.on_downloader_done.clone();
-        let interpreter = self.workers.downloader_worker.clone();
+        let interpreter = self.python_workers.downloader_worker.clone();
         let db = self.db.clone();
         let thumbs_db = self.thumbs_db.clone();
         let output_path = self.config.downloader.output_path.clone();

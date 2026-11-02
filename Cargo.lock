@@ -5449,6 +5449,7 @@ dependencies = [
  "env_logger",
  "futures-util",
  "image",
+ "kasa_ai",
  "kasa_core",
  "kasa_python",
  "libsqlite3-sys",

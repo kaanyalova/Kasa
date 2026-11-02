@@ -4,7 +4,12 @@ use std::sync::Mutex as SyncMutex;
 
 use anyhow::Result;
 use kasa_core::{
+<<<<<<< HEAD
     config::global_config::GlobalConfig, downloaders::download_queue::DownloaderStateUpdate,
+=======
+    config::global_config::GlobalConfig,
+    downloaders::download_queue::DownloaderStateUpdate,
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 };
 use kasa_python::GalleryDlStatus;
 
@@ -28,6 +33,7 @@ impl RemoteDownloader {
 
         let statuses_update = statuses.clone();
         client
+<<<<<<< HEAD
             .listen_for_downloader_updates(move |update: DownloaderStateUpdate| match update {
                 DownloaderStateUpdate::OnProgress(gallery_dl_status) => {
                     statuses_update
@@ -49,6 +55,31 @@ impl RemoteDownloader {
                             DownloaderProgressUpdatedEvent {},
                         ));
                         on_event(KasaEvent::TagsUpdated(TagsUpdatedEvent {}));
+=======
+            .listen_for_downloader_updates(move |update: DownloaderStateUpdate| {
+                match update {
+                    DownloaderStateUpdate::OnProgress(gallery_dl_status) => {
+                        statuses_update
+                            .lock()
+                            .unwrap()
+                            .insert(gallery_dl_status.url_hash.clone(), gallery_dl_status);
+
+                        if let Some(on_event) = &on_event {
+                            on_event(KasaEvent::DownloaderProgressUpdated(
+                                DownloaderProgressUpdatedEvent {},
+                            ));
+                        }
+                    }
+                    DownloaderStateUpdate::OnDone(hash) => {
+                        statuses_update.lock().unwrap().remove(&hash);
+
+                        if let Some(on_event) = &on_event {
+                            on_event(KasaEvent::DownloaderProgressUpdated(
+                                DownloaderProgressUpdatedEvent {},
+                            ));
+                            on_event(KasaEvent::TagsUpdated(TagsUpdatedEvent {}));
+                        }
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
                     }
                 }
             })

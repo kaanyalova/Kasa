@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 use std::sync::{Arc, OnceLock};
 
 use jni::jni_mangle;
+=======
+use std::sync::Arc;
+
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 use kasa_core::config::global_config::GlobalConfig;
 
 use crate::clients::{KasaClient, local::LocalKasaClient, remote::RemoteKasaClient};
@@ -11,6 +16,7 @@ pub mod clients;
 pub mod errors;
 pub mod events;
 
+<<<<<<< HEAD
 static VM: once_cell::sync::OnceCell<jni::JavaVM> = once_cell::sync::OnceCell::new();
 static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
 
@@ -64,4 +70,18 @@ pub extern "system" fn java_init<'local>(
         let _ = VM.set(vm);
         Ok(())
     });
+=======
+#[uniffi::export]
+async fn new_local(config: &GlobalConfig) -> Arc<dyn KasaClient> {
+    let mut client = LocalKasaClient::wait_for_frontend();
+    client.initialize(&config).await;
+    Arc::new(client)
+}
+
+#[uniffi::export]
+async fn new_remote(config: &GlobalConfig) -> Arc<dyn KasaClient> {
+    let mut client = RemoteKasaClient::wait_for_frontend();
+    client.initialize(&config).await;
+    Arc::new(client)
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 }

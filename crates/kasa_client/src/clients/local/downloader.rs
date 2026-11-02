@@ -5,7 +5,13 @@ use std::sync::Mutex as SyncMutex;
 use anyhow::Result;
 use kasa_core::{
     config::global_config::GlobalConfig,
+<<<<<<< HEAD
     downloaders::download_queue::{DownloadJob, Downloader, DownloaderContext, init_extractors},
+=======
+    downloaders::download_queue::{
+        DownloadJob, Downloader, DownloaderContext, init_extractors,
+    },
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 };
 use kasa_python::GalleryDlStatus;
 use kasa_python::extractors::TagExtractor;
@@ -17,7 +23,10 @@ use crate::clients::EventCallback;
 use crate::clients::downloader::KasaDownloader;
 use crate::events::{DownloaderProgressUpdatedEvent, KasaEvent, TagsUpdatedEvent};
 
+<<<<<<< HEAD
 #[derive(Clone)]
+=======
+>>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 pub struct LocalDownloader {
     pub tx: mpsc::Sender<DownloadJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,

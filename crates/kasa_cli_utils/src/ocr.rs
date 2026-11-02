@@ -15,6 +15,7 @@ pub async fn show_ocr_image_info(
         Box::new(|p| {
             //dbg!(p);
         }),
+        Box::new(|p| {}),
     );
 
     model_manager.load_default_sources()?;

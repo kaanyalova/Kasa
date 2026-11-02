@@ -1,5 +1,6 @@
 use std::env;
 
+use kasa_ai::model_manager::ModelManager;
 use tauri_specta::collect_events;
 use tokio::sync::Mutex;
 
@@ -82,6 +83,7 @@ mod db;
 mod image;
 mod media;
 //mod serve_media;
+mod ai;
 mod config;
 pub mod downloaders;
 mod events;

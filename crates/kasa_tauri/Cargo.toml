@@ -37,6 +37,7 @@ tower-http = { workspace = true, features = ["fs"] }
 sqlx = { workspace = true, features = ["sqlite", "runtime-tokio"] }
 kasa_core = { path = "../kasa_core" }
 kasa_python = { path = "../kasa_python" }
+kasa_ai = { path = "../kasa_ai" }
 #tauri-plugin-theme = "0.4.1"
 tauri-plugin-os = { workspace = true }
 log = { workspace = true }
@@ -63,7 +64,7 @@ serde_urlencoded = "0.7.1"
 tokio-tungstenite = "0.30.0"
 futures-util = "0.3.33"
 tokio-util = "0.7.19"
-tauri-plugin-drag = {git = "https://github.com/kaanyalova/drag-rs"}
+tauri-plugin-drag = { git = "https://github.com/kaanyalova/drag-rs" }
 
 
 [features]

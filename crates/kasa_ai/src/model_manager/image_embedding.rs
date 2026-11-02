@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use anyhow::{Context, Result};
 use fastembed::{ImageEmbedding, ImageInitOptionsUserDefined, UserDefinedImageEmbeddingModel};
 
-use super::{ModelManager, ModelManagerModels};
+use super::{AiProgress, AiProgressValues, ModelManager, ModelManagerModels};
 use crate::model_sources::{ImageEmbeddingModel, Model};
 
 static EMBEDDING_IMAGE_BATCH_COUNT: usize = 10;
@@ -15,6 +15,8 @@ impl ModelManager {
         model_name: &str,
         image_paths: Vec<&Path>,
     ) -> Result<Vec<Option<Vec<f32>>>> {
+        let job_id = self.next_job_id();
+
         let loaded_model = self
             .loaded_image_embedding_model
             .get_mut(model_name)
@@ -22,6 +24,10 @@ impl ModelManager {
                 "the image embedding model {} was not loaded in the memory",
                 model_name
             ))?;
+
+        let total_to_process = image_paths.len() as u32;
+        let mut expected_process_count = 0;
+        let mut actual_process_count = 0;
 
         let mut all_results = Vec::with_capacity(image_paths.len());
 
@@ -34,6 +40,18 @@ impl ModelManager {
                 .unzip();
 
             let results = loaded_model.embed_images(valid_images)?;
+
+            // images that failed to load are not included in the results
+            expected_process_count += image_batch.len() as u32;
+            actual_process_count += results.len() as u32;
+
+            (self.on_progress)(AiProgress::ImageEmbeddingProgress(AiProgressValues::new(
+                job_id,
+                total_to_process,
+                expected_process_count,
+                actual_process_count,
+                EMBEDDING_IMAGE_BATCH_COUNT as u32,
+            )));
 
             let mut mapped_results = vec![None; image_batch.len()];
 

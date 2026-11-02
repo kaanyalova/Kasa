@@ -6,7 +6,7 @@ use oar_ocr::{
     utils::load_image,
 };
 
-use super::{ModelManager, ModelManagerModels};
+use super::{AiProgress, AiProgressValues, ModelManager, ModelManagerModels};
 use crate::model_sources::{Model, OcrModel};
 
 static OCR_IMAGE_BATCH_COUNT: usize = 10;
@@ -15,10 +15,11 @@ impl ModelManager {
     /// returns the vector of text regions while keeping the original indices of the input image_paths
     /// if something goes wrong while ocring the image it returns None for that index
     pub fn ocr_images(
-        &self,
+        &mut self,
         model_name: &str,
         image_paths: Vec<&Path>,
     ) -> Result<Vec<Option<Vec<TextRegion>>>> {
+        let job_id = self.next_job_id();
         assert!(self.is_onnx_rt_loaded);
         let model = self
             .models
@@ -33,6 +34,10 @@ impl ModelManager {
         )
         .build()?;
 
+        let total_to_process = image_paths.len() as u32;
+        let mut expected_process_count = 0;
+        let mut actual_process_count = 0;
+
         let mut all_results = Vec::with_capacity(image_paths.len());
 
         for image_batch in image_paths.chunks(OCR_IMAGE_BATCH_COUNT) {
@@ -44,6 +49,18 @@ impl ModelManager {
                 .unzip();
 
             let results = ocr.predict(valid_images)?;
+
+            // images that failed to load are not included in the results
+            expected_process_count += image_batch.len() as u32;
+            actual_process_count += results.len() as u32;
+
+            (self.on_progress)(AiProgress::OcrProgress(AiProgressValues::new(
+                job_id,
+                total_to_process,
+                expected_process_count,
+                actual_process_count,
+                OCR_IMAGE_BATCH_COUNT as u32,
+            )));
 
             let mut mapped_results = vec![None; image_batch.len()];
 
@@ -93,5 +110,4 @@ impl ModelManagerModels {
             None
         }
     }
-
 }

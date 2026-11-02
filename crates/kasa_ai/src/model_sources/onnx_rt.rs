@@ -10,7 +10,9 @@ use libloading::Library;
 use serde::{Deserialize, Serialize};
 use zip::ZipArchive;
 
-use crate::model_sources::{Model, ModelDownloadProgress, ModelSourcesConfig, ModelState};
+use crate::model_sources::{
+    Model, ModelDownloadProgress, ModelSourcesConfig, ModelState, hash_source,
+};
 
 // onnx rt supports a billion different architectures, but provides builds only for cpu and cuda
 // and others are a pain to build
@@ -46,7 +48,7 @@ pub struct OnnxRtLibraries {
     pub filtered_sources: Vec<OnnxRTSource>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 pub struct OnnxRTSource {
     pub version_reference: String,
     pub os: String,
@@ -85,8 +87,11 @@ impl OnnxRTSource {
             runtime_dynamic_lib_path: onnxrt_lib_path,
         };
 
+        let model_id = hash_source(&self);
+
         OnnxRT {
             state: ModelState::NotDownloaded,
+            model_id,
             paths,
             source: self,
         }
@@ -100,32 +105,40 @@ pub struct OnnxRTPaths {
 
 pub struct OnnxRT {
     state: ModelState,
+    pub model_id: u64,
     pub paths: OnnxRTPaths,
     pub source: OnnxRTSource,
 }
 
 #[async_trait::async_trait]
 impl Model for OnnxRT {
+    fn model_id(&self) -> u64 {
+        self.model_id
+    }
+
     async fn download_model(
         &mut self,
         client: &reqwest::Client,
         on_progress: impl Fn(ModelDownloadProgress) + Send + Sync,
     ) -> Result<()> {
+        let model_id = self.model_id();
+
         let tempdir = tempfile::tempdir()?;
         let filename = format!("onnxrt_{}.zip", self.source.sha256);
         let temp_file = tempdir.path().join(filename);
 
-        Self::streaming_download(client, &self.source.url, &temp_file, &on_progress).await?;
+        Self::streaming_download(client, model_id, &self.source.url, &temp_file, &on_progress)
+            .await?;
 
-        on_progress(ModelDownloadProgress::HashingStart);
+        on_progress(ModelDownloadProgress::HashingStart(model_id));
         Self::check_hash(&temp_file, &self.source.sha256)?;
-        on_progress(ModelDownloadProgress::HashingEnd);
+        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
-        on_progress(ModelDownloadProgress::UnzippingStart);
+        on_progress(ModelDownloadProgress::UnzippingStart(model_id));
         let file = File::open(&temp_file)?;
         let mut archive = zip::ZipArchive::new(file)?;
         archive.extract(&self.paths.runtime_base_dir)?;
-        on_progress(ModelDownloadProgress::UnzippingEnd);
+        on_progress(ModelDownloadProgress::UnzippingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

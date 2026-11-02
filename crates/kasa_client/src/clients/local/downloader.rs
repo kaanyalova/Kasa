@@ -5,9 +5,7 @@ use std::sync::Mutex as SyncMutex;
 use anyhow::Result;
 use kasa_core::{
     config::global_config::GlobalConfig,
-    downloaders::download_queue::{
-        DownloadJob, Downloader, DownloaderContext, init_extractors,
-    },
+    downloaders::download_queue::{DownloadJob, Downloader, DownloaderContext, init_extractors},
 };
 use kasa_python::GalleryDlStatus;
 use kasa_python::extractors::TagExtractor;
@@ -23,6 +21,7 @@ pub struct LocalDownloader {
     pub tx: mpsc::Sender<DownloadJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
     pub extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
+    on_event: Option<EventCallback>,
 }
 
 impl KasaDownloader for LocalDownloader {}
@@ -81,10 +80,26 @@ impl LocalDownloader {
             tx,
             statuses,
             extractors,
+            on_event,
         })
     }
 
     pub async fn queue_download(&self, url: &str) {
+        // register the placeholder right away, otherwise queued jobs are invisible until
+        // the downloader actually starts working on them
+        let placeholder = GalleryDlStatus::new_placeholder(url, "queued");
+        self.statuses
+            .lock()
+            .unwrap()
+            .entry(placeholder.url_hash.clone())
+            .or_insert(placeholder);
+
+        if let Some(on_event) = &self.on_event {
+            on_event(KasaEvent::DownloaderProgressUpdated(
+                DownloaderProgressUpdatedEvent {},
+            ));
+        }
+
         self.tx
             .send(DownloadJob {
                 url: url.to_string(),

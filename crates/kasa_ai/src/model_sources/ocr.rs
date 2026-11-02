@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::model_sources::{Model, ModelDownloadProgress, ModelState};
+use crate::model_sources::{Model, ModelDownloadProgress, ModelState, hash_source};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 pub struct OcrModelSource {
     pub name: String,
     pub reference_url: String,
@@ -27,6 +27,7 @@ pub struct OcrModelPaths {
 
 pub struct OcrModel {
     state: ModelState,
+    pub model_id: u64,
     pub paths: OcrModelPaths,
     pub source: OcrModelSource,
 }
@@ -51,8 +52,11 @@ impl OcrModelSource {
                 .join("dictionary.txt"),
         };
 
+        let model_id = hash_source(&self);
+
         OcrModel {
             state: ModelState::NotDownloaded,
+            model_id,
             paths,
             source: self,
         }
@@ -61,13 +65,20 @@ impl OcrModelSource {
 
 #[async_trait::async_trait]
 impl Model for OcrModel {
+    fn model_id(&self) -> u64 {
+        self.model_id
+    }
+
     async fn download_model(
         &mut self,
         client: &reqwest::Client,
         on_progress: impl Fn(ModelDownloadProgress) + Send + Sync,
     ) -> Result<()> {
+        let model_id = self.model_id();
+
         Self::streaming_download(
             client,
+            model_id,
             &self.source.det_model_url,
             &self.paths.det_model_path,
             &on_progress,
@@ -75,6 +86,7 @@ impl Model for OcrModel {
         .await?;
         Self::streaming_download(
             client,
+            model_id,
             &self.source.rec_model_url,
             &self.paths.rec_model_path,
             &on_progress,
@@ -82,17 +94,18 @@ impl Model for OcrModel {
         .await?;
         Self::streaming_download(
             client,
+            model_id,
             &self.source.dict_url,
             &self.paths.dict_path,
             &on_progress,
         )
         .await?;
 
-        on_progress(ModelDownloadProgress::HashingStart);
+        on_progress(ModelDownloadProgress::HashingStart(model_id));
         Self::check_hash(&self.paths.det_model_path, &self.source.det_model_sha256)?;
         Self::check_hash(&self.paths.rec_model_path, &self.source.rec_model_sha256)?;
         Self::check_hash(&self.paths.dict_path, &self.source.dict_sha256)?;
-        on_progress(ModelDownloadProgress::HashingEnd);
+        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

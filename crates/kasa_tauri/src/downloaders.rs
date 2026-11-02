@@ -35,11 +35,23 @@ pub async fn queue_download_job(handle: AppHandle, url: String) {
     };
 
     match &*store {
-        DownloaderStore::Local(local) => local
-            .tx
-            .send(DownloadJob { url: url.clone() })
-            .await
-            .unwrap(),
+        DownloaderStore::Local(local) => {
+            let placeholder = GalleryDlStatus::new_placeholder(&url, "queued");
+            local
+                .statuses
+                .lock()
+                .unwrap()
+                .entry(placeholder.url_hash.clone())
+                .or_insert(placeholder);
+
+            DownloaderProgressUpdatedEvent {}.emit(&handle).unwrap();
+
+            local
+                .tx
+                .send(DownloadJob { url: url.clone() })
+                .await
+                .unwrap()
+        }
         DownloaderStore::Remote(remote) => remote.client.push_download(&url).await.unwrap(),
 
         DownloaderStore::Uninitialized => {}

@@ -9,10 +9,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     model_manager::ModelManager,
-    model_sources::{Model, ModelDownloadProgress, ModelState},
+    model_sources::{Model, ModelDownloadProgress, ModelState, hash_source},
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 pub struct TextEmbeddingModelSource {
     pub(crate) name: String,
     reference_url: String,
@@ -53,6 +53,7 @@ impl TextEmbeddingModelPaths {
 #[derive(Clone)]
 pub struct TextEmbeddingModel {
     state: ModelState,
+    pub model_id: u64,
     pub paths: TextEmbeddingModelPaths,
     pub source: TextEmbeddingModelSource,
 }
@@ -72,8 +73,11 @@ impl TextEmbeddingModelSource {
             tokenizer_config_file: base_dir.join("tokenizer_config.json"),
         };
 
+        let model_id = hash_source(&self);
+
         TextEmbeddingModel {
             state: ModelState::NotDownloaded,
+            model_id,
             paths,
             source: self,
         }
@@ -82,17 +86,30 @@ impl TextEmbeddingModelSource {
 
 #[async_trait::async_trait]
 impl Model for TextEmbeddingModel {
+    fn model_id(&self) -> u64 {
+        self.model_id
+    }
+
     async fn download_model(
         &mut self,
         client: &reqwest::Client,
         on_progress: impl Fn(ModelDownloadProgress) + Send + Sync,
     ) -> Result<()> {
+        let model_id = self.model_id();
+
         let paths = &self.paths;
 
-        Self::streaming_download(client, &self.source.model_url, &paths.model, &on_progress)
-            .await?;
         Self::streaming_download(
             client,
+            model_id,
+            &self.source.model_url,
+            &paths.model,
+            &on_progress,
+        )
+        .await?;
+        Self::streaming_download(
+            client,
+            model_id,
             &self.source.tokenizer_file_url,
             &paths.tokenizer_file,
             &on_progress,
@@ -100,6 +117,7 @@ impl Model for TextEmbeddingModel {
         .await?;
         Self::streaming_download(
             client,
+            model_id,
             &self.source.config_file_url,
             &paths.config_file,
             &on_progress,
@@ -107,6 +125,7 @@ impl Model for TextEmbeddingModel {
         .await?;
         Self::streaming_download(
             client,
+            model_id,
             &self.source.special_tokens_map_file_url,
             &paths.special_tokens_map_file,
             &on_progress,
@@ -114,13 +133,14 @@ impl Model for TextEmbeddingModel {
         .await?;
         Self::streaming_download(
             client,
+            model_id,
             &self.source.tokenizer_config_file_url,
             &paths.tokenizer_config_file,
             &on_progress,
         )
         .await?;
 
-        on_progress(ModelDownloadProgress::HashingStart);
+        on_progress(ModelDownloadProgress::HashingStart(model_id));
         Self::check_hash(&paths.model, &self.source.model_sha256)?;
         Self::check_hash(&paths.tokenizer_file, &self.source.tokenizer_file_sha256)?;
         Self::check_hash(&paths.config_file, &self.source.config_file_sha256)?;
@@ -132,7 +152,7 @@ impl Model for TextEmbeddingModel {
             &paths.tokenizer_config_file,
             &self.source.tokenizer_config_file_sha256,
         )?;
-        on_progress(ModelDownloadProgress::HashingEnd);
+        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::model_sources::{Model, ModelDownloadProgress, ModelState};
+use crate::model_sources::{Model, ModelDownloadProgress, ModelState, hash_source};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 pub struct WdvModelSource {
     pub name: String,
     pub reference_url: String,
@@ -25,6 +25,7 @@ pub(crate) struct WdvModelPaths {
 #[derive(Clone)]
 pub(crate) struct WdvModel {
     pub(crate) state: ModelState,
+    pub(crate) model_id: u64,
     pub(crate) paths: WdvModelPaths,
     pub(crate) source: WdvModelSource,
 }
@@ -44,8 +45,11 @@ impl WdvModelSource {
                 .join("labels.csv"),
         };
 
+        let model_id = hash_source(&self);
+
         WdvModel {
             state: ModelState::NotDownloaded,
+            model_id,
             paths,
             source: self,
         }
@@ -54,13 +58,20 @@ impl WdvModelSource {
 
 #[async_trait::async_trait]
 impl Model for WdvModel {
+    fn model_id(&self) -> u64 {
+        self.model_id
+    }
+
     async fn download_model(
         &mut self,
         client: &reqwest::Client,
         on_progress: impl Fn(ModelDownloadProgress) + Send + Sync,
     ) -> Result<()> {
+        let model_id = self.model_id();
+
         Self::streaming_download(
             client,
+            model_id,
             &self.source.model_url,
             &self.paths.model_path,
             &on_progress,
@@ -68,16 +79,17 @@ impl Model for WdvModel {
         .await?;
         Self::streaming_download(
             client,
+            model_id,
             &self.source.tag_labels_url,
             &self.paths.tag_labels_path,
             &on_progress,
         )
         .await?;
 
-        on_progress(ModelDownloadProgress::HashingStart);
+        on_progress(ModelDownloadProgress::HashingStart(model_id));
         Self::check_hash(&self.paths.tag_labels_path, &self.source.tag_labels_sha256)?;
         Self::check_hash(&self.paths.model_path, &self.source.model_sha256)?;
-        on_progress(ModelDownloadProgress::HashingEnd);
+        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

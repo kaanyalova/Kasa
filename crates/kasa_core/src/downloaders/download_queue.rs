@@ -112,13 +112,6 @@ where
     }
 
     async fn process_download_job(&mut self, ctx: &DownloaderContext, job: DownloadJob) {
-        let dummy_status = GalleryDlStatus::new_placeholder(&job.url);
-        {
-            let mut locked = ctx.statuses.lock().unwrap();
-            locked.insert(dummy_status.url_hash.clone(), dummy_status.clone());
-        }
-        (self.on_downloader_progress)(&dummy_status);
-
         let statuses_progress = ctx.statuses.clone();
         let statuses_done = ctx.statuses.clone();
         let on_progress_cb = self.on_downloader_progress.clone();

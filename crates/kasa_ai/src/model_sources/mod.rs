@@ -4,7 +4,10 @@ mod onnx_rt;
 mod text_embedding;
 mod wdv;
 
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    hash::{DefaultHasher, Hash, Hasher},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -87,11 +90,11 @@ use tokio::{fs::File, io::BufWriter};
 
 #[derive(Debug)]
 pub enum ModelDownloadProgress {
-    HashingStart,
-    HashingEnd,
-    UnzippingStart,
-    UnzippingEnd,
-    DownloadProgress(ModelDownloadProgressValues),
+    HashingStart(u64),
+    HashingEnd(u64),
+    UnzippingStart(u64),
+    UnzippingEnd(u64),
+    DownloadProgress(u64, ModelDownloadProgressValues),
 }
 
 #[derive(Debug)]
@@ -103,8 +106,18 @@ pub struct ModelDownloadProgressValues {
 
 pub trait Downloadable {}
 
+/// hashes a model source into the `u64` that is used as the id of the model
+pub(crate) fn hash_source(source: &impl Hash) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    source.hash(&mut hasher);
+    hasher.finish()
+}
+
 #[async_trait::async_trait]
 pub trait Model {
+    // hash of the model source
+    fn model_id(&self) -> u64;
+
     async fn download_model(
         &mut self,
         client: &reqwest::Client,
@@ -113,6 +126,7 @@ pub trait Model {
 
     async fn streaming_download(
         client: &reqwest::Client,
+        model_id: u64,
         url: &str,
         output_path: &Path,
         on_progress: impl Fn(ModelDownloadProgress) + Send + Sync,
@@ -143,6 +157,7 @@ pub trait Model {
 
             tokio::io::copy(&mut item.as_ref(), &mut output).await?;
             on_progress(ModelDownloadProgress::DownloadProgress(
+                model_id,
                 ModelDownloadProgressValues {
                     url: url.to_owned(),
                     bytes_downloaded,

@@ -131,6 +131,12 @@ pub async fn push_download(
     Json(request): Json<PushDownloadRequest>,
 ) -> StatusCode {
     trace!("pushing download with url: {}", request.url);
+
+    let placeholder = GalleryDlStatus::new_placeholder(&request.url, "queued");
+    let _ = downloader_state
+        .update_broadcast
+        .send(DownloaderStateUpdate::OnProgress(placeholder));
+
     let job = DownloadJob { url: request.url };
     downloader_state.job_tx.send(job).await.unwrap();
     StatusCode::OK

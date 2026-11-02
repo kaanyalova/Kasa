@@ -136,7 +136,7 @@ pub fn gdl_download(
                 vm,
             )
             .map_err(|e| {
-                vm.print_exception(e)
+                vm.print_exception(&e)
 
                 //PyError::PythonException(
                 //    e.to_pyobject(vm).try_into_value::<String>(vm).unwrap(), //.unwrap_or("Cannot get python error message!".to_string()),

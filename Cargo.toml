@@ -98,8 +98,11 @@ xz = "0.1.0"
 libsqlite3-sys = "0.38.0"
 uniffi = "0.32.1"
 
-[patch.crates-io]                                                                                                                                                                                                                               
-ffmpeg-sys-next = { git = "https://github.com/kaanyalova/rust-ffmpeg-sys", branch = "fix_android_ndk_tool_path" }  
+[patch.crates-io]
+ffmpeg-sys-next = { git = "https://github.com/kaanyalova/rust-ffmpeg-sys", branch = "fix_android_ndk_tool_path" }
+
+# rustpython patches this and it doesnt build without it
+parking_lot_core = { git = "https://github.com/youknowone/parking_lot", rev = "f4ee53a7b803354a8f0a6de2f28e93fc141240bf" }
 
 [profile.release-small]
 strip = true      # Automatically strip symbols from the binary (will remove the ~126MiB of bloat)

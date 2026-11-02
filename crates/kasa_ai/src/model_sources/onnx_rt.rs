@@ -150,6 +150,8 @@ pub fn possibly_get_cuda_version() -> Option<i32> {
     let possible_runtime_paths = ["libcudart.so.13", "libcudart.so.12", "libcudart.so"];
     #[cfg(target_os = "windows")]
     let possible_runtime_paths = ["cudart64_13.dll", "cudart64_12.dll"];
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    let possible_runtime_paths = [];
 
     for possible_runtime in possible_runtime_paths {
         unsafe {
@@ -185,21 +187,20 @@ fn get_major_cuda_version(version: i32) -> i32 {
 
 impl OnnxRtLibraries {
     pub fn new(sources: Vec<OnnxRTSource>) -> Result<Self> {
-        let libraries = Self {
+        let mut libraries = Self {
             sources,
             filtered_sources: vec![],
         };
-        Ok(Self {
-            sources: libraries.filter_available_architecture_sources()?,
-            filtered_sources: vec![],
-        })
+
+        libraries.filter_available_architecture_sources()?;
+
+        Ok(libraries)
     }
 
-    fn filter_available_architecture_sources(&self) -> Result<Vec<OnnxRTSource>> {
+    fn filter_available_architecture_sources(&mut self) -> Result<()> {
         let arch = env::consts::ARCH;
         let os = env::consts::OS;
         let gpus = sysinfo::Gpus::new()?;
-        let gpus = gpus.list();
         let has_nvidia_gpu = gpus.iter().any(|g| g.vendor() == Some("nvidia"));
         let cuda_version = if has_nvidia_gpu {
             possibly_get_cuda_version().map(get_major_cuda_version)
@@ -220,7 +221,9 @@ impl OnnxRtLibraries {
             .cloned()
             .collect();
 
-        Ok(available_sources)
+        self.filtered_sources = available_sources;
+
+        Ok(())
     }
 
     pub fn load_sources(&mut self, sources: Vec<OnnxRTSource>) -> Result<()> {

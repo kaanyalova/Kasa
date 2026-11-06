@@ -32,6 +32,13 @@
 			await commands.openWithSystemDefaultApp(path);
 		}
 	}
+
+	document.addEventListener('keypress', async (ev) => {
+		if (ev.key === 'Enter') {
+			ev.preventDefault();
+			await onDownload();
+		}
+	});
 </script>
 
 <div class="downloader">
@@ -41,10 +48,16 @@
 				<div class="downloadIcon">
 					<span class="icon-[material-symbols--download] w-5 h-5"></span>
 				</div>
+				<!---
+				is this an accessibility problem? i wish these had better explanations.
+				https://github.com/sveltejs/svelte/issues/6629
+				-->
+				<!-- svelte-ignore a11y_autofocus -->
 				<input
 					type="text"
 					class="urlInput"
 					placeholder="URL to download"
+					autofocus
 					bind:value={downloadBox}
 				/>
 			</div>

@@ -67,17 +67,6 @@ fn main() {
             .unwrap();
     }
 
-    // workaround for
-    // https://github.com/rust-lang/rust/issues/109717
-    /*
-    let target = std::env::var("TARGET").unwrap();
-    if target == "x86_64-linux-android" {
-        let ndk_home = std::env::var("NDK_HOME").unwrap();
-        println!("cargo:rustc-link-lib=static=clang_rt.builtins-x86_64-android");
-        println!(
-            "cargo:rustc-link-search={}/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux",
-            ndk_home
-        );
-    }
-    */
+    // clang's builtins archive (which provides __clear_cache) is linked by
+    // `cargo ndk --link-builtins` in build_android_stuff.sh, so no NDK path is needed here.
 }

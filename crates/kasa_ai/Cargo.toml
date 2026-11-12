@@ -19,7 +19,7 @@ ort = { version = "2.0.0-rc.13", features = [
 ], default-features = false } # should we build it from source?
 ndarray = "0.17.2"
 csv = { version = "1.3.1" }
-image.workspace = true
+image = { workspace = true, features = ["webp", "nasm"] }
 serde = { workspace = true, features = ["derive"] }
 anyhow.workspace = true
 fastembed = { version = "5.13.0", default-features = false, features = [
@@ -45,3 +45,5 @@ tempfile.workspace = true
 
 [features]
 qwen3 = ["fastembed/qwen3", "dep:candle-core"]
+[target.'cfg(not(target_os = "android"))'.dependencies]
+image = { workspace = true, features = ["avif-native"] }

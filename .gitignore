@@ -46,3 +46,5 @@ overlay_images
 kasa_gtk_experiment
 typings
 .fastembed_cache
+*.so
+*.dll

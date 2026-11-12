@@ -142,7 +142,7 @@ pub struct GlobalConfig {
     pub downloader: Downloader,
     #[serde(rename = "Layout")]
     pub layout: Layout,
-    #[serde(rename = "Ai")]
+    #[serde(rename = "Ai", default)]
     pub ai: AiConfig,
 }
 
@@ -313,7 +313,7 @@ fn default_config_parse() {
         pub downloader: Downloader,
         #[serde(rename = "Layout")]
         pub layout: Layout,
-        #[serde(rename = "Ai")]
+        #[serde(rename = "Ai", default)]
         pub ai: AiConfig,
     }
 

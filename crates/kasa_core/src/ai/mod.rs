@@ -6,6 +6,7 @@ use kasa_ai::model_sources::ModelDownloadProgress;
 use sqlx::{Pool, Sqlite};
 
 use crate::config::global_config::GlobalConfig;
+use crate::downloaders::download_queue::DownloadJob;
 
 pub mod ocr_types;
 

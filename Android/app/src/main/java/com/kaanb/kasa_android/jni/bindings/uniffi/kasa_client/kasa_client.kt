@@ -861,6 +861,14 @@ internal object IntegrityCheckingUniffiLib {
         uniffiCheckContractApiVersion(this)
         uniffiCheckApiChecksums(this)
     }
+
+    internal fun ensureInitialized() = Unit
+    external fun uniffi_kasa_client_checksum_func_load_config_from_path(
+    ): Int
+    external fun uniffi_kasa_client_checksum_func_load_config_from_raw(
+    ): Int
+    external fun uniffi_kasa_client_checksum_func_new_from_config(
+    ): Int
     external fun uniffi_kasa_client_checksum_func_new_local(
     ): Int
     external fun uniffi_kasa_client_checksum_func_new_remote(
@@ -928,6 +936,8 @@ internal object UniffiLib {
         uniffi.kasa_core.uniffiEnsureInitialized()
         
     }
+
+    internal fun ensureInitialized() = Unit
     external fun uniffi_kasa_client_fn_clone_kasaclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_kasa_client_fn_free_kasaclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -976,6 +986,12 @@ internal object UniffiLib {
     ): RustBufferGlobalConfig.ByValue
     external fun uniffi_kasa_client_fn_method_kasaclient_load_config_from_raw(`ptr`: Long,`configContents`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBufferGlobalConfig.ByValue
+    external fun uniffi_kasa_client_fn_func_load_config_from_path(`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferGlobalConfig.ByValue
+    external fun uniffi_kasa_client_fn_func_load_config_from_raw(`configContents`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferGlobalConfig.ByValue
+    external fun uniffi_kasa_client_fn_func_new_from_config(`config`: RustBufferGlobalConfig.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
     external fun uniffi_kasa_client_fn_func_new_local(`config`: RustBufferGlobalConfig.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_kasa_client_fn_func_new_remote(`config`: RustBufferGlobalConfig.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1099,6 +1115,15 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
+    if ((lib.uniffi_kasa_client_checksum_func_load_config_from_path() and 0xFFFF) != 4665) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_kasa_client_checksum_func_load_config_from_raw() and 0xFFFF) != 40558) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_kasa_client_checksum_func_new_from_config() and 0xFFFF) != 39068) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_kasa_client_checksum_func_new_local() and 0xFFFF) != 64850) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1177,10 +1202,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
  * @suppress
  */
 public fun uniffiEnsureInitialized() {
-    IntegrityCheckingUniffiLib
-    // UniffiLib() initialized as objects are used, but we still need to explicitly
-    // reference it so initialization across crates works as expected.
-    UniffiLib
+    // Call arbitrary methods on IntegrityCheckingUniffiLib and UniffiLib to ensure that
+    // their init blocks run. This ensures initialization across crates works as expected.
+    IntegrityCheckingUniffiLib.ensureInitialized()
+    UniffiLib.ensureInitialized()
 }
 
 // Async support
@@ -1921,7 +1946,7 @@ open class KasaClient: Disposable, AutoCloseable, KasaClientInterface
         { future, continuation -> UniffiLib.ffi_kasa_client_rust_future_complete_void(future, continuation) },
         { future -> UniffiLib.ffi_kasa_client_rust_future_free_void(future) },
         // lift function
-        { Unit },
+        { },
         
         // Error FFI converter
         ClientException.ErrorHandler,
@@ -2101,7 +2126,7 @@ open class KasaClient: Disposable, AutoCloseable, KasaClientInterface
         { future, continuation -> UniffiLib.ffi_kasa_client_rust_future_complete_void(future, continuation) },
         { future -> UniffiLib.ffi_kasa_client_rust_future_free_void(future) },
         // lift function
-        { Unit },
+        { },
         
         // Error FFI converter
         ClientException.ErrorHandler,
@@ -2125,7 +2150,7 @@ open class KasaClient: Disposable, AutoCloseable, KasaClientInterface
         { future, continuation -> UniffiLib.ffi_kasa_client_rust_future_complete_void(future, continuation) },
         { future -> UniffiLib.ffi_kasa_client_rust_future_free_void(future) },
         // lift function
-        { Unit },
+        { },
         
         // Error FFI converter
         ClientException.ErrorHandler,
@@ -2192,7 +2217,7 @@ open class KasaClient: Disposable, AutoCloseable, KasaClientInterface
         { future, continuation -> UniffiLib.ffi_kasa_client_rust_future_complete_void(future, continuation) },
         { future -> UniffiLib.ffi_kasa_client_rust_future_free_void(future) },
         // lift function
-        { Unit },
+        { },
         
         // Error FFI converter
         ClientException.ErrorHandler,
@@ -3144,6 +3169,39 @@ public object FfiConverterSequenceTypeTagWithDetails: FfiConverterRustBuffer<Lis
 
 
 
+ fun `loadConfigFromPath`(`path`: kotlin.String): GlobalConfig {
+            return FfiConverterTypeGlobalConfig.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_kasa_client_fn_func_load_config_from_path(
+    
+        
+        FfiConverterString.lower(`path`),_status)
+}
+    )
+    }
+    
+ fun `loadConfigFromRaw`(`configContents`: kotlin.String): GlobalConfig {
+            return FfiConverterTypeGlobalConfig.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_kasa_client_fn_func_load_config_from_raw(
+    
+        
+        FfiConverterString.lower(`configContents`),_status)
+}
+    )
+    }
+    
+ fun `newFromConfig`(`config`: GlobalConfig): KasaClient {
+            return FfiConverterTypeKasaClient.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_kasa_client_fn_func_new_from_config(
+    
+        
+        FfiConverterTypeGlobalConfig.lower(`config`),_status)
+}
+    )
+    }
+    
  fun `newLocal`(`config`: GlobalConfig): KasaClient {
             return FfiConverterTypeKasaClient.lift(
     uniffiRustCall() { _status ->

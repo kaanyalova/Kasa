@@ -32,6 +32,7 @@ dirs = { workspace = true }
 hex = "0.4.3"
 sha1 = "0.10.6"
 libc = "0.2"
+tokio = { workspace = true, features = ["sync"] }
 #kasa_core = { workspace = true }
 
 [build-dependencies]

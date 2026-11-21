@@ -24,7 +24,7 @@ pub async fn download_and_index_impl(
     pool: &Pool<Sqlite>,
     pool_thumbs: &Pool<Sqlite>,
     when_done: impl Fn(String) + Send + Sync,
-    extractors: &Vec<&(dyn TagExtractor + Send + Sync)>,
+    extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
 ) -> Result<()> {
     let config = get_config_impl();
 
@@ -40,7 +40,8 @@ pub async fn download_and_index_impl(
         config.downloader.gdl_config_path.as_deref(),
     )?;
 
-    let downloader_output = download_result.recv()??;
+    // awaits the python worker thread instead of blocking a runtime thread on recv()
+    let downloader_output = download_result.await??;
 
     for url_extractor in downloader_output.url_extractors {
         index(&url_extractor.path, pool, pool_thumbs).await;
@@ -62,13 +63,20 @@ pub async fn download_and_index_impl(
             .execute(pool)
             .await?;
 
-        insert_tags_with_source_types(
-            url_extractor.extract_tags(extractors)?,
-            pool,
-            Some(hash),
-            None,
-        )
-        .await;
+        // extract_tags blocks on the rustpython worker thread, so it has to stay off
+        // the runtime. the extractor list is an Arc so it can be moved in
+        let tags = {
+            let extractors = extractors.clone();
+            tokio::task::spawn_blocking(move || {
+                let extractor_refs: Vec<&(dyn TagExtractor + Send + Sync)> =
+                    extractors.iter().map(|e| e.as_ref()).collect();
+
+                url_extractor.extract_tags(&extractor_refs)
+            })
+            .await??
+        };
+
+        insert_tags_with_source_types(tags, pool, Some(hash), None).await;
     }
 
     let url_hash = hash_url(url);

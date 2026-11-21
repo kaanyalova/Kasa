@@ -104,9 +104,6 @@ async fn process_download_job<F>(
 
     let output_path = config.downloader.output_path.clone();
 
-    let extractor_refs: Vec<&(dyn TagExtractor + Send + Sync)> =
-        extractors.iter().map(|e| e.as_ref()).collect();
-
     if let Err(e) = download_and_index_impl(
         downloader_worker.clone(),
         &job.url,
@@ -114,7 +111,7 @@ async fn process_download_job<F>(
         db,
         thumbs_db,
         on_done,
-        &extractor_refs,
+        extractors.clone(),
     )
     .await
     {

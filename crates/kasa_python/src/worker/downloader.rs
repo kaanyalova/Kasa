@@ -7,6 +7,7 @@ use std::{
 };
 
 use anyhow::Result;
+use tokio::sync::oneshot;
 
 use crate::{GalleryDlOutput, GalleryDlStatus, gdl_download, init_interpreter_with_gallery_dl};
 
@@ -18,7 +19,7 @@ struct GalleryDlWorkerDownloadJob {
     url: String,
     output_path: String,
     gdl_config_path: Option<String>,
-    when_done: Sender<Result<GalleryDlOutput>>,
+    when_done: oneshot::Sender<Result<GalleryDlOutput>>,
 }
 
 pub struct GalleryDlDownloadWorker {
@@ -80,8 +81,9 @@ impl GalleryDlDownloadWorker {
         job: DownloadJob,
         output_path: &str,
         gdl_config_path: Option<&str>,
-    ) -> Result<Receiver<Result<GalleryDlOutput>>> {
-        let (done_tx, done_rx) = mpsc::channel();
+    ) -> Result<oneshot::Receiver<Result<GalleryDlOutput>>> {
+        // oneshot so the async side can await instead of blocking a runtime thread
+        let (done_tx, done_rx) = oneshot::channel();
 
         if let Some(tx) = &self.job_tx {
             let job = GalleryDlWorkerDownloadJob {

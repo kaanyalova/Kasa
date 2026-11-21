@@ -76,36 +76,33 @@ impl Model for OcrModel {
     ) -> Result<()> {
         let model_id = self.model_id();
 
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.det_model_url,
             &self.paths.det_model_path,
+            &self.source.det_model_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.rec_model_url,
             &self.paths.rec_model_path,
+            &self.source.rec_model_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.dict_url,
             &self.paths.dict_path,
+            &self.source.dict_sha256,
             &on_progress,
         )
         .await?;
-
-        on_progress(ModelDownloadProgress::HashingStart(model_id));
-        Self::check_hash(&self.paths.det_model_path, &self.source.det_model_sha256)?;
-        Self::check_hash(&self.paths.rec_model_path, &self.source.rec_model_sha256)?;
-        Self::check_hash(&self.paths.dict_path, &self.source.dict_sha256)?;
-        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

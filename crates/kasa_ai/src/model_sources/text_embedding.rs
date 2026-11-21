@@ -99,60 +99,51 @@ impl Model for TextEmbeddingModel {
 
         let paths = &self.paths;
 
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.model_url,
             &paths.model,
+            &self.source.model_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.tokenizer_file_url,
             &paths.tokenizer_file,
+            &self.source.tokenizer_file_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.config_file_url,
             &paths.config_file,
+            &self.source.config_file_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.special_tokens_map_file_url,
             &paths.special_tokens_map_file,
+            &self.source.special_tokens_map_file_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.tokenizer_config_file_url,
             &paths.tokenizer_config_file,
+            &self.source.tokenizer_config_file_sha256,
             &on_progress,
         )
         .await?;
-
-        on_progress(ModelDownloadProgress::HashingStart(model_id));
-        Self::check_hash(&paths.model, &self.source.model_sha256)?;
-        Self::check_hash(&paths.tokenizer_file, &self.source.tokenizer_file_sha256)?;
-        Self::check_hash(&paths.config_file, &self.source.config_file_sha256)?;
-        Self::check_hash(
-            &paths.special_tokens_map_file,
-            &self.source.special_tokens_map_file_sha256,
-        )?;
-        Self::check_hash(
-            &paths.tokenizer_config_file,
-            &self.source.tokenizer_config_file_sha256,
-        )?;
-        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

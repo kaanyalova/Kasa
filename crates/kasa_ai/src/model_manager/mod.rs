@@ -7,6 +7,7 @@ use std::{
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
+    sync::atomic::{AtomicU64, Ordering},
 };
 
 use anyhow::Result;
@@ -35,7 +36,7 @@ pub struct ModelManager {
     loaded_text_embedding_model: HashMap<String, TextEmbedding>,
     loaded_image_embedding_model: HashMap<String, ImageEmbedding>,
 
-    job_id_counter: u64,
+    job_id_counter: AtomicU64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -105,7 +106,7 @@ impl ModelManager {
             on_progress: on_ai_progress,
             loaded_text_embedding_model: HashMap::new(),
             loaded_image_embedding_model: HashMap::new(),
-            job_id_counter: 0,
+            job_id_counter: AtomicU64::new(0),
         }
     }
 
@@ -142,9 +143,8 @@ impl ModelManager {
         self.models.model_sources = model_sources.map_to_names();
     }
 
-    fn next_job_id(&mut self) -> u64 {
-        self.job_id_counter += 1;
-        self.job_id_counter - 1
+    fn next_job_id(&self) -> u64 {
+        self.job_id_counter.fetch_add(1, Ordering::Relaxed)
     }
 }
 

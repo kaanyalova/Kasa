@@ -77,7 +77,7 @@ impl ModelManager {
 }
 
 impl ModelManagerModels {
-    pub async fn download_text_embedding_model(&mut self, name: &str) -> Result<()> {
+    pub async fn download_text_embedding_model(&self, name: &str) -> Result<()> {
         let model_source = self
             .model_sources
             .text_embedding_models

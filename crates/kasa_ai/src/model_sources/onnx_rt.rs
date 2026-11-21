@@ -127,12 +127,15 @@ impl Model for OnnxRT {
         let filename = format!("onnxrt_{}.zip", self.source.sha256);
         let temp_file = tempdir.path().join(filename);
 
-        Self::streaming_download(client, model_id, &self.source.url, &temp_file, &on_progress)
-            .await?;
-
-        on_progress(ModelDownloadProgress::HashingStart(model_id));
-        Self::check_hash(&temp_file, &self.source.sha256)?;
-        on_progress(ModelDownloadProgress::HashingEnd(model_id));
+        Self::download_and_check_hash(
+            client,
+            model_id,
+            &self.source.url,
+            &temp_file,
+            &self.source.sha256,
+            &on_progress,
+        )
+        .await?;
 
         on_progress(ModelDownloadProgress::UnzippingStart(model_id));
         let file = File::open(&temp_file)?;

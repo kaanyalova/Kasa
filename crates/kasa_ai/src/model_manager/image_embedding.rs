@@ -100,7 +100,7 @@ impl ModelManager {
 }
 
 impl ModelManagerModels {
-    pub async fn download_image_embedding_model(&mut self, name: &str) -> Result<()> {
+    pub async fn download_image_embedding_model(&self, name: &str) -> Result<()> {
         let model_source = self
             .model_sources
             .image_embedding_models

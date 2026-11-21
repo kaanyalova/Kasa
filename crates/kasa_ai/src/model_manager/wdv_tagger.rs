@@ -90,7 +90,7 @@ impl ModelManager {
 }
 
 impl ModelManagerModels {
-    pub async fn download_wdv_model(&mut self, name: &str) -> Result<()> {
+    pub async fn download_wdv_model(&self, name: &str) -> Result<()> {
         let model_source = self
             .model_sources
             .wdv_models

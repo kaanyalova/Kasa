@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use oar_ocr::{
@@ -15,9 +15,9 @@ impl ModelManager {
     /// returns the vector of text regions while keeping the original indices of the input image_paths
     /// if something goes wrong while ocring the image it returns None for that index
     pub fn ocr_images(
-        &mut self,
+        &self,
         model_name: &str,
-        image_paths: Vec<&Path>,
+        image_paths: &Vec<PathBuf>,
     ) -> Result<Vec<Option<Vec<TextRegion>>>> {
         let job_id = self.next_job_id();
         assert!(self.is_onnx_rt_loaded);
@@ -83,7 +83,7 @@ impl ModelManager {
 }
 
 impl ModelManagerModels {
-    pub async fn download_ocr_model(&mut self, name: &str) -> Result<()> {
+    pub async fn download_ocr_model(&self, name: &str) -> Result<()> {
         let model_source = self
             .model_sources
             .ocr_models

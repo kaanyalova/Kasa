@@ -69,27 +69,24 @@ impl Model for WdvModel {
     ) -> Result<()> {
         let model_id = self.model_id();
 
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.model_url,
             &self.paths.model_path,
+            &self.source.model_sha256,
             &on_progress,
         )
         .await?;
-        Self::streaming_download(
+        Self::download_and_check_hash(
             client,
             model_id,
             &self.source.tag_labels_url,
             &self.paths.tag_labels_path,
+            &self.source.tag_labels_sha256,
             &on_progress,
         )
         .await?;
-
-        on_progress(ModelDownloadProgress::HashingStart(model_id));
-        Self::check_hash(&self.paths.tag_labels_path, &self.source.tag_labels_sha256)?;
-        Self::check_hash(&self.paths.model_path, &self.source.model_sha256)?;
-        on_progress(ModelDownloadProgress::HashingEnd(model_id));
 
         self.state = ModelState::Downloaded;
         Ok(())

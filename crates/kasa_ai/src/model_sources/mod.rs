@@ -80,7 +80,7 @@ impl ModelSourcesConfig {
     }
 }
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use futures_util::StreamExt;
@@ -169,8 +169,43 @@ pub trait Model {
         Ok(())
     }
 
-    fn check_hash(path: &Path, expected: &str) -> Result<()> {
-        let hash = sha256::try_digest(path)?;
+    /// Downloads into `<output_path>.part`, verifies the hash and only then moves the
+    /// file to `output_path`, so a reader never sees a half written model
+    async fn download_and_check_hash(
+        client: &reqwest::Client,
+        model_id: u64,
+        url: &str,
+        output_path: &Path,
+        expected_sha256: &str,
+        on_progress: impl Fn(ModelDownloadProgress) + Send + Sync,
+    ) -> Result<()> {
+        // appended instead of replacing the extension, "model.onnx" -> "model.onnx.part"
+        let mut part_path = output_path.as_os_str().to_owned();
+        part_path.push(".part");
+        let part_path = PathBuf::from(part_path);
+
+        Self::streaming_download(client, model_id, url, &part_path, &on_progress).await?;
+
+        on_progress(ModelDownloadProgress::HashingStart(model_id));
+        let check = Self::check_hash(&part_path, expected_sha256).await;
+        on_progress(ModelDownloadProgress::HashingEnd(model_id));
+
+        if let Err(e) = check {
+            // don't leave a corrupt download behind
+            let _ = tokio::fs::remove_file(&part_path).await;
+            return Err(e);
+        }
+
+        tokio::fs::rename(&part_path, output_path).await?;
+
+        Ok(())
+    }
+
+    /// hashing reads the whole file, so it goes to the blocking pool instead of
+    /// stalling the async runtime on multi gigabyte models
+    async fn check_hash(path: &Path, expected: &str) -> Result<()> {
+        let path_to_hash = path.to_path_buf();
+        let hash = tokio::task::spawn_blocking(move || sha256::try_digest(&path_to_hash)).await??;
 
         if hash != expected {
             return Err(ModelDownloadError::HashDoesNotMatch(

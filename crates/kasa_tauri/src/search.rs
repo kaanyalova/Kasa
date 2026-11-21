@@ -1,6 +1,11 @@
+use std::default;
+
 use kasa_core::{
     db::schema::Media,
-    tags::{presets::new_or_update_preset_impl, search::SearchCriteria},
+    tags::{
+        presets::new_or_update_preset_impl,
+        search::{SearchCriteria, SpecialSearch},
+    },
 };
 use log::trace;
 use tauri::{AppHandle, Manager};
@@ -10,8 +15,22 @@ use tokio::sync::Mutex;
 /// A store containing "extra" search parameters, like those come from TagPicker, or a future sort element
 #[derive(Debug, Default)]
 pub struct SearchState {
-    pub input: Mutex<String>,
-    pub criteria: Mutex<SearchCriteria>,
+    pub params: Mutex<SearchParams>,
+}
+
+#[derive(Debug, Default)]
+pub struct SearchParams {
+    pub input: String,
+    pub input_type: SearchType,
+    pub criteria: SearchCriteria,
+}
+
+#[derive(Debug, Default, specta::Type)]
+pub enum SearchType {
+    #[default]
+    TagSearch,
+    OcrTextSearch,
+    EmbeddingSearch,
 }
 
 use crate::{
@@ -23,13 +42,29 @@ async fn search_impl(handle: AppHandle, reload_virtual_list: bool) {
     let db_store = handle.state::<DatabaseState>().clone_store().await;
 
     let search_state = handle.state::<SearchState>();
-    let input = search_state.input.lock().await.clone();
-    let search_guard = search_state.criteria.lock().await;
 
-    let mut search_criteria = SearchCriteria::parse_from_str(&input);
+    let search_criteria = {
+        let params = search_state.params.lock().await;
 
-    // merge the search inputs from the tag selection and the input box
-    search_criteria.merge(&search_guard);
+        // first get the params from the menu
+        let mut criteria = params.criteria.clone();
+
+        match params.input_type {
+            SearchType::TagSearch => {
+                // if we are making a regular tag search parse the tags from the input string then merge it with the info from the tags
+                let parsed_text_params = SearchCriteria::parse_tags_from_str(&params.input);
+                criteria.merge(&parsed_text_params);
+            }
+            SearchType::OcrTextSearch => {
+                criteria.set_special_search(SpecialSearch::OcrText(params.input.clone()))
+            }
+            SearchType::EmbeddingSearch => {
+                criteria.set_special_search(SpecialSearch::Embedding(params.input.clone()))
+            }
+        }
+
+        criteria
+    };
 
     let mut media: Vec<Media> = vec![];
 
@@ -80,18 +115,21 @@ pub async fn search_and_reload(handle: AppHandle) {
 #[specta::specta]
 pub async fn set_search_criteria(handle: AppHandle, search_criteria: SearchCriteria) {
     let search_state = handle.state::<SearchState>();
-    let mut search_guard = search_state.criteria.lock().await;
-
-    *search_guard = search_criteria;
+    search_state.params.lock().await.criteria = search_criteria;
 }
 
 #[tauri::command(async)]
 #[specta::specta]
 pub async fn set_search_input(handle: AppHandle, input: String) {
     let search_state = handle.state::<SearchState>();
-    let mut search_guard = search_state.input.lock().await;
+    search_state.params.lock().await.input = input;
+}
 
-    *search_guard = input;
+#[tauri::command(async)]
+#[specta::specta]
+pub async fn set_special_search(handle: AppHandle, special_search: SearchType) {
+    let search_state = handle.state::<SearchState>();
+    search_state.params.lock().await.input_type = special_search;
 }
 
 pub async fn new_or_update_preset(

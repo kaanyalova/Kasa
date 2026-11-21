@@ -98,6 +98,8 @@ xz = "0.1.0"
 libsqlite3-sys = "0.38.0"
 uniffi = "0.32.1"
 
+lindera = { version = "6", features = ["embed-ipadic"] }
+
 [patch.crates-io]
 ffmpeg-sys-next = { git = "https://github.com/kaanyalova/rust-ffmpeg-sys", branch = "fix_android_ndk_tool_path" }
 

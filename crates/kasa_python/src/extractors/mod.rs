@@ -35,7 +35,6 @@ pub enum ExtractedTags {
     WithCategories(Vec<ExtractedTagWithCategory>),
     WithoutCategories(Vec<ExtractedTagWithoutCategory>),
     Flat(Vec<String>),
-    #[serde(skip)]
     NoTags(NoTagsInfo),
 }
 
@@ -74,7 +73,7 @@ impl ExtractedTags {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum NoTagsInfo {
     NoExtractorFound,
     NoTags,

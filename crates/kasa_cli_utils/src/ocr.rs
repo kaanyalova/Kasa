@@ -31,7 +31,7 @@ pub async fn show_ocr_image_info(
         model_manager.models.download_ocr_model(model_name).await?;
     }
 
-    let ocr = model_manager.ocr_images(model_name, vec![file_path])?;
+    let ocr = model_manager.ocr_images(model_name, &vec![file_path.to_path_buf()])?;
     let ocred = ocr
         .first()
         .context("ocr_images returned no results")?

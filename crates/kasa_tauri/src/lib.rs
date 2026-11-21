@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 use crate::db::{DatabaseState, connect_to_db_in_config};
 use crate::downloaders::{DownloaderState, DownloaderStore};
 use crate::events::*;
+use crate::search::SearchType;
 use config::create_or_get_extractor_contents;
 use config::create_or_get_path_for_extractor;
 use config::get_config;
@@ -233,24 +234,18 @@ pub fn run() {
             DatabaseConnectionEvent,
         ]);
 
+    // types must be registered *before* calling export(), otherwise they won't be emitted
     #[cfg(all(not(target_os = "android"), debug_assertions))]
-    let builder = {
-        let builder = builder.typ::<GalleryDlStatus>();
-        builder
-            .export(
-                // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
-                Typescript::default().bigint(BigIntExportBehavior::Number),
-                "../../src/lib/tauri_bindings.ts",
-            )
-            .unwrap();
-        builder
-    };
+    let builder = builder.typ::<GalleryDlStatus>().typ::<SearchType>();
 
-    #[cfg(not(all(not(target_os = "android"), debug_assertions)))]
-    let builder = {
-        use kasa_python::GalleryDlStatus;
-        builder.typ::<GalleryDlStatus>()
-    };
+    #[cfg(all(not(target_os = "android"), debug_assertions))]
+    builder
+        .export(
+            // JS JSON.parse() cannot handle more than 2^52, and it doesn't convert to bigint
+            Typescript::default().bigint(BigIntExportBehavior::Number),
+            "../../src/lib/tauri_bindings.ts",
+        )
+        .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())

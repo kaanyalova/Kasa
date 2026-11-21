@@ -158,8 +158,9 @@ impl DownloaderStore {
                     search(handle_search).await;
                 });
             }
-            DownloaderStateUpdate::OnError { url_hash, .. } => {
+            DownloaderStateUpdate::OnError { url_hash, error } => {
                 statuses_on_update.lock().unwrap().remove(&url_hash);
+                error!("downloader state update errored {}", error);
 
                 DownloaderProgressUpdatedEvent {}
                     .emit(&handle_on_update)

@@ -3,7 +3,7 @@ use std::{
     thread::JoinHandle,
 };
 
-use crate::extractors::ExtractedTags;
+use crate::extractors::{ExtractedTags, NoTagsInfo};
 use crate::init_interpreter;
 use anyhow::Result;
 use anyhow::anyhow;
@@ -86,9 +86,11 @@ impl TaggerWorker {
                             .map_err(|_| anyhow!("Output string conversion error"))?
                             .to_string();
 
-                        let serialized: ExtractedTags = serde_json::from_str(&output)?;
+                        let serialized: Option<ExtractedTags> = serde_json::from_str(&output)?;
 
-                        Ok::<_, anyhow::Error>(Some(serialized))
+                        Ok(Some(
+                            serialized.unwrap_or(ExtractedTags::NoTags(NoTagsInfo::NoTags)),
+                        ))
                     });
 
                     let _ = job.when_done.send(result);

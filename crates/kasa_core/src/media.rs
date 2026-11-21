@@ -167,7 +167,7 @@ pub async fn get_info_impl(hash: &str, pool: &Pool<Sqlite>) -> MediaInfo {
     // Group the tags according to their `source_category`s
     let source_grouped_tags = group_tags_by_source_category(&tags).await;
 
-    let ocr_data: Option<OcrData> = query_as("SELECT * FROM OcrData WHERE hash = ?")
+    let ocr_data: Option<OcrData> = query_as("SELECT hash, regions FROM OcrData WHERE hash = ?")
         .bind(hash)
         .fetch_optional(pool)
         .await

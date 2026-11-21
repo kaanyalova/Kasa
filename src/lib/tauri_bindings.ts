@@ -246,6 +246,7 @@ tagsUpdatedEvent: "tags-updated-event"
 
 /** user-defined types **/
 
+export type AiConfig = { onnx_rt_path: string; models_base_path: string; ocr_model: string; wdv_model: string; image_embedding_model: string; text_embedding_model: string }
 export type AllTagsOrderingCriteria = "Alphabetic" | "AlphabeticReverse" | "TagCount" | "TagCountReverse"
 export type CacheUpdatedEvent = { reload_virtual_list: boolean }
 export type CloseMediaModalEvent = Record<string, never>
@@ -262,7 +263,7 @@ export type Downloader = { output_path: string; gdl_config_path: string | null }
 export type DownloaderProgressUpdatedEvent = Record<string, never>
 export type EmbeddingDistance = { hash: string; distance: number }
 export type GalleryDlStatus = { bytes_total: number; bytes_downloaded: number; bytes_per_second: number; url_hash: string; url: string; extractor: string }
-export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader; Layout: Layout }
+export type GlobalConfig = { Database: Database; Thumbnails: Thumbs; Downloader: Downloader; Layout: Layout; Ai?: AiConfig }
 /**
  * File-tag pairs
  */
@@ -275,15 +276,20 @@ export type ImagePlacement = { x_relative: number; y_relative: number; width: nu
 export type ImageRow = { index: number; height: number; images: ImagePlacement[] }
 export type ImportInfo = { importSource: string; importLink: string | null }
 export type Layout = { show_filenames: boolean; thumbnail_scale: number }
-export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean; videoMetadata: VideoMetadata | null; pathThatExists: string | null }
+export type MediaInfo = { meta: MetaEntry[]; import: ImportInfo; paths: string[]; tags: TagWithDetails[]; sourceCategoryGroupedTags: SourceCategoryGroupedTags; rawTagsField: string; hash: string; mediaType: string; mime: string | null; aspectRatio: number; fileName: string; isFavorite: boolean; videoMetadata: VideoMetadata | null; pathThatExists: string | null; ocrData: OcrTextRegion[] | null }
 export type MediaServerDownEvent = Record<string, never>
 export type MediaSource = { hash: string; importer_type: string; link_or_path: string; source: string; raw_data: string }
 export type MetaEntry = { name: string; value: string; isValueMonospaced: boolean; isOneLine: boolean }
+export type OcrBoundingBox = { points: OcrPoint[] }
+export type OcrPoint = { x: number; y: number }
+export type OcrTextRegion = { boundingBox: OcrBoundingBox; confidence: number | null; text: string | null }
 export type OpenMediaModalEvent = { hash: string }
 export type RawImage = { width: number; height: number; bytes: number[] }
 export type ResolutionOrderCriteria = "None" | "HighestFirst" | "LowestFirst"
-export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by_date: DateOrderCriteria; order_by_resolution: ResolutionOrderCriteria; date_range: DateRange | null; favorites_only: boolean }
+export type SearchCriteria = { contains_tags: string[]; contains_tags_or_group: string[][]; excludes_tags: string[]; order_by_date: DateOrderCriteria; order_by_resolution: ResolutionOrderCriteria; date_range: DateRange | null; favorites_only: boolean; special_search: SpecialSearch }
+export type SearchType = "TagSearch" | "OcrTextSearch" | "EmbeddingSearch"
 export type SourceCategoryGroupedTags = { tags_with_source_categories: { [key in string]: TagWithDetails[] }; tags_without_source_categories: TagWithDetails[] }
+export type SpecialSearch = "None" | { OcrText: string } | { Embedding: string }
 /**
  * Additional Tag details, all info about tags is here instead of `Tag` table, so we don't deal with limitations
  * of virtual tables
@@ -302,7 +308,7 @@ export type TagWithCount = { tag_name: string; count: number; details: TagDetail
 export type TagWithDetails = { hash_tag_pair: HashTagPair; details: TagDetail; count: number }
 export type TagsUpdatedEvent = Record<string, never>
 export type ThumbnailFormat = "png" | "jpeg" | "avif" | "webp_lossless" | "webp_lossy"
-export type Thumbs = { resolution: [number, number]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
+export type Thumbs = { resolution: number[]; thumbnail_format: ThumbnailFormat; thumbs_db_path: string }
 export type ThumbsDBInfo = { path: string; size: string; image_count: number; height: number; width: number; format: string }
 export type VideoAudioStreamMetadata = { codec: string; codec_long_name: string | null; bit_rate: number; max_rate: number; delay: number; rate: number; channels: number; format: string; frames: number; align: number; channel_layout: string }
 export type VideoMetadata = { duration: number; bit_rate: number; audio_meta: VideoAudioStreamMetadata | null; video_meta: VideoVideoStreamMeta | null }

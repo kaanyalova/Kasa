@@ -18,6 +18,19 @@ pub fn parse() {
     todo!()
 }
 
+/// FTS5 query for the given text, segmented like the indexed text and quoted as a phrase
+/// so the tokens are literal and have to be adjacent
+fn ocr_fts_query(input: &str) -> Option<String> {
+    let segmented = crate::db::ocr::segment_for_fts(input.trim());
+
+    if segmented.is_empty() {
+        return None;
+    }
+
+    // a stray quote from the input would otherwise be an fts5 syntax error
+    Some(format!("\"{}\"", segmented.replace('"', "\"\"")))
+}
+
 // Tags separated by commas
 // `tag1, tag2`
 //
@@ -47,6 +60,7 @@ pub fn parse() {
     ToSchema,
     IntoParams,
     uniffi::Record,
+    Clone,
 )]
 pub struct DateRange {
     start: u64,
@@ -54,7 +68,18 @@ pub struct DateRange {
 }
 
 #[derive(
+    Debug, Default, Serialize, Deserialize, specta::Type, uniffi::Enum, PartialEq, ToSchema, Clone,
+)]
+pub enum SpecialSearch {
+    #[default]
+    None,
+    OcrText(String),
+    Embedding(String),
+}
+
+#[derive(
     Debug,
+    Clone,
     PartialEq,
     Default,
     specta::Type,
@@ -72,10 +97,20 @@ pub struct SearchCriteria {
     order_by_resolution: ResolutionOrderCriteria,
     date_range: Option<DateRange>,
     favorites_only: bool,
+    special_search: SpecialSearch,
 }
 
 #[derive(
-    Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, Display, ToSchema, uniffi::Enum,
+    Debug,
+    PartialEq,
+    Default,
+    specta::Type,
+    Serialize,
+    Deserialize,
+    Display,
+    ToSchema,
+    uniffi::Enum,
+    Clone,
 )]
 enum DateOrderCriteria {
     #[default]
@@ -85,7 +120,7 @@ enum DateOrderCriteria {
 }
 
 #[derive(
-    Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, uniffi::Enum,
+    Debug, PartialEq, Default, specta::Type, Serialize, Deserialize, ToSchema, uniffi::Enum, Clone,
 )]
 enum ResolutionOrderCriteria {
     #[default]
@@ -95,7 +130,7 @@ enum ResolutionOrderCriteria {
 }
 
 impl SearchCriteria {
-    pub fn parse_from_str(input: &str) -> Self {
+    pub fn parse_tags_from_str(input: &str) -> Self {
         let mut contains_tags = vec![];
         let mut contains_tags_or_group = vec![];
         let mut excludes_tags = vec![];
@@ -184,6 +219,7 @@ impl SearchCriteria {
             order_by_resolution: order_by_criteria_resolution,
             date_range: None,
             favorites_only,
+            special_search: SpecialSearch::None,
         }
     }
 
@@ -209,148 +245,161 @@ impl SearchCriteria {
          */
 
     pub fn to_query(&self) -> QueryBuilder<Sqlite> {
-        // Handle cases where we are searching for "all tags" (empty query) or "only excludes"
-        if self.contains_tags.is_empty() && self.contains_tags_or_group.is_empty() {
-            let mut query_builder = QueryBuilder::new("SELECT DISTINCT m.* FROM Media m");
+        let joins_tags = self.has_tag_filters();
 
-            if self.order_by_resolution != ResolutionOrderCriteria::None {
-                query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");
-            }
+        // without tag filters there is nothing to match against in HashTagPair
+        let mut query_builder: QueryBuilder<Sqlite> = if joins_tags {
+            QueryBuilder::new("SELECT DISTINCT m.* FROM HashTagPair htp, Media m")
+        } else {
+            QueryBuilder::new("SELECT DISTINCT m.* FROM Media m")
+        };
 
-            let mut has_where = false;
+        self.apply_resolution_join(&mut query_builder);
 
-            // Handle case where we only want to exclude tags
-            if !self.excludes_tags.is_empty() {
-                query_builder.push(
-                    " WHERE m.hash NOT IN (
-                     SELECT htp.hash FROM HashTagPair htp WHERE htp.tag_name IN (",
-                );
+        let mut has_where = false;
 
-                let mut separated = query_builder.separated(",");
-                for tag in &self.excludes_tags {
-                    separated.push_bind(tag);
-                }
-                query_builder.push("))");
-                has_where = true;
-            }
-
-            if self.favorites_only {
-                if has_where {
-                    query_builder.push(" AND m.is_favorite = true");
-                } else {
-                    query_builder.push(" WHERE m.is_favorite = true");
-                }
-            }
-
-            self.apply_order_by(&mut query_builder);
-            return query_builder;
+        if joins_tags {
+            Self::push_condition(&mut query_builder, &mut has_where, "m.hash = htp.hash");
         }
 
-        let mut query_builder: QueryBuilder<Sqlite> =
-            QueryBuilder::new("SELECT DISTINCT m.* FROM HashTagPair htp, Media m");
+        self.apply_favorites(&mut query_builder, &mut has_where);
+        self.apply_contains_tags(&mut query_builder, &mut has_where);
+        self.apply_or_groups(&mut query_builder, &mut has_where);
+        self.apply_excludes(&mut query_builder, &mut has_where);
+        self.apply_special_search(&mut query_builder, &mut has_where);
 
-        if self.order_by_resolution != ResolutionOrderCriteria::None {
-            query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");
-        }
-
-        query_builder.push(" WHERE m.hash = htp.hash ");
-
-        if self.favorites_only {
-            query_builder.push("AND m.is_favorite = true");
-        }
-        // hacky way of only querying for m.hash = htp.hash without any tags being searched
-        //if !self.contains_tags.is_empty() && !self.contains_tags_or_group.is_empty() {
-        //
-        //}
-
-        // add the query for basic "includes tag" search parameter
-        if !self.contains_tags.is_empty() {
-            query_builder.push("AND htp.tag_name IN (");
-
-            let mut separated = query_builder.separated(", ");
-
-            for tag in &self.contains_tags {
-                separated.push_bind(tag);
-            }
-            separated.push_unseparated(") ");
-        }
-
-        for tag_group in &self.contains_tags_or_group {
-            query_builder.push(
-                "
-            AND m.hash IN (
-            SELECT m.hash
-            FROM Media m, HashTagPair htp
-            WHERE m.hash = htp.hash
-            AND (htp.tag_name IN (
-            ",
-            );
-
-            let mut separated = query_builder.separated(", ");
-            for tag in tag_group {
-                separated.push_bind(tag);
-            }
-            separated.push_unseparated(") ");
-
-            query_builder.push(")) ");
-        }
-
-        // Exclude tags
-        if !self.excludes_tags.is_empty() {
-            query_builder.push(
-                "
-                AND m.hash NOT IN (
-                SELECT m.hash
-                FROM Media m, HashTagPair htp
-                WHERE m.hash = htp.hash
-                AND (htp.tag_name IN (
-            ",
-            );
-
-            let mut separated = query_builder.separated(",");
-
-            for tag in &self.excludes_tags {
-                separated.push_bind(tag);
-            }
-
-            separated.push_unseparated(")");
-
-            query_builder.push("))");
-        }
-
-        query_builder.push("GROUP BY m.hash");
-
-        if !self.contains_tags.is_empty() {
-            query_builder.push(
-                "
-        HAVING COUNT(m.hash) =
-        ",
-            );
-            query_builder.push_bind(self.contains_tags.len() as i64);
+        if joins_tags {
+            self.apply_group_by(&mut query_builder);
         }
 
         self.apply_order_by(&mut query_builder);
 
         query_builder
+    }
 
-        /*
-        let contains_tags = &self
-            .contains_tags
-            .iter()
-            .filter(|t| matches!(t, SearchContainsType::ContainsTag));
+    fn has_tag_filters(&self) -> bool {
+        !self.contains_tags.is_empty() || !self.contains_tags_or_group.is_empty()
+    }
 
-        for tag in contains_tags {}
+    /// `Image` is only joined when ordering by resolution, `m.*` carries no pixel count
+    fn apply_resolution_join(&self, query_builder: &mut QueryBuilder<Sqlite>) {
+        if self.order_by_resolution != ResolutionOrderCriteria::None {
+            query_builder.push(" INNER JOIN Image img ON m.hash = img.hash");
+        }
+    }
 
-        for contains in &self.contains_tags {
-            match contains {
-                SearchContainsType::ContainsTag(tag) => {
-                    query_builder.push("AND (htp.tag_name IN (");
-                    let mut separated = query_builder.separated(", ");
-                }
-                SearchContainsType::ContainTagsOr(tags) => todo!(),
+    fn apply_favorites(&self, query_builder: &mut QueryBuilder<Sqlite>, has_where: &mut bool) {
+        if self.favorites_only {
+            Self::push_condition(query_builder, has_where, "m.is_favorite = true");
+        }
+    }
+
+    /// `tag1, tag2` -> all of the tags have to be present on the media
+    fn apply_contains_tags(&self, query_builder: &mut QueryBuilder<Sqlite>, has_where: &mut bool) {
+        if self.contains_tags.is_empty() {
+            return;
+        }
+
+        Self::push_condition_prefix(query_builder, has_where);
+        query_builder.push("htp.tag_name IN (");
+        Self::push_tag_binds(query_builder, &self.contains_tags);
+        query_builder.push(") ");
+    }
+
+    /// `tag1 or tag2` -> at least one tag of every group has to be present
+    fn apply_or_groups(&self, query_builder: &mut QueryBuilder<Sqlite>, has_where: &mut bool) {
+        for tag_group in &self.contains_tags_or_group {
+            Self::push_condition(
+                query_builder,
+                has_where,
+                "m.hash IN (
+                    SELECT m.hash
+                    FROM Media m, HashTagPair htp
+                    WHERE m.hash = htp.hash
+                    AND htp.tag_name IN (",
+            );
+
+            Self::push_tag_binds(query_builder, tag_group);
+            query_builder.push(")) ");
+        }
+    }
+
+    /// `-tag1, -tag2` -> media carrying any of these tags are filtered out
+    fn apply_excludes(&self, query_builder: &mut QueryBuilder<Sqlite>, has_where: &mut bool) {
+        if self.excludes_tags.is_empty() {
+            return;
+        }
+
+        Self::push_condition(
+            query_builder,
+            has_where,
+            "m.hash NOT IN (
+                SELECT m.hash
+                FROM Media m, HashTagPair htp
+                WHERE m.hash = htp.hash
+                AND htp.tag_name IN (",
+        );
+
+        Self::push_tag_binds(query_builder, &self.excludes_tags);
+        query_builder.push(")) ");
+    }
+
+    /// `ocr text` -> media whose ocred text matches, the text is segmented the same way
+    /// as the index so fts5 sees the same morphemes
+    fn apply_special_search(&self, query_builder: &mut QueryBuilder<Sqlite>, has_where: &mut bool) {
+        match &self.special_search {
+            SpecialSearch::None | SpecialSearch::Embedding(_) => {}
+            SpecialSearch::OcrText(input) => {
+                let Some(fts_query) = ocr_fts_query(input) else {
+                    return;
+                };
+
+                Self::push_condition(
+                    query_builder,
+                    has_where,
+                    "m.hash IN (SELECT o.hash FROM OcrFTS JOIN OcrData o ON o.id = OcrFTS.rowid WHERE OcrFTS MATCH ",
+                );
+                query_builder.push_bind(fts_query);
+                query_builder.push(") ");
             }
         }
-        */
+    }
+
+    /// collapse the rows produced by the `HashTagPair` join into one row per media
+    fn apply_group_by(&self, query_builder: &mut QueryBuilder<Sqlite>) {
+        query_builder.push("GROUP BY m.hash");
+
+        // every tag in `contains_tags` has to match, so the row count has to equal the tag count
+        if !self.contains_tags.is_empty() {
+            query_builder.push(" HAVING COUNT(m.hash) = ");
+            query_builder.push_bind(self.contains_tags.len() as i64);
+        }
+    }
+
+    fn push_condition_prefix(query_builder: &mut QueryBuilder<Sqlite>, has_where: &mut bool) {
+        if *has_where {
+            query_builder.push(" AND ");
+        } else {
+            query_builder.push(" WHERE ");
+            *has_where = true;
+        }
+    }
+
+    fn push_condition(
+        query_builder: &mut QueryBuilder<Sqlite>,
+        has_where: &mut bool,
+        condition: &str,
+    ) {
+        Self::push_condition_prefix(query_builder, has_where);
+        query_builder.push(condition);
+    }
+
+    /// pushes a `?, ?, ...` bind list, the caller is responsible for the surrounding parens
+    fn push_tag_binds(query_builder: &mut QueryBuilder<Sqlite>, tags: &[String]) {
+        let mut separated = query_builder.separated(", ");
+        for tag in tags {
+            separated.push_bind(tag);
+        }
     }
 
     // Add this method to implement the ordering functionality
@@ -375,6 +424,10 @@ impl SearchCriteria {
         }
     }
 
+    pub fn set_special_search(&mut self, search_type: SpecialSearch) {
+        self.special_search = search_type;
+    }
+
     pub fn merge(&mut self, other: &Self) {
         self.contains_tags.append(&mut other.contains_tags.clone());
         self.contains_tags_or_group
@@ -382,6 +435,11 @@ impl SearchCriteria {
         self.excludes_tags.append(&mut other.excludes_tags.clone());
 
         self.favorites_only |= other.favorites_only;
+
+        // try to set the special search to one that is not None
+        if self.special_search == SpecialSearch::None {
+            self.set_special_search(other.special_search.clone());
+        }
 
         // ordering is not merged as it is a single value and should always prioritize the searchbar value
     }

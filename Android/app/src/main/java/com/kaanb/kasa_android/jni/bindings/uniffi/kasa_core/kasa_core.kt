@@ -672,6 +672,8 @@ internal object IntegrityCheckingUniffiLib {
         uniffiCheckContractApiVersion(this)
         uniffiCheckApiChecksums(this)
     }
+
+    internal fun ensureInitialized() = Unit
     external fun ffi_kasa_core_uniffi_contract_version(
     ): Int
 
@@ -685,6 +687,8 @@ internal object UniffiLib {
         Native.register(UniffiLib::class.java, findLibraryName(componentName = "kasa_core"))
         
     }
+
+    internal fun ensureInitialized() = Unit
     external fun ffi_kasa_core_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun ffi_kasa_core_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -810,10 +814,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
  * @suppress
  */
 public fun uniffiEnsureInitialized() {
-    IntegrityCheckingUniffiLib
-    // UniffiLib() initialized as objects are used, but we still need to explicitly
-    // reference it so initialization across crates works as expected.
-    UniffiLib
+    // Call arbitrary methods on IntegrityCheckingUniffiLib and UniffiLib to ensure that
+    // their init blocks run. This ensures initialization across crates works as expected.
+    IntegrityCheckingUniffiLib.ensureInitialized()
+    UniffiLib.ensureInitialized()
 }
 
 // Async support
@@ -1171,6 +1175,87 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 
+data class Ai (
+    var `modelsPath`: kotlin.String
+    , 
+    var `onnxRtPath`: kotlin.String
+    , 
+    var `modelConfigOverride`: kotlin.String?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAi: FfiConverterRustBuffer<Ai> {
+    override fun read(buf: ByteBuffer): Ai {
+        return Ai(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Ai) = (
+            FfiConverterString.allocationSize(value.`modelsPath`) +
+            FfiConverterString.allocationSize(value.`onnxRtPath`) +
+            FfiConverterOptionalString.allocationSize(value.`modelConfigOverride`)
+    )
+
+    override fun write(value: Ai, buf: ByteBuffer) {
+            FfiConverterString.write(value.`modelsPath`, buf)
+            FfiConverterString.write(value.`onnxRtPath`, buf)
+            FfiConverterOptionalString.write(value.`modelConfigOverride`, buf)
+    }
+}
+
+
+
+data class AiConfig (
+    var `onnxRtPath`: kotlin.String
+    , 
+    var `modelsBasePath`: kotlin.String
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAiConfig: FfiConverterRustBuffer<AiConfig> {
+    override fun read(buf: ByteBuffer): AiConfig {
+        return AiConfig(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AiConfig) = (
+            FfiConverterString.allocationSize(value.`onnxRtPath`) +
+            FfiConverterString.allocationSize(value.`modelsBasePath`)
+    )
+
+    override fun write(value: AiConfig, buf: ByteBuffer) {
+            FfiConverterString.write(value.`onnxRtPath`, buf)
+            FfiConverterString.write(value.`modelsBasePath`, buf)
+    }
+}
+
+
+
 data class Database (
     var `dbPath`: kotlin.String
     , 
@@ -1335,6 +1420,8 @@ data class GlobalConfig (
     var `downloader`: Downloader
     , 
     var `layout`: Layout
+    , 
+    var `ai`: AiConfig
     
 ){
     
@@ -1355,6 +1442,7 @@ public object FfiConverterTypeGlobalConfig: FfiConverterRustBuffer<GlobalConfig>
             FfiConverterTypeThumbs.read(buf),
             FfiConverterTypeDownloader.read(buf),
             FfiConverterTypeLayout.read(buf),
+            FfiConverterTypeAiConfig.read(buf),
         )
     }
 
@@ -1362,7 +1450,8 @@ public object FfiConverterTypeGlobalConfig: FfiConverterRustBuffer<GlobalConfig>
             FfiConverterTypeDatabase.allocationSize(value.`db`) +
             FfiConverterTypeThumbs.allocationSize(value.`thumbs`) +
             FfiConverterTypeDownloader.allocationSize(value.`downloader`) +
-            FfiConverterTypeLayout.allocationSize(value.`layout`)
+            FfiConverterTypeLayout.allocationSize(value.`layout`) +
+            FfiConverterTypeAiConfig.allocationSize(value.`ai`)
     )
 
     override fun write(value: GlobalConfig, buf: ByteBuffer) {
@@ -1370,6 +1459,7 @@ public object FfiConverterTypeGlobalConfig: FfiConverterRustBuffer<GlobalConfig>
             FfiConverterTypeThumbs.write(value.`thumbs`, buf)
             FfiConverterTypeDownloader.write(value.`downloader`, buf)
             FfiConverterTypeLayout.write(value.`layout`, buf)
+            FfiConverterTypeAiConfig.write(value.`ai`, buf)
     }
 }
 
@@ -1624,6 +1714,8 @@ data class MediaInfo (
     var `videoMetadata`: VideoMetadata?
     , 
     var `pathThatExists`: kotlin.String?
+    , 
+    var `ocrData`: List<OcrTextRegion>?
     
 ){
     
@@ -1654,6 +1746,7 @@ public object FfiConverterTypeMediaInfo: FfiConverterRustBuffer<MediaInfo> {
             FfiConverterBoolean.read(buf),
             FfiConverterOptionalTypeVideoMetadata.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalSequenceTypeOcrTextRegion.read(buf),
         )
     }
 
@@ -1671,7 +1764,8 @@ public object FfiConverterTypeMediaInfo: FfiConverterRustBuffer<MediaInfo> {
             FfiConverterString.allocationSize(value.`fileName`) +
             FfiConverterBoolean.allocationSize(value.`isFavorite`) +
             FfiConverterOptionalTypeVideoMetadata.allocationSize(value.`videoMetadata`) +
-            FfiConverterOptionalString.allocationSize(value.`pathThatExists`)
+            FfiConverterOptionalString.allocationSize(value.`pathThatExists`) +
+            FfiConverterOptionalSequenceTypeOcrTextRegion.allocationSize(value.`ocrData`)
     )
 
     override fun write(value: MediaInfo, buf: ByteBuffer) {
@@ -1689,6 +1783,7 @@ public object FfiConverterTypeMediaInfo: FfiConverterRustBuffer<MediaInfo> {
             FfiConverterBoolean.write(value.`isFavorite`, buf)
             FfiConverterOptionalTypeVideoMetadata.write(value.`videoMetadata`, buf)
             FfiConverterOptionalString.write(value.`pathThatExists`, buf)
+            FfiConverterOptionalSequenceTypeOcrTextRegion.write(value.`ocrData`, buf)
     }
 }
 
@@ -1790,6 +1885,120 @@ public object FfiConverterTypeMetaEntry: FfiConverterRustBuffer<MetaEntry> {
             FfiConverterString.write(value.`value`, buf)
             FfiConverterBoolean.write(value.`isValueMonospaced`, buf)
             FfiConverterBoolean.write(value.`isOneLine`, buf)
+    }
+}
+
+
+
+data class OcrBoundingBox (
+    var `points`: List<OcrPoint>
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeOcrBoundingBox: FfiConverterRustBuffer<OcrBoundingBox> {
+    override fun read(buf: ByteBuffer): OcrBoundingBox {
+        return OcrBoundingBox(
+            FfiConverterSequenceTypeOcrPoint.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: OcrBoundingBox) = (
+            FfiConverterSequenceTypeOcrPoint.allocationSize(value.`points`)
+    )
+
+    override fun write(value: OcrBoundingBox, buf: ByteBuffer) {
+            FfiConverterSequenceTypeOcrPoint.write(value.`points`, buf)
+    }
+}
+
+
+
+data class OcrPoint (
+    var `x`: kotlin.Float
+    , 
+    var `y`: kotlin.Float
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeOcrPoint: FfiConverterRustBuffer<OcrPoint> {
+    override fun read(buf: ByteBuffer): OcrPoint {
+        return OcrPoint(
+            FfiConverterFloat.read(buf),
+            FfiConverterFloat.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: OcrPoint) = (
+            FfiConverterFloat.allocationSize(value.`x`) +
+            FfiConverterFloat.allocationSize(value.`y`)
+    )
+
+    override fun write(value: OcrPoint, buf: ByteBuffer) {
+            FfiConverterFloat.write(value.`x`, buf)
+            FfiConverterFloat.write(value.`y`, buf)
+    }
+}
+
+
+
+data class OcrTextRegion (
+    var `boundingBox`: OcrBoundingBox
+    , 
+    var `confidence`: kotlin.Float?
+    , 
+    var `text`: kotlin.String?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeOcrTextRegion: FfiConverterRustBuffer<OcrTextRegion> {
+    override fun read(buf: ByteBuffer): OcrTextRegion {
+        return OcrTextRegion(
+            FfiConverterTypeOcrBoundingBox.read(buf),
+            FfiConverterOptionalFloat.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: OcrTextRegion) = (
+            FfiConverterTypeOcrBoundingBox.allocationSize(value.`boundingBox`) +
+            FfiConverterOptionalFloat.allocationSize(value.`confidence`) +
+            FfiConverterOptionalString.allocationSize(value.`text`)
+    )
+
+    override fun write(value: OcrTextRegion, buf: ByteBuffer) {
+            FfiConverterTypeOcrBoundingBox.write(value.`boundingBox`, buf)
+            FfiConverterOptionalFloat.write(value.`confidence`, buf)
+            FfiConverterOptionalString.write(value.`text`, buf)
     }
 }
 
@@ -2557,6 +2766,38 @@ public object FfiConverterTypeThumbnailFormat: FfiConverterRustBuffer<ThumbnailF
 /**
  * @suppress
  */
+public object FfiConverterOptionalFloat: FfiConverterRustBuffer<kotlin.Float?> {
+    override fun read(buf: ByteBuffer): kotlin.Float? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterFloat.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.Float?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterFloat.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.Float?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterFloat.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
     override fun read(buf: ByteBuffer): kotlin.String? {
         if (buf.get().toInt() == 0) {
@@ -2717,6 +2958,38 @@ public object FfiConverterOptionalTypeVideoVideoStreamMeta: FfiConverterRustBuff
 /**
  * @suppress
  */
+public object FfiConverterOptionalSequenceTypeOcrTextRegion: FfiConverterRustBuffer<List<OcrTextRegion>?> {
+    override fun read(buf: ByteBuffer): List<OcrTextRegion>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeOcrTextRegion.read(buf)
+    }
+
+    override fun allocationSize(value: List<OcrTextRegion>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeOcrTextRegion.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<OcrTextRegion>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeOcrTextRegion.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceUInt: FfiConverterRustBuffer<List<kotlin.UInt>> {
     override fun read(buf: ByteBuffer): List<kotlin.UInt> {
         val len = buf.getInt()
@@ -2791,6 +3064,62 @@ public object FfiConverterSequenceTypeMetaEntry: FfiConverterRustBuffer<List<Met
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeMetaEntry.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeOcrPoint: FfiConverterRustBuffer<List<OcrPoint>> {
+    override fun read(buf: ByteBuffer): List<OcrPoint> {
+        val len = buf.getInt()
+        return List<OcrPoint>(len) {
+            FfiConverterTypeOcrPoint.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<OcrPoint>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeOcrPoint.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<OcrPoint>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeOcrPoint.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeOcrTextRegion: FfiConverterRustBuffer<List<OcrTextRegion>> {
+    override fun read(buf: ByteBuffer): List<OcrTextRegion> {
+        val len = buf.getInt()
+        return List<OcrTextRegion>(len) {
+            FfiConverterTypeOcrTextRegion.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<OcrTextRegion>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeOcrTextRegion.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<OcrTextRegion>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeOcrTextRegion.write(it, buf)
         }
     }
 }

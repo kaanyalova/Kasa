@@ -17,8 +17,10 @@ env_logger = { workspace = true }
 itertools.workspace = true
 libsqlite3-sys.workspace = true
 sqlite-vec = "0.1.9"
-image.workspace = true
+image = { workspace = true, features = ["webp", "nasm"] }
 anyhow.workspace = true
 
 [features]
 qwen3 = ["kasa_ai/qwen3"]
+[target.'cfg(not(target_os = "android"))'.dependencies]
+image = { workspace = true, features = ["avif-native"] }

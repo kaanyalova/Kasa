@@ -1,12 +1,10 @@
-<<<<<<< HEAD
-use std::sync::{Arc, OnceLock};
+use std::{
+    path::Path,
+    sync::{Arc, OnceLock},
+};
 
 use jni::jni_mangle;
-=======
-use std::sync::Arc;
-
->>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
-use kasa_core::config::global_config::GlobalConfig;
+use kasa_core::config::global_config::{GlobalConfig, get_config_from_path, get_config_from_raw};
 
 use crate::clients::{KasaClient, local::LocalKasaClient, remote::RemoteKasaClient};
 
@@ -16,7 +14,16 @@ pub mod clients;
 pub mod errors;
 pub mod events;
 
-<<<<<<< HEAD
+#[uniffi::export]
+pub fn load_config_from_path(path: &str) -> GlobalConfig {
+    get_config_from_path(Path::new(path))
+}
+
+#[uniffi::export]
+pub fn load_config_from_raw(config_contents: &str) -> GlobalConfig {
+    get_config_from_raw(config_contents)
+}
+
 static VM: once_cell::sync::OnceCell<jni::JavaVM> = once_cell::sync::OnceCell::new();
 static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
 
@@ -59,7 +66,17 @@ fn new_remote(config: &GlobalConfig) -> Arc<dyn KasaClient> {
 
     client
 }
-#[jni_mangle("com.kaanb.kasa_android.jni.JniInit")]
+
+#[uniffi::export]
+fn new_from_config(config: &GlobalConfig) -> Arc<dyn KasaClient> {
+    match config.db.db_type {
+        kasa_core::config::global_config::DatabaseType::Local => new_local(config),
+        kasa_core::config::global_config::DatabaseType::Remote => new_remote(config),
+        kasa_core::config::global_config::DatabaseType::Unknown => panic!("wtf"),
+    }
+}
+
+#[jni_mangle("com.kaanb.kasa_android.jni.NativeClient")]
 pub extern "system" fn java_init<'local>(
     mut unowned_env: jni::EnvUnowned<'local>,
     _class: jni::objects::JClass<'local>,
@@ -70,18 +87,5 @@ pub extern "system" fn java_init<'local>(
         let _ = VM.set(vm);
         Ok(())
     });
-=======
-#[uniffi::export]
-async fn new_local(config: &GlobalConfig) -> Arc<dyn KasaClient> {
-    let mut client = LocalKasaClient::wait_for_frontend();
-    client.initialize(&config).await;
-    Arc::new(client)
 }
 
-#[uniffi::export]
-async fn new_remote(config: &GlobalConfig) -> Arc<dyn KasaClient> {
-    let mut client = RemoteKasaClient::wait_for_frontend();
-    client.initialize(&config).await;
-    Arc::new(client)
->>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
-}

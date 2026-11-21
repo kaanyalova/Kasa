@@ -5,17 +5,11 @@ use std::sync::Mutex as SyncMutex;
 use anyhow::Result;
 use kasa_core::{
     config::global_config::GlobalConfig,
-<<<<<<< HEAD
-    downloaders::download_queue::{DownloadJob, Downloader, DownloaderContext, init_extractors},
-=======
     downloaders::download_queue::{
-        DownloadJob, Downloader, DownloaderContext, init_extractors,
+        DownloadJob, DownloaderJob, DownloaderStateUpdate, job_channel, run as run_downloader,
     },
->>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 };
 use kasa_python::GalleryDlStatus;
-use kasa_python::extractors::TagExtractor;
-use log::error;
 use sqlx::{Pool, Sqlite};
 use tokio::sync::mpsc;
 
@@ -23,14 +17,10 @@ use crate::clients::EventCallback;
 use crate::clients::downloader::KasaDownloader;
 use crate::events::{DownloaderProgressUpdatedEvent, KasaEvent, TagsUpdatedEvent};
 
-<<<<<<< HEAD
 #[derive(Clone)]
-=======
->>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 pub struct LocalDownloader {
-    pub tx: mpsc::Sender<DownloadJob>,
+    pub tx: mpsc::Sender<DownloaderJob>,
     pub statuses: Arc<SyncMutex<HashMap<String, GalleryDlStatus>>>,
-    pub extractors: Arc<Vec<Box<dyn TagExtractor + Send + Sync>>>,
     on_event: Option<EventCallback>,
 }
 
@@ -45,51 +35,54 @@ impl LocalDownloader {
     ) -> Result<Self> {
         let statuses = Arc::new(SyncMutex::new(HashMap::new()));
 
-        let statuses_on_progress = statuses.clone();
-        let event_on_progress = on_event.clone();
-        let on_progress = move |status: &GalleryDlStatus| {
-            statuses_on_progress
-                .lock()
-                .unwrap()
-                .insert(status.url_hash.clone(), status.clone());
+        let statuses_on_update = statuses.clone();
+        let event_on_update = on_event.clone();
+        let on_update = move |update: DownloaderStateUpdate| match update {
+            DownloaderStateUpdate::OnProgress(status) => {
+                statuses_on_update
+                    .lock()
+                    .unwrap()
+                    .insert(status.url_hash.clone(), status);
 
-            if let Some(on_event) = &event_on_progress {
-                on_event(KasaEvent::DownloaderProgressUpdated(
-                    DownloaderProgressUpdatedEvent {},
-                ));
+                if let Some(on_event) = &event_on_update {
+                    on_event(KasaEvent::DownloaderProgressUpdated(
+                        DownloaderProgressUpdatedEvent {},
+                    ));
+                }
+            }
+            DownloaderStateUpdate::OnDone(hash) => {
+                statuses_on_update.lock().unwrap().remove(&hash);
+
+                if let Some(on_event) = &event_on_update {
+                    on_event(KasaEvent::DownloaderProgressUpdated(
+                        DownloaderProgressUpdatedEvent {},
+                    ));
+                    on_event(KasaEvent::TagsUpdated(TagsUpdatedEvent {}));
+                }
+            }
+            DownloaderStateUpdate::OnError { url_hash, .. } => {
+                statuses_on_update.lock().unwrap().remove(&url_hash);
+
+                if let Some(on_event) = &event_on_update {
+                    on_event(KasaEvent::DownloaderProgressUpdated(
+                        DownloaderProgressUpdatedEvent {},
+                    ));
+                }
             }
         };
 
-        let statuses_on_done = statuses.clone();
-        let event_on_done = on_event.clone();
-        let on_done = move |hash: String| {
-            statuses_on_done.lock().unwrap().remove(&hash);
-
-            if let Some(on_event) = &event_on_done {
-                on_event(KasaEvent::DownloaderProgressUpdated(
-                    DownloaderProgressUpdatedEvent {},
-                ));
-                on_event(KasaEvent::TagsUpdated(TagsUpdatedEvent {}));
-            }
-        };
-
-        let (mut downloader, tx) =
-            Downloader::init(db, thumbs_db, config.clone(), on_progress, on_done);
-
-        let tagger_worker = downloader.workers.tagger_worker.clone();
-        let statuses_run = statuses.clone();
-        let extractors = init_extractors(tagger_worker, config)?;
-        downloader.set_extractors(extractors.clone());
+        let (tx, rx) = job_channel();
+        let config = config.clone();
 
         tokio::spawn(async move {
-            let ctx = DownloaderContext::from_values(statuses_run);
-            downloader.run(&ctx).await;
+            if let Err(e) = run_downloader(db, thumbs_db, config, rx, on_update).await {
+                eprintln!("downloader failed: {e}");
+            }
         });
 
         Ok(Self {
             tx,
             statuses,
-            extractors,
             on_event,
         })
     }
@@ -111,9 +104,9 @@ impl LocalDownloader {
         }
 
         self.tx
-            .send(DownloadJob {
+            .send(DownloaderJob::Download(DownloadJob {
                 url: url.to_string(),
-            })
+            }))
             .await
             .unwrap();
     }
@@ -122,11 +115,9 @@ impl LocalDownloader {
         self.statuses.lock().unwrap().clone()
     }
 
-    pub fn reload_extractors(&self) {
-        for extractor in self.extractors.iter() {
-            if let Err(e) = extractor.reload() {
-                error!("failed to reload extractor: {e}");
-            }
+    pub async fn reload_extractors(&self) {
+        if let Err(e) = self.tx.send(DownloaderJob::ReloadExtractors).await {
+            eprintln!("failed to queue extractor reload: {e}");
         }
     }
 }

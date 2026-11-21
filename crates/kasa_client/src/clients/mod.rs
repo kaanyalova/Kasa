@@ -3,20 +3,11 @@ mod downloader;
 pub mod local;
 pub mod remote;
 
-<<<<<<< HEAD
-use std::{path::Path, sync::Arc};
-
-use async_trait::async_trait;
-use kasa_core::{
-    config::global_config::{
-        GlobalConfig, get_config_from_path, get_config_from_raw, get_config_impl,
-    },
-=======
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use kasa_core::{
->>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
+    config::global_config::GlobalConfig,
     db::{
         TagQueryOutput,
         embeddings::EmbeddingDistance,
@@ -83,23 +74,7 @@ pub trait KasaClient: Send + Sync {
     ) -> Result<Vec<TagWithCount>, ClientError>;
 
     async fn push_download(&self, url: &str) -> Result<(), ClientError>;
-<<<<<<< HEAD
 
     fn load_config_from_path(&self, path: &str) -> GlobalConfig;
     fn load_config_from_raw(&self, config_contents: &str) -> GlobalConfig;
-}
-
-// uniffi cannot have default traits implementations now, they are here for now
-pub struct KasaSharedMethods {}
-
-impl KasaSharedMethods {
-    pub fn load_config_from_path(path: &str) -> GlobalConfig {
-        get_config_from_path(Path::new(path))
-    }
-
-    pub fn load_config_from_raw(config_contents: &str) -> GlobalConfig {
-        get_config_from_raw(config_contents)
-    }
-=======
->>>>>>> 822088046bca79d7b319dc78a2c1c4c4ed8e8d1e
 }

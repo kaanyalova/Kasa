@@ -49,7 +49,7 @@ toml_edit = { workspace = true, features = ["serde"] }
 xxhash-rust = { workspace = true, features = ["xxh3"] }
 anyhow.workspace = true
 walkdir = { workspace = true }
-image = { workspace = true }
+image = { workspace = true, features = ["webp", "nasm"] }
 axum = { workspace = true }
 rustpython-vm = { workspace = true, features = ["freeze-stdlib"] }
 axum-macros = { workspace = true }
@@ -88,3 +88,5 @@ xz = { workspace = true }
 default = []
 swf_thumbnailer = ["dep:ruffle_core", "dep:ruffle_render_wgpu"]
 #ai_tagger_rocm = ["ai_tagger", "dep:ort/rocm"]
+[target.'cfg(not(target_os = "android"))'.dependencies]
+image = { workspace = true, features = ["avif-native"] }

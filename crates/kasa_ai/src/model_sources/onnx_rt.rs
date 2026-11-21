@@ -164,7 +164,7 @@ pub fn possibly_get_cuda_version() -> Option<i32> {
     #[cfg(target_os = "windows")]
     let possible_runtime_paths = ["cudart64_13.dll", "cudart64_12.dll"];
     #[cfg(not(any(target_os = "windows", target_os = "linux")))]
-    let possible_runtime_paths = [];
+    let possible_runtime_paths: [&str; 0] = [];
 
     for possible_runtime in possible_runtime_paths {
         unsafe {

@@ -72,6 +72,8 @@
 							fileSize={status.bytes_total}
 							extractorName={status.extractor}
 							url={status.url}
+							didFail={false}
+							failureReason=""
 						></DownloaderRow>
 					{/each}
 				</ul>

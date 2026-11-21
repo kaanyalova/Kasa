@@ -13,12 +13,19 @@
 		</div>
 
 		<ProgressBar progress={downloadedSize / fileSize} />
-		<span class="valueText">
-			{humanFileSize(downloadedSize)}
-			/
-			{humanFileSize(fileSize)}
-			({humanFileSize(downloadSpeed)}/s)
-		</span>
+
+		<div class="bottomRow">
+			<div class="bottomRowLeftSide">
+				{humanFileSize(downloadedSize)}
+				/
+				{humanFileSize(fileSize)}
+				({humanFileSize(downloadSpeed)}/s)
+			</div>
+
+			<div class="bottomRowRightSide">
+				<button class="cancelButton">Cancel</button>
+			</div>
+		</div>
 	</div>
 </li>
 
@@ -44,7 +51,31 @@
 		vertical-align: bottom;
 	}
 
-	.valueText {
+	.bottomRow {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.cancelButton {
+		font-size: small;
+		padding: 2px;
+		background-color: var(--destructive);
+		border-radius: 2px;
+		border: 1px solid var(--destructive-border);
+		padding-right: 8px;
+		padding-left: 8px;
+		cursor: pointer;
+		margin-bottom: 2px;
+	}
+
+	.cancelButton:hover {
+		background-color: var(--destructive-border);
+	}
+
+	.bottomRowRightSide {
+	}
+
+	.bottomRowLeftSide {
 		font-family: 'UbuntuMono';
 		font-size: small;
 		position: relative;
@@ -59,6 +90,7 @@
 
 	.extractor {
 		padding-right: 2px;
+		margin: 2px;
 		text-align: bottom;
 		font-size: small;
 		font-family: 'UbuntuMono';

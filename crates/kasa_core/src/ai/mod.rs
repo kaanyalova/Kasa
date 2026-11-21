@@ -25,8 +25,8 @@ impl AIWorker {
     }
 
     pub fn initialize(&mut self) {
-        self.model_manager =
-            ModelManager::new(rt_path, models_path, on_download_progress, on_ai_progress)
+        //self.model_manager =
+        //     ModelManager::new(rt_path, models_path, on_download_progress, on_ai_progress)
     }
 
     fn update_progress_state(&mut self, progress: AiProgress) {

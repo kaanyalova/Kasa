@@ -4,4 +4,6 @@ type DownloaderRowProps = {
 	downloadSpeed: number;
 	url: string;
 	extractorName: string;
+	didFail: boolean?;
+	failureReason: string?;
 };

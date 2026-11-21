@@ -11,6 +11,7 @@
 	--border-on-secondary-alt: color-mix(in srgb, var(--primary) 20%, var(--secondary-alt) 80%);
 
 	--destructive: #7e3032;
+	--destructive-border: color-mix(in srgb, var(--destructive) 60%, black 40%);
 }
 
 @media (prefers-color-scheme: light) {

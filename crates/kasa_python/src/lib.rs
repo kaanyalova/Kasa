@@ -4,7 +4,7 @@ use anyhow::{Result, anyhow};
 use log::trace;
 use rustpython::{InterpreterBuilder, InterpreterBuilderExt};
 use rustpython_pylib::FROZEN_STDLIB;
-use rustpython_vm::{convert::ToPyObject, py_freeze, pymodule};
+use rustpython_vm::{convert::ToPyObject, py_freeze, pymodule, signal::user_signal_channel};
 use serde::{Deserialize, Serialize};
 
 use serde_json::Value;
@@ -49,10 +49,13 @@ pub fn init_interpreter_with_gallery_dl() -> Interpreter {
         std::fs::write(cert_path, CERT_BYTES).unwrap();
     }
 
+    let (signal_tx, signal_rx) = user_signal_channel();
+
     let builder = InterpreterBuilder::new().init_stdlib();
     let rust_side_module_def = rust_side::module_def(&builder.ctx);
     let builder = builder
         .init_stdlib()
+        .init_hook(|vm| vm.set_user_signal_channel(signal_rx))
         .add_frozen_modules(FROZEN_STDLIB)
         .add_native_module(rust_side_module_def)
         .add_frozen_modules(py_freeze!(

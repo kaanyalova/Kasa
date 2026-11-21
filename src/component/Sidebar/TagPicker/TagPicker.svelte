@@ -35,7 +35,8 @@
 			order_by_date: 'NewestFirst',
 			order_by_resolution: 'None',
 			date_range: null,
-			favorites_only: filterFavorites
+			favorites_only: filterFavorites,
+			special_search: 'None'
 		});
 
 		await commands.searchAndReload();
@@ -58,7 +59,8 @@
 			order_by_date: 'NewestFirst',
 			order_by_resolution: 'None',
 			date_range: null,
-			favorites_only: filterFavorites
+			favorites_only: filterFavorites,
+			special_search: 'None'
 		});
 
 		trace('search via tag picker check');
@@ -158,7 +160,8 @@
 			order_by_date: 'NewestFirst',
 			order_by_resolution: 'None',
 			date_range: null,
-			favorites_only: false
+			favorites_only: false,
+			special_search: 'None'
 		});
 
 		SearchStore.searchContents = '';

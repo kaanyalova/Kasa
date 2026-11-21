@@ -26,5 +26,6 @@
 
 	button.selected {
 		background-color: var(--secondary-alt);
+		border: 1px solid var(--accent);
 	}
 </style>

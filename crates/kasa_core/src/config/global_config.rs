@@ -11,43 +11,7 @@ use toml_edit::{Array, DocumentMut, Value, value};
 
 use crate::thumbnail::thumbnail_image::ThumbnailFormat;
 
-const DEFAULT_CONFIG: &str = r#"
-# Try to avoid using relative paths, they will cause problems, they should never be configured
-# from the GUI anyways
-
-[Database]
-# Path of the currently open database file
-db_path = ""
-db_type = ""
-
-
-[Thumbnails]
-# Path of the db that stores the thumbnails
-thumbs_db_path = "./thumbs.kasa"
-
-# The max resolution for thumbnails, [width, height]
-resolution = [256, 256]
-
-# The file format for thumbnails 
-# it can be one of "png", "jpeg", "webp_lossy", "webp_lossless"
-thumbnail_format = "png"
-
-
-[Downloader]
-# Path that gallery_dl will output the extracted media
-output_path = ""
-
-# Optional: gallery_dl config path 
-# gdl_config_path = "
-
-[Layout]
-show_filenames = false
-thumbnail_scale = 1.5
-
-[Ai]
-onnx_rt_path = ""
-models_base_path = ""
-"#;
+const DEFAULT_CONFIG: &str = include_str!("./default_config.toml");
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, specta::Type, Clone, uniffi::Record)]
 
@@ -297,6 +261,10 @@ fn find_or_create_config(path: &PathBuf) {
 pub struct AiConfig {
     pub onnx_rt_path: String,
     pub models_base_path: String,
+    pub ocr_model: String,
+    pub wdv_model: String,
+    pub image_embedding_model: String,
+    pub text_embedding_model: String,
 }
 
 #[test]

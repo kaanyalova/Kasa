@@ -8,6 +8,7 @@
 	import './SideBarGlobals.scss';
 	import { sidebarStore } from './SidebarStore.svelte';
 	import TagPicker from './TagPicker/TagPicker.svelte';
+	import SearchOptions from './Search/SearchOptions.svelte';
 </script>
 
 <div class="sidebarParent">
@@ -19,6 +20,7 @@
 					<div>
 						<div class="searchContainer">
 							<Search></Search>
+							<SearchOptions></SearchOptions>
 						</div>
 						<div class="invisDraggable" data-tauri-drag-region></div>
 					</div>

@@ -163,6 +163,7 @@
 	}
 	.parentDiv {
 		margin: 15px;
+		margin-bottom: 8px;
 		justify-content: center;
 		display: flex;
 		flex-grow: 1;

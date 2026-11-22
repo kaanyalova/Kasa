@@ -114,7 +114,7 @@ pub fn run() {
         // https://bugs.webkit.org/show_bug.cgi?id=180739
         // https://bugs.webkit.org/buglist.cgi?quicksearch=WEBKIT_DISABLE_COMPOSITING_MODE
         // also broken on gnome-web scrolling fast just crashes the browser??? wtf?
-        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        // std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
 
         // this at least makes it launch but the text is blurry and the canvas calculations are broken
         // (tag list doesn't work properly)

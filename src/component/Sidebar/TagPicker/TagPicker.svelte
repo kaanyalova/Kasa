@@ -176,19 +176,17 @@
 <div class="tagPicker">
 	<div class="tagPickerList">
 		{#if filteredTags.length > 0}
-			{#key filteredTags}
-				<VirtualList height={500} itemCount={filteredTags.length} itemSize={calculateHeight}>
-					{#snippet item({ style, index })}
-						<TagPickerEntry
-							tagName={filteredTags!![index].tag_name}
-							count={filteredTags!![index].count}
-							checkboxState={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
-							{onCheck}
-							{style}
-						/>
-					{/snippet}
-				</VirtualList>
-			{/key}
+			<VirtualList height={500} itemCount={filteredTags.length} itemSize={calculateHeight}>
+				{#snippet item({ style, index })}
+					<TagPickerEntry
+						tagName={filteredTags!![index].tag_name}
+						count={filteredTags!![index].count}
+						checkboxState={checkedTags.get(filteredTags!![index].tag_name) ?? 'unselected'}
+						{onCheck}
+						{style}
+					/>
+				{/snippet}
+			</VirtualList>
 		{/if}
 	</div>
 
@@ -248,6 +246,7 @@
 
 	.tagPickerList :global(.virtual-list-wrapper) {
 		padding-right: 18px;
+		will-change: auto;
 	}
 
 	.search {
